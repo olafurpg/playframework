@@ -14,14 +14,12 @@ import akka.util.Timeout
 
 object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
   // Disable Akka HTTP tests by default until issues in Continuous Integration are resolved
-  private val runTests: Boolean =
-    (System.getProperty("run.akka.http.tests", "false") == "true")
+  private val runTests: Boolean = (System.getProperty("run.akka.http.tests", "false") == "true")
   skipAllIf(!runTests)
 
   sequential
 
-  def requestFromServer[T](path: String)(
-      exec: WSRequest => Future[WSResponse])(
+  def requestFromServer[T](path: String)(exec: WSRequest => Future[WSResponse])(
       routes: PartialFunction[(String, String), Handler])(
       check: WSResponse => T)(implicit awaitTimeout: Timeout): T = {
     running(TestServer(testServerPort,
@@ -79,8 +77,7 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
       }
     }
 
-    def headerDump(headerNames: String*)(
-        implicit request: Request[_]): String = {
+    def headerDump(headerNames: String*)(implicit request: Request[_]): String = {
       val headerGroups: Seq[String] = for (n <- headerNames) yield {
         val headerGroup = request.headers.getAll(n)
         headerGroup.mkString("<", ", ", ">")
@@ -90,9 +87,7 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
 
     "pass request headers to Actions" in {
       requestFromServer("/abc") { request =>
-        request
-          .withHeaders(ACCEPT_ENCODING -> "utf-8", ACCEPT_LANGUAGE -> "en-NZ")
-          .get()
+        request.withHeaders(ACCEPT_ENCODING -> "utf-8", ACCEPT_LANGUAGE -> "en-NZ").get()
       } {
         case ("GET", "/abc") =>
           Action { implicit request =>
@@ -170,10 +165,9 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
           val app = FakeApplication(withRoutes = {
             case ("GET", "/") => Action(Ok(resultString))
           })
-          val server =
-            TestServer(testServerPort,
-                       app,
-                       serverProvider = Some(AkkaHttpServer.provider))
+          val server = TestServer(testServerPort,
+                                  app,
+                                  serverProvider = Some(AkkaHttpServer.provider))
           server.start()
           try {
             val response = await(wsUrl("/")(testServerPort).get())

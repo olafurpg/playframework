@@ -51,8 +51,7 @@ object ServerProvider {
     * @return The server provider, if one was configured.
     * @throws ServerStartException If the ServerProvider couldn't be created.
     */
-  def fromConfiguration(classLoader: ClassLoader,
-                        configuration: Configuration): ServerProvider = {
+  def fromConfiguration(classLoader: ClassLoader, configuration: Configuration): ServerProvider = {
     val ClassNameConfigKey = "play.server.provider"
     val className: String = configuration
       .getString(ClassNameConfigKey)
@@ -60,12 +59,10 @@ object ServerProvider {
               s"No ServerProvider configured with key '$ClassNameConfigKey'"))
     val clazz = try classLoader.loadClass(className) catch {
       case _: ClassNotFoundException =>
-        throw ServerStartException(
-            s"Couldn't find ServerProvider class '$className'")
+        throw ServerStartException(s"Couldn't find ServerProvider class '$className'")
     }
     if (!classOf[ServerProvider].isAssignableFrom(clazz))
-      throw ServerStartException(
-          s"Class ${clazz.getName} must implement ServerProvider interface")
+      throw ServerStartException(s"Class ${clazz.getName} must implement ServerProvider interface")
     val ctor = try clazz.getConstructor() catch {
       case _: NoSuchMethodException =>
         throw ServerStartException(
@@ -79,8 +76,7 @@ object ServerProvider {
     */
   implicit lazy val defaultServerProvider: ServerProvider = {
     val classLoader = this.getClass.getClassLoader
-    val config =
-      Configuration.load(classLoader, System.getProperties, Map.empty, true)
+    val config = Configuration.load(classLoader, System.getProperties, Map.empty, true)
     fromConfiguration(classLoader, config)
   }
 }

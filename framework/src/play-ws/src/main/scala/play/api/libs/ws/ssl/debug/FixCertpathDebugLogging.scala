@@ -20,11 +20,11 @@ import sun.security.util.Debug
   */
 object FixCertpathDebugLogging {
 
-  val logger = org.slf4j.LoggerFactory
-    .getLogger("play.api.libs.ws.ssl.debug.FixCertpathDebugLogging")
+  val logger =
+    org.slf4j.LoggerFactory.getLogger("play.api.libs.ws.ssl.debug.FixCertpathDebugLogging")
 
-  class MonkeyPatchSunSecurityUtilDebugAction(
-      val newDebug: Debug, val newOptions: String) extends FixLoggingAction {
+  class MonkeyPatchSunSecurityUtilDebugAction(val newDebug: Debug, val newOptions: String)
+      extends FixLoggingAction {
     val logger = org.slf4j.LoggerFactory.getLogger(
         "play.api.libs.ws.ssl.debug.FixCertpathDebugLogging.MonkeyPatchSunSecurityUtilDebugAction")
 
@@ -41,8 +41,7 @@ object FixCertpathDebugLogging {
     def isValidClass(className: String): Boolean = {
       if (className.startsWith("java.security.cert")) return true
       if (className.startsWith("sun.security.provider.certpath")) return true
-      if (className.equals("sun.security.x509.InhibitAnyPolicyExtension"))
-        return true
+      if (className.equals("sun.security.x509.InhibitAnyPolicyExtension")) return true
       false
     }
 
@@ -52,8 +51,7 @@ object FixCertpathDebugLogging {
       *
       * @return
       */
-    def isUsingDebug: Boolean =
-      (newOptions != null) && newOptions.contains("certpath")
+    def isUsingDebug: Boolean = (newOptions != null) && newOptions.contains("certpath")
 
     def run() {
       System.setProperty("java.security.debug", newOptions)
@@ -89,8 +87,7 @@ object FixCertpathDebugLogging {
     *
     * @param logger the logger which will receive debug calls.
     */
-  class SunSecurityUtilDebugLogger(logger: org.slf4j.Logger)
-      extends sun.security.util.Debug {
+  class SunSecurityUtilDebugLogger(logger: org.slf4j.Logger) extends sun.security.util.Debug {
     override def println(message: String) {
       if (logger.isDebugEnabled) {
         logger.debug(message)
@@ -105,20 +102,17 @@ object FixCertpathDebugLogging {
   }
 
   def apply(newOptions: String, debugOption: Option[Debug] = None) {
-    logger.trace(
-        s"apply: newOptions = $newOptions, debugOption = $debugOption")
+    logger.trace(s"apply: newOptions = $newOptions, debugOption = $debugOption")
     try {
       val newDebug = debugOption match {
         case Some(d) => d
         case None => new Debug()
       }
-      val action = new MonkeyPatchSunSecurityUtilDebugAction(
-          newDebug, newOptions)
+      val action = new MonkeyPatchSunSecurityUtilDebugAction(newDebug, newOptions)
       AccessController.doPrivileged(action)
     } catch {
       case NonFatal(e) =>
-        throw new IllegalStateException(
-            "CertificateDebug configuration error", e)
+        throw new IllegalStateException("CertificateDebug configuration error", e)
     }
   }
 }

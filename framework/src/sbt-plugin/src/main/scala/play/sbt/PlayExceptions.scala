@@ -13,8 +13,7 @@ object PlayExceptions {
       """(?s)overloaded method value (.*) with alternatives:(.*)cannot be applied to(.*)""".r
     message match {
       case overloaded(method, _, signature) =>
-        "Overloaded method value [" + method + "] cannot be applied to " +
-        signature
+        "Overloaded method value [" + method + "] cannot be applied to " + signature
       case msg => msg
     }
   }
@@ -25,8 +24,7 @@ object PlayExceptions {
           "Unexpected exception",
           message.getOrElse {
             unexpected
-              .map(
-                  t => "%s: %s".format(t.getClass.getSimpleName, t.getMessage))
+              .map(t => "%s: %s".format(t.getClass.getSimpleName, t.getMessage))
               .getOrElse("")
           },
           unexpected.orNull
@@ -35,12 +33,8 @@ object PlayExceptions {
   case class CompilationException(problem: xsbti.Problem)
       extends PlayException.ExceptionSource(
           "Compilation error", filterAnnoyingErrorMessages(problem.message)) {
-    def line =
-      problem.position.line.map(m => m.asInstanceOf[java.lang.Integer]).orNull
-    def position =
-      problem.position.pointer
-        .map(m => m.asInstanceOf[java.lang.Integer])
-        .orNull
+    def line = problem.position.line.map(m => m.asInstanceOf[java.lang.Integer]).orNull
+    def position = problem.position.pointer.map(m => m.asInstanceOf[java.lang.Integer]).orNull
     def input = problem.position.sourceFile.map(IO.read(_)).orNull
     def sourceName = problem.position.sourceFile.map(_.getAbsolutePath).orNull
   }

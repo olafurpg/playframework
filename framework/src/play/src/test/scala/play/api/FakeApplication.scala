@@ -18,12 +18,10 @@ case class FakeApplication(config: Map[String, Any] = Map(),
                            path: File = new File("."),
                            mode: Mode.Mode = Mode.Test,
                            override val global: GlobalSettings = DefaultGlobal,
-                           plugins: Seq[Plugin.Deprecated] = Nil)
-    extends Application {
+                           plugins: Seq[Plugin.Deprecated] = Nil) extends Application {
   val classloader = Thread.currentThread.getContextClassLoader
   lazy val configuration = Configuration.from(config)
-  private val lazyActorSystem =
-    ActorSystemProvider.lazyStart(classloader, configuration)
+  private val lazyActorSystem = ActorSystemProvider.lazyStart(classloader, configuration)
   def actorSystem = lazyActorSystem.get()
   def stop() = lazyActorSystem.close()
   val errorHandler = DefaultHttpErrorHandler

@@ -12,28 +12,24 @@ import play.it._
 import scala.concurrent.Future
 import scala.util.Random
 
-object NettyBadClientHandlingSpec
-    extends BadClientHandlingSpec with NettyIntegrationSpecification
+object NettyBadClientHandlingSpec extends BadClientHandlingSpec with NettyIntegrationSpecification
 object AkkaHttpBadClientHandlingSpec
     extends BadClientHandlingSpec with AkkaHttpIntegrationSpecification
 
-trait BadClientHandlingSpec
-    extends PlaySpecification with ServerIntegrationSpecification {
+trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   "Play" should {
 
-    def withServer[T](
-        errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(
-        block: Port => T) = {
+    def withServer[T](errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(block: Port => T) = {
       val port = testServerPort
 
-      val app = new BuiltInComponentsFromContext(
-          ApplicationLoader.createContext(Environment.simple())) {
-        def router = Router.from {
-          case _ => Action(Results.Ok)
-        }
-        override lazy val httpErrorHandler = errorHandler
-      }.application
+      val app =
+        new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) {
+          def router = Router.from {
+            case _ => Action(Results.Ok)
+          }
+          override lazy val httpErrorHandler = errorHandler
+        }.application
 
       running(TestServer(port, app)) {
         block(port)
@@ -61,8 +57,7 @@ trait BadClientHandlingSpec
 
     "allow accessing the raw unparsed path from an error handler" in withServer(
         new HttpErrorHandler() {
-      def onClientError(
-          request: RequestHeader, statusCode: Int, message: String) =
+      def onClientError(request: RequestHeader, statusCode: Int, message: String) =
         Future.successful(Results.BadRequest("Bad path: " + request.path))
       def onServerError(request: RequestHeader, exception: Throwable) =
         Future.successful(Results.Ok)

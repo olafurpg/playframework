@@ -43,8 +43,7 @@ package scalaguide.http.scalaresults {
 
       "Manipulating HTTP headers" in {
         //#set-headers
-        val result = Ok("Hello World!")
-          .withHeaders(CACHE_CONTROL -> "max-age=3600", ETAG -> "xx")
+        val result = Ok("Hello World!").withHeaders(CACHE_CONTROL -> "max-age=3600", ETAG -> "xx")
         //#set-headers
         testHeader(result, CACHE_CONTROL, "max-age=3600")
         testHeader(result, ETAG, "xx")
@@ -60,9 +59,8 @@ package scalaguide.http.scalaresults {
         //#discarding-cookies
         testHeader(result2, SET_COOKIE, "theme=;")
         //#setting-discarding-cookies
-        val result3 = result
-          .withCookies(Cookie("theme", "blue"))
-          .discardingCookies(DiscardingCookie("skin"))
+        val result3 =
+          result.withCookies(Cookie("theme", "blue")).discardingCookies(DiscardingCookie("skin"))
         //#setting-discarding-cookies
         testHeader(result3, SET_COOKIE, "skin=;")
         testHeader(result3, SET_COOKIE, "theme=blue;")
@@ -70,13 +68,12 @@ package scalaguide.http.scalaresults {
 
       "Changing the charset for text based HTTP responses" in {
         val index = new scalaguide.http.scalaresults.full.Application().index
-        assertAction(index)(
-            res => testContentType(await(res), "charset=iso-8859-1"))
+        assertAction(index)(res => testContentType(await(res), "charset=iso-8859-1"))
       }
 
       "HTML method works" in {
-        val result = scalaguide.http.scalaresults.full.CodeShow
-          .HTML(Codec.javaSupported("iso-8859-1"))
+        val result =
+          scalaguide.http.scalaresults.full.CodeShow.HTML(Codec.javaSupported("iso-8859-1"))
         result must contain("iso-8859-1")
       }
     }

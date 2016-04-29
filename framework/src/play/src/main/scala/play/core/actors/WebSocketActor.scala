@@ -17,18 +17,16 @@ private[play] object WebSocketActor {
     def props[In, Out : ClassTag](enumerator: Enumerator[In],
                                   iteratee: Iteratee[Out, Unit],
                                   createHandler: ActorRef => Props) =
-      Props(new WebSocketActorSupervisor[In, Out](
-              enumerator, iteratee, createHandler))
+      Props(new WebSocketActorSupervisor[In, Out](enumerator, iteratee, createHandler))
   }
 
   /**
     * The actor that supervises and handles all messages to/from the WebSocket actor.
     */
-  private class WebSocketActorSupervisor[In, Out](
-      enumerator: Enumerator[In],
-      iteratee: Iteratee[Out, Unit],
-      createHandler: ActorRef => Props)(implicit messageType: ClassTag[Out])
-      extends Actor {
+  private class WebSocketActorSupervisor[In, Out](enumerator: Enumerator[In],
+                                                  iteratee: Iteratee[Out, Unit],
+                                                  createHandler: ActorRef => Props)(
+      implicit messageType: ClassTag[Out]) extends Actor {
 
     import context.dispatcher
 
@@ -47,8 +45,7 @@ private[play] object WebSocketActor {
     @volatile var shutdown = false
 
     // The actor to handle the WebSocket
-    val webSocketActor =
-      context.watch(context.actorOf(createHandler(self), "handler"))
+    val webSocketActor = context.watch(context.actorOf(createHandler(self), "handler"))
 
     // Use a broadcast enumerator to imperatively push messages into the WebSocket
     val channel = {
@@ -121,8 +118,7 @@ private[play] object WebSocketActor {
     def receive = {
       case c@Connect(requestId, enumerator, iteratee, createHandler) =>
         implicit val mt = c.messageType
-        context.actorOf(WebSocketActorSupervisor.props(
-                            enumerator, iteratee, createHandler),
+        context.actorOf(WebSocketActorSupervisor.props(enumerator, iteratee, createHandler),
                         requestId.toString)
     }
   }
@@ -132,8 +128,7 @@ private[play] object WebSocketActor {
     */
   object WebSocketsExtension extends ExtensionId[WebSocketsExtension] {
     def createExtension(system: ExtendedActorSystem) = {
-      new WebSocketsExtension(
-          system.systemActorOf(WebSocketsActor.props, "websockets"))
+      new WebSocketsExtension(system.systemActorOf(WebSocketsActor.props, "websockets"))
     }
   }
 

@@ -42,8 +42,7 @@ trait WebSocketClient {
 
 object WebSocketClient {
 
-  type Handler = (Enumerator[WebSocketFrame],
-  Iteratee[WebSocketFrame, _]) => Unit
+  type Handler = (Enumerator[WebSocketFrame], Iteratee[WebSocketFrame, _]) => Unit
 
   def create(): WebSocketClient = new DefaultWebSocketClient
 
@@ -94,8 +93,7 @@ object WebSocketClient {
       * Connect to the given URI
       */
     def connect(url: URI, version: WebSocketVersion)(
-        onConnected: (Enumerator[WebSocketFrame],
-        Iteratee[WebSocketFrame, _]) => Unit) = {
+        onConnected: (Enumerator[WebSocketFrame], Iteratee[WebSocketFrame, _]) => Unit) = {
 
       val normalized = url.normalize()
       val tgt =
@@ -113,9 +111,8 @@ object WebSocketClient {
         .connect(new InetSocketAddress(tgt.getHost, tgt.getPort))
         .toScala
         .map { channel =>
-          val handshaker =
-            new WebSocketClientHandshakerFactory().newHandshaker(
-                tgt, version, null, false, Map.empty[String, String])
+          val handshaker = new WebSocketClientHandshakerFactory()
+            .newHandshaker(tgt, version, null, false, Map.empty[String, String])
           channel.getPipeline.addLast(
               "supervisor",
               new WebSocketSupervisor(disconnected, handshaker, onConnected))
@@ -133,36 +130,29 @@ object WebSocketClient {
 
   private class WebSocketSupervisor(disconnected: Promise[Unit],
                                     handshaker: WebSocketClientHandshaker,
-                                    onConnected: Handler)
-      extends SimpleChannelUpstreamHandler {
+                                    onConnected: Handler) extends SimpleChannelUpstreamHandler {
     override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
       e.getMessage match {
         case resp: HttpResponse if handshaker.isHandshakeComplete =>
-          throw new WebSocketException(
-              "Unexpected HttpResponse (status=" + resp.getStatus +
+          throw new WebSocketException("Unexpected HttpResponse (status=" + resp.getStatus +
               ", content=" + resp.getContent.toString(CharsetUtil.UTF_8) + ")")
         case resp: HttpResponse =>
-          handshaker.finishHandshake(
-              ctx.getChannel, e.getMessage.asInstanceOf[HttpResponse])
+          handshaker.finishHandshake(ctx.getChannel, e.getMessage.asInstanceOf[HttpResponse])
           ctx.getPipeline.addLast(
               "websocket",
-              new WebSocketClientHandler(
-                  ctx.getChannel, onConnected, disconnected))
+              new WebSocketClientHandler(ctx.getChannel, onConnected, disconnected))
         case _: WebSocketFrame => ctx.sendUpstream(e)
         case _ => throw new WebSocketException("Unexpected event: " + e)
       }
     }
 
-    override def channelDisconnected(
-        ctx: ChannelHandlerContext, e: ChannelStateEvent) {
+    override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
       disconnected.trySuccess(())
       ctx.sendDownstream(e)
     }
 
-    override def exceptionCaught(
-        ctx: ChannelHandlerContext, e: ExceptionEvent) {
-      val exception = new RuntimeException(
-          "Exception caught in web socket handler", e.getCause)
+    override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
+      val exception = new RuntimeException("Exception caught in web socket handler", e.getCause)
       disconnected.tryFailure(exception)
       ctx.getChannel.close()
       ctx.sendDownstream(e)
@@ -197,24 +187,20 @@ object WebSocketClient {
       }
     }
 
-    override def exceptionCaught(
-        ctx: ChannelHandlerContext, e: ExceptionEvent) {
-      val exception = new RuntimeException(
-          "Exception caught in web socket handler", e.getCause)
+    override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
+      val exception = new RuntimeException("Exception caught in web socket handler", e.getCause)
       disconnected.tryFailure(exception)
       in.end(exception)
       ctx.getChannel.close()
     }
 
-    override def channelDisconnected(
-        ctx: ChannelHandlerContext, e: ChannelStateEvent) = {
+    override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) = {
       disconnected.trySuccess(())
       in.end()
     }
   }
 
-  class WebSocketException(s: String, th: Throwable)
-      extends java.io.IOException(s, th) {
+  class WebSocketException(s: String, th: Throwable) extends java.io.IOException(s, th) {
     def this(s: String) = this(s, null)
   }
 }

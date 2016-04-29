@@ -47,14 +47,11 @@ package test {
         Server.withRouter() {
           case GET(p"/repositories") =>
             Action {
-              Results.Ok(
-                  Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
+              Results.Ok(Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
             }
         } { implicit port =>
           WsTestClient.withClient { client =>
-            val result =
-              Await.result(new GitHubClient(client, "").repositories(),
-                           10.seconds)
+            val result = Await.result(new GitHubClient(client, "").repositories(), 10.seconds)
             result must_== Seq("octocat/Hello-World")
           }
         }
@@ -70,8 +67,7 @@ import scala.concurrent.duration._
 import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
 
-object ScalaTestingWebServiceClients
-    extends Specification with NoTimeConversions {
+object ScalaTestingWebServiceClients extends Specification with NoTimeConversions {
 
   "webservice testing" should {
     "allow mocking a service" in {
@@ -85,8 +81,7 @@ object ScalaTestingWebServiceClients
       Server.withRouter() {
         case GET(p"/repositories") =>
           Action {
-            Results.Ok(
-                Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
+            Results.Ok(Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
           }
       } { implicit port =>
         //#mock-service

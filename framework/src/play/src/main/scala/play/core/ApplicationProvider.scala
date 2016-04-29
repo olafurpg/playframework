@@ -19,16 +19,13 @@ import scala.util.control.NonFatal
   */
 trait SourceMapper {
 
-  def sourceOf(
-      className: String, line: Option[Int] = None): Option[(File, Option[Int])]
+  def sourceOf(className: String, line: Option[Int] = None): Option[(File, Option[Int])]
 
   def sourceFor(e: Throwable): Option[(File, Option[Int])] = {
-    e.getStackTrace
-      .find(element => sourceOf(element.getClassName).isDefined)
-      .flatMap { interestingStackTrace =>
-        sourceOf(interestingStackTrace.getClassName,
-                 Option(interestingStackTrace.getLineNumber))
-      }
+    e.getStackTrace.find(element => sourceOf(element.getClassName).isDefined).flatMap {
+      interestingStackTrace =>
+        sourceOf(interestingStackTrace.getClassName, Option(interestingStackTrace.getLineNumber))
+    }
   }
 }
 
@@ -50,8 +47,7 @@ trait ApplicationProvider {
   /**
     * Handle a request directly, without using the application.
     */
-  def handleWebCommand(
-      requestHeader: play.api.mvc.RequestHeader): Option[Result] = None
+  def handleWebCommand(requestHeader: play.api.mvc.RequestHeader): Option[Result] = None
 }
 
 object ApplicationProvider {

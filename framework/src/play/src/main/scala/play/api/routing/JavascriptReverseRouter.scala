@@ -34,10 +34,8 @@ object JavaScriptReverseRouter {
     * @param routes the routes to include in this JavaScript router
     * @return the JavaScript code
     */
-  def apply(name: String = "Router",
-            ajaxMethod: Option[String] = Some("jQuery.ajax"))(
-      routes: JavaScriptReverseRoute*)(
-      implicit request: RequestHeader): JavaScript = {
+  def apply(name: String = "Router", ajaxMethod: Option[String] = Some("jQuery.ajax"))(
+      routes: JavaScriptReverseRoute*)(implicit request: RequestHeader): JavaScript = {
     apply(name, ajaxMethod, request.host, routes:_*)
   }
 
@@ -82,25 +80,23 @@ object JavaScriptReverseRouter {
     """.stripMargin.format(
         name,
         ajaxMethod
-          .map("ajax:function(c){c=c||{};c.url=r.url;c.type=r.method;return " +
-              _ + "(c)},")
+          .map("ajax:function(c){c=c||{};c.url=r.url;c.type=r.method;return " + _ + "(c)},")
           .getOrElse(""),
         host,
         host,
         routes.map { route =>
-          "_nS('%s'); _root.%s = %s".format(
-              route.name.split('.').dropRight(1).mkString("."),
-              route.name
-                .split('.')
-                .map(name =>
-                      if (jsReservedWords.contains(name)) {
-                    "['" + name + "']"
-                  } else {
-                    "." + name
-                })
-                .mkString("")
-                .tail,
-              route.f)
+          "_nS('%s'); _root.%s = %s".format(route.name.split('.').dropRight(1).mkString("."),
+                                            route.name
+                                              .split('.')
+                                              .map(name =>
+                                                    if (jsReservedWords.contains(name)) {
+                                                  "['" + name + "']"
+                                                } else {
+                                                  "." + name
+                                              })
+                                              .mkString("")
+                                              .tail,
+                                            route.f)
         }.mkString("\n"),
         name)
   }

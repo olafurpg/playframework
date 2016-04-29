@@ -46,7 +46,6 @@ object TemplatesSpec extends Specification {
   def string(bytes: Array[Byte]): String = new String(bytes, "UTF-8")
 
   def consume(enumerator: Enumerator[Array[Byte]]): String = {
-    string(Await.result(enumerator |>>> Iteratee.consume[Array[Byte]](),
-                        Duration(5, "seconds")))
+    string(Await.result(enumerator |>>> Iteratee.consume[Array[Byte]](), Duration(5, "seconds")))
   }
 }

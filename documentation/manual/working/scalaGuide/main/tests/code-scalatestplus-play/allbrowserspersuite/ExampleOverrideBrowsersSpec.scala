@@ -29,8 +29,7 @@ class ExampleOverrideBrowsersSpec
           Action(
               Results
                 .Ok(
-                    "<html>" + "<head><title>Test Page</title></head>" +
-                    "<body>" +
+                    "<html>" + "<head><title>Test Page</title></head>" + "<body>" +
                     "<input type='button' name='b' value='Click Me' onclick='document.title=\"scalatest\"' />" +
                     "</body>" + "</html>"
                 )

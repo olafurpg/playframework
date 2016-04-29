@@ -17,32 +17,26 @@ import java.security.cert.X509Certificate
 
 object CompositeX509KeyManagerSpec extends Specification with Mockito {
 
-  def mockExtendedX509KeyManager(
-      clientResponse: String = null, serverResponse: String = null) =
+  def mockExtendedX509KeyManager(clientResponse: String = null, serverResponse: String = null) =
     new X509ExtendedKeyManager() {
 
       override def chooseEngineClientAlias(keyType: Array[String],
                                            issuers: Array[Principal],
-                                           engine: SSLEngine): String =
-        clientResponse
+                                           engine: SSLEngine): String = clientResponse
 
       override def chooseEngineServerAlias(keyType: String,
                                            issuers: Array[Principal],
-                                           engine: SSLEngine): String =
-        serverResponse
+                                           engine: SSLEngine): String = serverResponse
 
-      def getClientAliases(
-          keyType: String, issuers: Array[Principal]): Array[String] = ???
+      def getClientAliases(keyType: String, issuers: Array[Principal]): Array[String] = ???
 
       def chooseClientAlias(keyType: Array[String],
                             issuers: Array[Principal],
                             socket: Socket): String = ???
 
-      def getServerAliases(
-          keyType: String, issuers: Array[Principal]): Array[String] = ???
+      def getServerAliases(keyType: String, issuers: Array[Principal]): Array[String] = ???
 
-      def chooseServerAlias(
-          keyType: String, issuers: Array[Principal], socket: Socket): String =
+      def chooseServerAlias(keyType: String, issuers: Array[Principal], socket: Socket): String =
         ???
 
       def getCertificateChain(alias: String): Array[X509Certificate] = ???
@@ -67,8 +61,7 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
       }
 
       "return a result" in {
-        val mockKeyManager =
-          mockExtendedX509KeyManager(clientResponse = "clientAlias")
+        val mockKeyManager = mockExtendedX509KeyManager(clientResponse = "clientAlias")
         val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
         val keyType = Array("derp")
         val issuers = Array[Principal]()
@@ -110,8 +103,7 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
       }
 
       "return a result" in {
-        val mockKeyManager =
-          mockExtendedX509KeyManager(serverResponse = "serverAlias")
+        val mockKeyManager = mockExtendedX509KeyManager(serverResponse = "serverAlias")
         val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
         val keyType = "derp"
         val issuers = Array[Principal]()
@@ -177,11 +169,9 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
         val keyType = "derp"
         val issuers = Array[Principal]()
 
-        mockKeyManager.getClientAliases(keyType, issuers) returns Array(
-            "clientAliases")
+        mockKeyManager.getClientAliases(keyType, issuers) returns Array("clientAliases")
 
-        val clientAliases =
-          keyManager.getClientAliases(keyType = keyType, issuers = issuers)
+        val clientAliases = keyManager.getClientAliases(keyType = keyType, issuers = issuers)
         clientAliases must be_==(Array("clientAliases"))
       }
 
@@ -193,8 +183,7 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
 
         mockKeyManager.getClientAliases(keyType, issuers) returns null
 
-        val clientAliases =
-          keyManager.getClientAliases(keyType = keyType, issuers = issuers)
+        val clientAliases = keyManager.getClientAliases(keyType = keyType, issuers = issuers)
         clientAliases must beNull
       }
     }
@@ -206,11 +195,9 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
         val keyType = "derp"
         val issuers = Array[Principal]()
 
-        mockKeyManager.getServerAliases(keyType, issuers) returns Array(
-            "serverAliases")
+        mockKeyManager.getServerAliases(keyType, issuers) returns Array("serverAliases")
 
-        val serverAliases =
-          keyManager.getServerAliases(keyType = keyType, issuers = issuers)
+        val serverAliases = keyManager.getServerAliases(keyType = keyType, issuers = issuers)
         serverAliases must be_==(Array("serverAliases"))
       }
 
@@ -222,8 +209,7 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
 
         mockKeyManager.getServerAliases(keyType, issuers) returns null
 
-        val serverAliases =
-          keyManager.getServerAliases(keyType = keyType, issuers = issuers)
+        val serverAliases = keyManager.getServerAliases(keyType = keyType, issuers = issuers)
         serverAliases must beNull
       }
     }

@@ -31,8 +31,7 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
     * @param callbackURL the URL where the provider should redirect to (usually a URL on the current app)
     * @return A Right(RequestToken) in case of success, Left(OAuthException) otherwise
     */
-  def retrieveRequestToken(
-      callbackURL: String): Either[OAuthException, RequestToken] = {
+  def retrieveRequestToken(callbackURL: String): Either[OAuthException, RequestToken] = {
     val consumer = new DefaultOAuthConsumer(info.key.key, info.key.secret)
     try {
       provider.retrieveRequestToken(consumer, callbackURL)
@@ -50,8 +49,7 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
     * @return A Right(RequestToken) in case of success, Left(OAuthException) otherwise
     */
   def retrieveAccessToken(
-      token: RequestToken,
-      verifier: String): Either[OAuthException, RequestToken] = {
+      token: RequestToken, verifier: String): Either[OAuthException, RequestToken] = {
     val consumer = new DefaultOAuthConsumer(info.key.key, info.key.secret)
     consumer.setTokenWithSecret(token.token, token.secret)
     try {
@@ -102,12 +100,9 @@ class OAuthCalculator(consumerKey: ConsumerKey, requestToken: RequestToken)
 
   import com.ning.http.client.oauth.{ConsumerKey => AHCConsumerKey, RequestToken => AHCRequestToken}
 
-  private val ahcConsumerKey = new AHCConsumerKey(
-      consumerKey.key, consumerKey.secret)
-  private val ahcRequestToken = new AHCRequestToken(
-      requestToken.token, requestToken.secret)
-  private val calculator = new OAuthSignatureCalculator(
-      ahcConsumerKey, ahcRequestToken)
+  private val ahcConsumerKey = new AHCConsumerKey(consumerKey.key, consumerKey.secret)
+  private val ahcRequestToken = new AHCRequestToken(requestToken.token, requestToken.secret)
+  private val calculator = new OAuthSignatureCalculator(ahcConsumerKey, ahcRequestToken)
 
   override def calculateAndAddSignature(
       request: Request, requestBuilder: RequestBuilderBase[_]): Unit = {
@@ -127,8 +122,7 @@ class OAuthCalculator(consumerKey: ConsumerKey, requestToken: RequestToken)
   * }}}
   */
 object OAuthCalculator {
-  def apply(
-      consumerKey: ConsumerKey, token: RequestToken): WSSignatureCalculator = {
+  def apply(consumerKey: ConsumerKey, token: RequestToken): WSSignatureCalculator = {
     new OAuthCalculator(consumerKey, token)
   }
 }

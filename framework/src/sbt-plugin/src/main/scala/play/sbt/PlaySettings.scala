@@ -27,23 +27,20 @@ import WebKeys._
 object PlaySettings {
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
-      TwirlKeys.templateImports ++=
-        TemplateImports.defaultJavaTemplateImports.asScala,
+      TwirlKeys.templateImports ++= TemplateImports.defaultJavaTemplateImports.asScala,
       RoutesKeys.routesImport ++= Seq(
           "play.libs.F"
       )
   )
 
   lazy val defaultScalaSettings = Seq[Setting[_]](
-      TwirlKeys.templateImports ++=
-        TemplateImports.defaultScalaTemplateImports.asScala
+      TwirlKeys.templateImports ++= TemplateImports.defaultScalaTemplateImports.asScala
   )
 
   /** Ask SBT to manage the classpath for the given configuration. */
   def manageClasspath(config: Configuration) =
-    managedClasspath in config <<= (classpathTypes in config, update) map {
-      (ct, report) =>
-        Classpaths.managedJars(config, ct, report)
+    managedClasspath in config <<= (classpathTypes in config, update) map { (ct, report) =>
+      Classpaths.managedJars(config, ct, report)
     }
 
   lazy val defaultSettings = Seq[Setting[_]](
@@ -73,15 +70,14 @@ object PlaySettings {
         .headOption,
       parallelExecution in Test := false,
       fork in Test := true,
-      testOptions in Test += Tests.Argument(
-          TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
+      testOptions in Test +=
+        Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
       testOptions in Test += Tests.Argument(TestFrameworks.JUnit,
                                             "--ignore-runners=org.specs2.runner.JUnitRunner"),
       // Adds app directory's source files to continuous hot reloading
       watchSources <++=
-        (sourceDirectory in Compile, sourceDirectory in Assets) map {
-        (sources, assets) =>
-          (sources ** "*" --- assets ** "*").get
+        (sourceDirectory in Compile, sourceDirectory in Assets) map { (sources, assets) =>
+        (sources ** "*" --- assets ** "*").get
       },
       commands ++= {
         import PlayCommands._
@@ -93,15 +89,13 @@ object PlaySettings {
       },
       // THE `in Compile` IS IMPORTANT!
       Keys.run in Compile <<= PlayRun.playDefaultRunTask,
-      mainClass in (Compile, Keys.run) :=
-        Some("play.core.server.DevServerStart"),
+      mainClass in (Compile, Keys.run) := Some("play.core.server.DevServerStart"),
       PlayInternalKeys.playStop := {
         playInteractionMode.value match {
           case nonBlocking: PlayNonBlockingInteractionMode =>
             nonBlocking.stop()
           case _ =>
-            throw new RuntimeException(
-                "Play interaction mode must be non blocking to stop it")
+            throw new RuntimeException("Play interaction mode must be non blocking to stop it")
         }
       },
       shellPrompt := PlayCommands.playPrompt,
@@ -126,8 +120,8 @@ object PlaySettings {
         (dirs * "routes").get ++ (dirs * "*.routes").get
       },
       playMonitoredFiles <<= PlayCommands.playMonitoredFilesTask,
-      fileWatchService := FileWatchService.defaultWatchService(
-          target.value, pollInterval.value, sLog.value),
+      fileWatchService :=
+        FileWatchService.defaultWatchService(target.value, pollInterval.value, sLog.value),
       playDefaultPort := 9000,
       playDefaultAddress := "0.0.0.0",
       // Default hooks
@@ -149,8 +143,7 @@ object PlaySettings {
       WebKeys.packagePrefix in Assets := assetsPrefix.value,
       playPackageAssets := (packageBin in Assets).value,
       scriptClasspathOrdering += {
-        val (id, art) =
-          (projectID.value, (artifact in (Assets, packageBin)).value)
+        val (id, art) = (projectID.value, (artifact in (Assets, packageBin)).value)
         val jarName = JavaAppPackaging.makeJarName(
             id.organization, id.name, id.revision, art.name, Some("assets"))
         playPackageAssets.value -> ("lib/" + jarName)
@@ -167,8 +160,7 @@ object PlaySettings {
         if (externalizeResources.value) {
           val rdirs = (unmanagedResourceDirectories in Compile).value
           val resourceMappings =
-            ((unmanagedResources in Compile).value --- rdirs) pair
-            (relativeTo(rdirs) | flat)
+            ((unmanagedResources in Compile).value --- rdirs) pair (relativeTo(rdirs) | flat)
           resourceMappings.map {
             case (resource, path) => resource -> ("conf/" + path)
           }
@@ -184,9 +176,7 @@ object PlaySettings {
         val docDirectoryLen = docDirectory.getCanonicalPath.length
         val pathFinder = docDirectory ** "*"
         pathFinder.get map { docFile: File =>
-          docFile ->
-          ("share/doc/api/" +
-              docFile.getCanonicalPath.substring(docDirectoryLen))
+          docFile -> ("share/doc/api/" + docFile.getCanonicalPath.substring(docDirectoryLen))
         }
       },
       mappings in Universal ++= {

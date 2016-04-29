@@ -118,8 +118,7 @@ object WS {
     * @param url the URL to request
     * @param app the implicit application to use.
     */
-  def url(url: String)(implicit app: Application): play.api.libs.ws.WSRequest =
-    wsapi(app).url(url)
+  def url(url: String)(implicit app: Application): play.api.libs.ws.WSRequest = wsapi(app).url(url)
 
   /**
     * Prepares a new request using a provided magnet.  This method gives you the ability to create your own
@@ -157,8 +156,8 @@ object WS {
     * @param url the URL to request
     * @param client the client to use to make the request.
     */
-  def clientUrl(url: String)(
-      implicit client: WSClient): play.api.libs.ws.WSRequest = client.url(url)
+  def clientUrl(url: String)(implicit client: WSClient): play.api.libs.ws.WSRequest =
+    client.url(url)
 }
 
 /**
@@ -250,8 +249,7 @@ case class InMemoryBody(bytes: Array[Byte]) extends WSBody
   * @param bytes An enumerator of the bytes of the body
   */
 case class StreamedBody(bytes: Enumerator[Array[Byte]]) extends WSBody {
-  throw new NotImplementedError(
-      "A streaming request body is not yet implemented")
+  throw new NotImplementedError("A streaming request body is not yet implemented")
 }
 
 /**
@@ -348,8 +346,7 @@ trait WSRequest {
   /**
     * sets the authentication realm
     */
-  def withAuth(
-      username: String, password: String, scheme: WSAuthScheme): WSRequest
+  def withAuth(username: String, password: String, scheme: WSAuthScheme): WSRequest
 
   /**
     * adds any number of HTTP headers
@@ -434,24 +431,21 @@ trait WSRequest {
   /**
     * Perform a PATCH on the request asynchronously.
     */
-  def patch[T](body: T)(implicit wrt: Writeable[T]) =
-    withMethod("PATCH").withBody(body).execute()
+  def patch[T](body: T)(implicit wrt: Writeable[T]) = withMethod("PATCH").withBody(body).execute()
 
   /**
     * Perform a PATCH on the request asynchronously.
     * Request body won't be chunked
     */
-  def patch(body: File) =
-    withMethod("PATCH").withBody(FileBody(body)).execute()
+  def patch(body: File) = withMethod("PATCH").withBody(FileBody(body)).execute()
 
   /**
     * performs a POST with supplied body
     * @param consumer that's handling the response
     */
-  def patchAndRetrieveStream[A, T](
-      body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(
-      implicit wrt: Writeable[T],
-      ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+  def patchAndRetrieveStream[A, T](body: T)(
+      consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(
+      implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     withMethod("PATCH").withBody(body).stream().flatMap {
       case (response, enumerator) =>
         enumerator(consumer(response))
@@ -461,8 +455,7 @@ trait WSRequest {
   /**
     * Perform a POST on the request asynchronously.
     */
-  def post[T](body: T)(implicit wrt: Writeable[T]) =
-    withMethod("POST").withBody(body).execute()
+  def post[T](body: T)(implicit wrt: Writeable[T]) = withMethod("POST").withBody(body).execute()
 
   /**
     * Perform a POST on the request asynchronously.
@@ -474,10 +467,9 @@ trait WSRequest {
     * performs a POST with supplied body
     * @param consumer that's handling the response
     */
-  def postAndRetrieveStream[A, T](
-      body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(
-      implicit wrt: Writeable[T],
-      ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+  def postAndRetrieveStream[A, T](body: T)(
+      consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(
+      implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     withMethod("POST").withBody(body).stream().flatMap {
       case (response, enumerator) =>
         enumerator(consumer(response))
@@ -487,8 +479,7 @@ trait WSRequest {
   /**
     * Perform a PUT on the request asynchronously.
     */
-  def put[T](body: T)(implicit wrt: Writeable[T]) =
-    withMethod("PUT").withBody(body).execute()
+  def put[T](body: T)(implicit wrt: Writeable[T]) = withMethod("PUT").withBody(body).execute()
 
   /**
     * Perform a PUT on the request asynchronously.
@@ -500,10 +491,8 @@ trait WSRequest {
     * performs a PUT with supplied body
     * @param consumer that's handling the response
     */
-  def putAndRetrieveStream[A, T](
-      body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(
-      implicit wrt: Writeable[T],
-      ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+  def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(
+      implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     withMethod("PUT").withBody(body).stream().flatMap {
       case (response, enumerator) =>
         enumerator(consumer(response))
@@ -525,8 +514,7 @@ trait WSRequest {
     */
   def options() = withMethod("OPTIONS").execute()
 
-  def execute(method: String): Future[WSResponse] =
-    withMethod(method).execute()
+  def execute(method: String): Future[WSResponse] = withMethod(method).execute()
 
   /**
     * Execute this request
@@ -650,8 +638,7 @@ case class DefaultWSProxyServer(
                                 password: Option[String] = None,
                                 ntlmDomain: Option[String] = None,
                                 encoding: Option[String] = None,
-                                nonProxyHosts: Option[Seq[String]] = None)
-    extends WSProxyServer
+                                nonProxyHosts: Option[Seq[String]] = None) extends WSProxyServer
 
 /**
   * An HTTP response header (the body has not been retrieved yet)
@@ -663,8 +650,8 @@ trait WSResponseHeaders {
   def headers: Map[String, Seq[String]]
 }
 
-case class DefaultWSResponseHeaders(
-    status: Int, headers: Map[String, Seq[String]]) extends WSResponseHeaders
+case class DefaultWSResponseHeaders(status: Int, headers: Map[String, Seq[String]])
+    extends WSResponseHeaders
 
 /**
   * Sign a WS call with OAuth.

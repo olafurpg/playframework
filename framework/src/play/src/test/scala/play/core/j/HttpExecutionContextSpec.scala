@@ -11,8 +11,7 @@ import play.mvc.Http
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
-object HttpExecutionContextSpec
-    extends Specification with ExecutionSpecification {
+object HttpExecutionContextSpec extends Specification with ExecutionSpecification {
 
   "HttpExecutionContext" should {
 
@@ -25,8 +24,7 @@ object HttpExecutionContextSpec
                                            Map.empty.asJava,
                                            Map.empty.asJava,
                                            Map.empty.asJava)
-        val hec =
-          new HttpExecutionContext(classLoader, httpContext, ec).prepare
+        val hec = new HttpExecutionContext(classLoader, httpContext, ec).prepare
 
         val hecFromThread = new LinkedBlockingQueue[ExecutionContext]()
         hec.execute(new Runnable {
@@ -41,8 +39,7 @@ object HttpExecutionContextSpec
           .poll(5, SECONDS)
           .execute(new Runnable {
             def run() = {
-              actualClassLoader.offer(
-                  Thread.currentThread().getContextClassLoader())
+              actualClassLoader.offer(Thread.currentThread().getContextClassLoader())
               actualHttpContext.offer(Http.Context.current.get())
             }
           })

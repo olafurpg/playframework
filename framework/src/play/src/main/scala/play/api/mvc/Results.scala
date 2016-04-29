@@ -27,8 +27,7 @@ import scala.collection.immutable.TreeMap
 final class ResponseHeader(val status: Int,
                            _headers: Map[String, String] = Map.empty,
                            val reasonPhrase: Option[String] = None) {
-  val headers: Map[String, String] =
-    TreeMap[String, String]()(CaseInsensitiveOrdered) ++ _headers
+  val headers: Map[String, String] = TreeMap[String, String]()(CaseInsensitiveOrdered) ++ _headers
 
   def copy(status: Int = status,
            headers: Map[String, String] = headers,
@@ -48,8 +47,7 @@ object ResponseHeader {
             headers: Map[String, String] = Map.empty,
             reasonPhrase: Option[String] = None): ResponseHeader =
     new ResponseHeader(status, headers)
-  def unapply(
-      rh: ResponseHeader): Option[(Int, Map[String, String], Option[String])] =
+  def unapply(rh: ResponseHeader): Option[(Int, Map[String, String], Option[String])] =
     if (rh eq null) None else Some((rh.status, rh.headers, rh.reasonPhrase))
 }
 
@@ -94,10 +92,9 @@ object HttpConnection extends Enumeration {
   * @param body the response body
   * @param connection the connection semantics to use
   */
-case class Result(
-    header: ResponseHeader,
-    body: Enumerator[Array[Byte]],
-    connection: HttpConnection.Connection = HttpConnection.KeepAlive) {
+case class Result(header: ResponseHeader,
+                  body: Enumerator[Array[Byte]],
+                  connection: HttpConnection.Connection = HttpConnection.KeepAlive) {
 
   /**
     * Adds headers to this result.
@@ -129,8 +126,8 @@ case class Result(
   def withCookies(cookies: Cookie*): Result = {
     if (cookies.isEmpty) this
     else {
-      withHeaders(SET_COOKIE -> Cookies.merge(
-              header.headers.get(SET_COOKIE).getOrElse(""), cookies))
+      withHeaders(
+          SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies))
     }
   }
 
@@ -146,9 +143,8 @@ case class Result(
     * @return the new result
     */
   def discardingCookies(cookies: DiscardingCookie*): Result = {
-    withHeaders(SET_COOKIE -> Cookies.merge(
-            header.headers.get(SET_COOKIE).getOrElse(""),
-            cookies.map(_.toCookie)))
+    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""),
+                                            cookies.map(_.toCookie)))
   }
 
   /**
@@ -178,8 +174,7 @@ case class Result(
     * @param session the session to set with this result
     * @return the new result
     */
-  def withSession(session: (String, String)*): Result =
-    withSession(Session(session.toMap))
+  def withSession(session: (String, String)*): Result = withSession(Session(session.toMap))
 
   /**
     * Discards the existing session for this result.
@@ -222,8 +217,7 @@ case class Result(
     * @param values the flash values to set with this result
     * @return the new result
     */
-  def flashing(values: (String, String)*): Result =
-    flashing(Flash(values.toMap))
+  def flashing(values: (String, String)*): Result = flashing(Flash(values.toMap))
 
   /**
     * Changes the result content type.
@@ -236,8 +230,7 @@ case class Result(
     * @param contentType the new content type.
     * @return the new result
     */
-  def as(contentType: String): Result =
-    withHeaders(CONTENT_TYPE -> contentType)
+  def as(contentType: String): Result = withHeaders(CONTENT_TYPE -> contentType)
 
   /**
     * @param request Current request
@@ -258,8 +251,7 @@ case class Result(
     * @param request Current request
     * @return A copy of this result with `values` added to its session scope.
     */
-  def addingToSession(values: (String, String)*)(
-      implicit request: RequestHeader): Result =
+  def addingToSession(values: (String, String)*)(implicit request: RequestHeader): Result =
     withSession(new Session(session.data ++ values.toMap))
 
   /**
@@ -271,8 +263,7 @@ case class Result(
     * @param request Current request
     * @return A copy of this result with `keys` removed from its session scope.
     */
-  def removingFromSession(keys: String*)(
-      implicit request: RequestHeader): Result =
+  def removingFromSession(keys: String*)(implicit request: RequestHeader): Result =
     withSession(new Session(session.data -- keys))
 
   override def toString = {
@@ -317,8 +308,7 @@ object Codec {
     * Create a Codec from an encoding already supported by the JVM.
     */
   def javaSupported(charset: String) =
-    Codec(charset)(
-        str => str.getBytes(charset), bytes => new String(bytes, charset))
+    Codec(charset)(str => str.getBytes(charset), bytes => new String(bytes, charset))
 
   /**
     * Codec for UTF-8
@@ -338,8 +328,7 @@ trait LegacyI18nSupport {
     *
     * This class exists only for backward compatibility.
     */
-  implicit class ResultWithLang(result: Result)(
-      implicit messagesApi: MessagesApi) {
+  implicit class ResultWithLang(result: Result)(implicit messagesApi: MessagesApi) {
 
     /**
       * Sets the user's language permanently for future requests by storing it in a cookie.
@@ -398,10 +387,9 @@ trait Results {
       */
     def apply[C](content: C)(implicit writeable: Writeable[C]): Result = {
       Result(
-          ResponseHeader(status,
-                         writeable.contentType
-                           .map(ct => Map(CONTENT_TYPE -> ct))
-                           .getOrElse(Map.empty)),
+          ResponseHeader(
+              status,
+              writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
           Enumerator(writeable.transform(content))
       )
     }
@@ -419,19 +407,17 @@ trait Results {
                  onClose: () => Unit = () => ()): Result = {
       val name = fileName(content)
       Result(
-          ResponseHeader(status,
-                         Map(
-                             CONTENT_LENGTH -> content.length.toString,
-                             CONTENT_TYPE -> play.api.libs.MimeTypes
-                               .forFileName(name)
-                               .getOrElse(play.api.http.ContentTypes.BINARY)
-                           ) ++
-                         (if (inline) Map.empty
-                          else
-                            Map(CONTENT_DISPOSITION ->
-                                ("attachment; filename=\"" + name + "\"")))),
-          Enumerator.fromFile(content) &> Enumeratee.onIterateeDone(onClose)(
-              defaultContext)
+          ResponseHeader(
+              status,
+              Map(
+                  CONTENT_LENGTH -> content.length.toString,
+                  CONTENT_TYPE -> play.api.libs.MimeTypes
+                    .forFileName(name)
+                    .getOrElse(play.api.http.ContentTypes.BINARY)
+                ) ++
+              (if (inline) Map.empty
+               else Map(CONTENT_DISPOSITION -> ("attachment; filename=\"" + name + "\"")))),
+          Enumerator.fromFile(content) &> Enumeratee.onIterateeDone(onClose)(defaultContext)
       )
     }
 
@@ -448,19 +434,17 @@ trait Results {
                  onClose: () => Unit = () => ()): Result = {
       val name = fileName(content)
       Result(
-          ResponseHeader(status,
-                         Map(
-                             CONTENT_LENGTH -> Files.size(content).toString,
-                             CONTENT_TYPE -> play.api.libs.MimeTypes
-                               .forFileName(name)
-                               .getOrElse(play.api.http.ContentTypes.BINARY)
-                           ) ++
-                         (if (inline) Map.empty
-                          else
-                            Map(CONTENT_DISPOSITION ->
-                                ("attachment; filename=\"" + name + "\"")))),
-          Enumerator.fromPath(content) &> Enumeratee.onIterateeDone(onClose)(
-              defaultContext)
+          ResponseHeader(
+              status,
+              Map(
+                  CONTENT_LENGTH -> Files.size(content).toString,
+                  CONTENT_TYPE -> play.api.libs.MimeTypes
+                    .forFileName(name)
+                    .getOrElse(play.api.http.ContentTypes.BINARY)
+                ) ++
+              (if (inline) Map.empty
+               else Map(CONTENT_DISPOSITION -> ("attachment; filename=\"" + name + "\"")))),
+          Enumerator.fromPath(content) &> Enumeratee.onIterateeDone(onClose)(defaultContext)
       )
     }
 
@@ -471,10 +455,9 @@ trait Results {
       * @param classLoader The classloader to load it from, defaults to the classloader for this class.
       * @param inline Whether it should be served as an inline file, or as an attachment.
       */
-    def sendResource(
-        resource: String,
-        classLoader: ClassLoader = Results.getClass.getClassLoader,
-        inline: Boolean = true): Result = {
+    def sendResource(resource: String,
+                     classLoader: ClassLoader = Results.getClass.getClassLoader,
+                     inline: Boolean = true): Result = {
       val stream = classLoader.getResourceAsStream(resource)
       val fileName = resource.split('/').last
       Result(
@@ -487,9 +470,7 @@ trait Results {
                     .getOrElse(ContentTypes.BINARY)
                 ) ++
               (if (inline) Map.empty
-               else
-                 Map(CONTENT_DISPOSITION ->
-                     ("attachment; filename=\"" + fileName + "\"")))),
+               else Map(CONTENT_DISPOSITION -> ("attachment; filename=\"" + fileName + "\"")))),
           Enumerator.fromStream(stream)(defaultContext)
       )
     }
@@ -505,8 +486,7 @@ trait Results {
       *
       * @param content Enumerator providing the content to stream.
       */
-    def chunked[C](content: Enumerator[C])(
-        implicit writeable: Writeable[C]): Result = {
+    def chunked[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
       Result(header = ResponseHeader(status,
                                      writeable.contentType
                                        .map(ct =>
@@ -529,13 +509,11 @@ trait Results {
       *
       * @param content Enumerator providing the content to stream.
       */
-    def feed[C](content: Enumerator[C])(
-        implicit writeable: Writeable[C]): Result = {
+    def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
       Result(
-          header = ResponseHeader(status,
-                                  writeable.contentType
-                                    .map(ct => Map(CONTENT_TYPE -> ct))
-                                    .getOrElse(Map.empty)),
+          header = ResponseHeader(
+                status,
+                writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
           body = content &> writeable.toEnumeratee,
           connection = HttpConnection.Close
       )
@@ -549,13 +527,11 @@ trait Results {
       *
       * @param content Enumerator providing the content to stream.
       */
-    def stream[C](content: Enumerator[C])(
-        implicit writeable: Writeable[C]): Result = {
+    def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
       Result(
-          header = ResponseHeader(status,
-                                  writeable.contentType
-                                    .map(ct => Map(CONTENT_TYPE -> ct))
-                                    .getOrElse(Map.empty)),
+          header = ResponseHeader(
+                status,
+                writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
           body = content &> writeable.toEnumeratee,
           connection = HttpConnection.KeepAlive
       )
@@ -575,7 +551,7 @@ trait Results {
     */
   def chunk(
       trailers: Option[Iteratee[Array[Byte], Seq[(String, String)]]] = None
-      ): Enumeratee[Array[Byte], Array[Byte]] = {
+  ): Enumeratee[Array[Byte], Array[Byte]] = {
 
     // Enumeratee that formats each chunk.
     val formatChunks = Enumeratee.map[Array[Byte]] { data =>
@@ -607,15 +583,13 @@ trait Results {
         trailers match {
           case Some(trailersIteratee) => {
               // Zip the trailers iteratee with the inner iteratee
-              Enumeratee.zipWith(chunkedInner, trailersIteratee) {
-                (it, trailers) =>
-                  // Create last chunk
-                  val lastChunk = trailers
-                    .map(t => t._1 + ": " + t._2 + "\r\n")
-                    .mkString("0\r\n", "", "\r\n")
-                    .getBytes("UTF-8")
-                  Iteratee.flatten(
-                      Enumerator(lastChunk) >>> Enumerator.eof |>> it)
+              Enumeratee.zipWith(chunkedInner, trailersIteratee) { (it, trailers) =>
+                // Create last chunk
+                val lastChunk = trailers
+                  .map(t => t._1 + ": " + t._2 + "\r\n")
+                  .mkString("0\r\n", "", "\r\n")
+                  .getBytes("UTF-8")
+                Iteratee.flatten(Enumerator(lastChunk) >>> Enumerator.eof |>> it)
               }
             }
           case None => {
@@ -636,8 +610,7 @@ trait Results {
     * Chunk content may span multiple elements in the stream.
     */
   def dechunk: Enumeratee[Array[Byte], Array[Byte]] = {
-    dechunk0 ><> Enumeratee.takeWhile[Either[
-            Array[Byte], Seq[(String, String)]]](_.isLeft) ><> Enumeratee.map {
+    dechunk0 ><> Enumeratee.takeWhile[Either[Array[Byte], Seq[(String, String)]]](_.isLeft) ><> Enumeratee.map {
       case Left(data) => data
       case Right(_) => Array.empty
     }
@@ -649,8 +622,7 @@ trait Results {
     *
     * Chunk and trailer content may span multiple elements in the stream.
     */
-  def dechunkWithTrailers: Enumeratee[
-      Array[Byte], Either[Array[Byte], Seq[(String, String)]]] = {
+  def dechunkWithTrailers: Enumeratee[Array[Byte], Either[Array[Byte], Seq[(String, String)]]] = {
     type ChunkOrTrailer = Either[Array[Byte], Seq[(String, String)]]
     dechunk0 ><> Enumeratee.mapFlatten[ChunkOrTrailer][ChunkOrTrailer] {
       case l@Left(_) => Enumerator(l)
@@ -662,8 +634,7 @@ trait Results {
   /**
     * Helper used by both `dechunk` and `dechunkWithTrailers`.
     */
-  private def dechunk0: Enumeratee[
-      Array[Byte], Either[Array[Byte], Seq[(String, String)]]] = {
+  private def dechunk0: Enumeratee[Array[Byte], Either[Array[Byte], Seq[(String, String)]]] = {
 
     // convenience method
     def elOrEmpty(data: Array[Byte]) = {
@@ -671,15 +642,13 @@ trait Results {
     }
 
     // Read a line. Is quite permissive, a line is anything terminated by LF, and trims the result.
-    def readLine(
-        line: List[Array[Byte]] = Nil): Iteratee[Array[Byte], String] = Cont {
+    def readLine(line: List[Array[Byte]] = Nil): Iteratee[Array[Byte], String] = Cont {
       case Input.El(data) => {
           val s = data.takeWhile(_ != '\n')
           if (s.length == data.length) {
             readLine(s :: line)
           } else {
-            Done(new String(Array.concat((s :: line).reverse:_*), "UTF-8")
-                   .trim(),
+            Done(new String(Array.concat((s :: line).reverse:_*), "UTF-8").trim(),
                  elOrEmpty(data.drop(s.length + 1)))
           }
         }
@@ -691,22 +660,19 @@ trait Results {
 
     // Read the data part of a chunk of the given size
     def readChunkData(
-        size: Int,
-        chunk: List[Array[Byte]] = Nil): Iteratee[Array[Byte], Array[Byte]] =
-      Cont {
-        case Input.El(data) => {
-            if (data.length >= size) {
-              Done(Array.concat((data.take(size) :: chunk).reverse:_*),
-                   elOrEmpty(data.drop(size)))
-            } else {
-              readChunkData(size - data.length, data :: chunk)
-            }
+        size: Int, chunk: List[Array[Byte]] = Nil): Iteratee[Array[Byte], Array[Byte]] = Cont {
+      case Input.El(data) => {
+          if (data.length >= size) {
+            Done(Array.concat((data.take(size) :: chunk).reverse:_*), elOrEmpty(data.drop(size)))
+          } else {
+            readChunkData(size - data.length, data :: chunk)
           }
-        case Input.EOF => {
-            Error("EOF found while reading chunk", Input.Empty)
-          }
-        case Input.Empty => readChunkData(size, chunk)
-      }
+        }
+      case Input.EOF => {
+          Error("EOF found while reading chunk", Input.Empty)
+        }
+      case Input.Empty => readChunkData(size, chunk)
+    }
 
     // Read a chunk of the given size
     def readChunk(size: Int) =
@@ -721,9 +687,7 @@ trait Results {
       for {
         trailer <- readLine(Nil)
         trailers <- if (trailer.length > 0) readLastChunk
-                   else
-                     Done[Array[Byte], List[(String, String)]](
-                         List.empty[(String, String)])
+                   else Done[Array[Byte], List[(String, String)]](List.empty[(String, String)])
       } yield {
         trailer.split("""\s*:\s*""", 2) match {
           case Array(key, value) => (key -> value) :: trailers
@@ -733,12 +697,10 @@ trait Results {
       }
 
     // A chunk parser, produces elements that are either chunks or the last chunk trailers
-    val chunkParser: Iteratee[
-        Array[Byte], Either[Array[Byte], Seq[(String, String)]]] = for {
+    val chunkParser: Iteratee[Array[Byte], Either[Array[Byte], Seq[(String, String)]]] = for {
       size <- readLine().map { line =>
         def isHexDigit(c: Char) =
-          Character.isDigit(c) || (c >= 'a' && c <= 'f') ||
-          (c >= 'A' && c <= 'F')
+          Character.isDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
         // Parse the size. Ignore any extensions.
         Integer.parseInt(line.takeWhile(isHexDigit), 16)
       }
@@ -808,8 +770,7 @@ trait Results {
     *
     * @param url the URL to redirect to
     */
-  def TemporaryRedirect(url: String): Result =
-    Redirect(url, TEMPORARY_REDIRECT)
+  def TemporaryRedirect(url: String): Result = Redirect(url, TEMPORARY_REDIRECT)
 
   /** Generates a ‘400 BAD_REQUEST’ result. */
   val BadRequest = new Status(BAD_REQUEST)
@@ -902,8 +863,7 @@ trait Results {
     * @param url the URL to redirect to
     * @param status HTTP status
     */
-  def Redirect(url: String, status: Int): Result =
-    Redirect(url, Map.empty, status)
+  def Redirect(url: String, status: Int): Result = Redirect(url, Map.empty, status)
 
   /**
     * Generates a redirect simple result.
@@ -920,10 +880,8 @@ trait Results {
       url + Option(queryString)
         .filterNot(_.isEmpty)
         .map { params =>
-          (if (url.contains("?")) "&" else "?") + params.toSeq.flatMap {
-            pair =>
-              pair._2.map(
-                  value => (pair._1 + "=" + URLEncoder.encode(value, "utf-8")))
+          (if (url.contains("?")) "&" else "?") + params.toSeq.flatMap { pair =>
+            pair._2.map(value => (pair._1 + "=" + URLEncoder.encode(value, "utf-8")))
           }.mkString("&")
         }
         .getOrElse("")
@@ -943,6 +901,5 @@ trait Results {
     * @param call Call defining the URL to redirect to, which typically comes from the reverse router
     * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
     */
-  def Redirect(call: Call, status: Int): Result =
-    Redirect(call.url, Map.empty, status)
+  def Redirect(call: Call, status: Int): Result = Redirect(call.url, Map.empty, status)
 }

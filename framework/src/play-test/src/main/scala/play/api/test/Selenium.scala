@@ -54,8 +54,7 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String])
     * @param block code to be executed
     */
   def waitUntil[T](timeout: Int, timeUnit: TimeUnit)(block: => T): T = {
-    val wait =
-      new FluentWait[WebDriver](webDriver).withTimeout(timeout, timeUnit)
+    val wait = new FluentWait[WebDriver](webDriver).withTimeout(timeout, timeUnit)
     val f = new Function[WebDriver, T]() {
       def apply(driver: WebDriver): T = {
         block
@@ -72,8 +71,7 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String])
     *
     * @param block code to be executed
     */
-  def waitUntil[T](block: => T): T =
-    waitUntil(3000, TimeUnit.MILLISECONDS)(block)
+  def waitUntil[T](block: => T): T = waitUntil(3000, TimeUnit.MILLISECONDS)(block)
 
   /**
     * retrieves the underlying option interface that can be used
@@ -92,24 +90,21 @@ object TestBrowser {
     *
     * @param baseUrl The default base URL that will be used for relative URLs
     */
-  def default(baseUrl: Option[String] = None) =
-    of(classOf[HtmlUnitDriver], baseUrl)
+  def default(baseUrl: Option[String] = None) = of(classOf[HtmlUnitDriver], baseUrl)
 
   /**
     * Creates a firefox WebBrowser.
     *
     * @param baseUrl The default base URL that will be used for relative URLs
     */
-  def firefox(baseUrl: Option[String] = None) =
-    of(classOf[FirefoxDriver], baseUrl)
+  def firefox(baseUrl: Option[String] = None) = of(classOf[FirefoxDriver], baseUrl)
 
   /**
     * Creates a WebBrowser of the specified class name.
     *
     * @param baseUrl The default base URL that will be used for relative URLs
     */
-  def of[WEBDRIVER <: WebDriver](
-      webDriver: Class[WEBDRIVER], baseUrl: Option[String] = None) =
+  def of[WEBDRIVER <: WebDriver](webDriver: Class[WEBDRIVER], baseUrl: Option[String] = None) =
     TestBrowser(WebDriverFactory(webDriver), baseUrl)
 }
 

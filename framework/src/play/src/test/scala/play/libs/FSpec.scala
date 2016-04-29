@@ -142,10 +142,9 @@ object FSpec extends Specification with ExecutionSpecification {
     "recoverWith from a thrown exception (with default ExecutionContext)" in {
       val p = Promise[Int]()
       val fp = F.Promise.wrap(p.future)
-      val recovered =
-        fp.recoverWith(new F.Function[Throwable, F.Promise[Int]] {
-          def apply(x: Throwable) = F.Promise.pure(99)
-        })
+      val recovered = fp.recoverWith(new F.Function[Throwable, F.Promise[Int]] {
+        def apply(x: Throwable) = F.Promise.pure(99)
+      })
       p.failure(new RuntimeException("x"))
       recovered.get(5, SECONDS) must equalTo(99)
     }
@@ -154,10 +153,9 @@ object FSpec extends Specification with ExecutionSpecification {
       val p = Promise[Int]()
       val fp = F.Promise.wrap(p.future)
       mustExecute(1) { ec =>
-        val recovered =
-          fp.recoverWith(new F.Function[Throwable, F.Promise[Int]] {
-            def apply(x: Throwable) = F.Promise.pure(99)
-          }, ec)
+        val recovered = fp.recoverWith(new F.Function[Throwable, F.Promise[Int]] {
+          def apply(x: Throwable) = F.Promise.pure(99)
+        }, ec)
         p.failure(new RuntimeException("x"))
         recovered.get(5, SECONDS) must equalTo(99)
       }
@@ -177,8 +175,7 @@ object FSpec extends Specification with ExecutionSpecification {
 
     "keep first failure when fallbackTo also fails" in {
       val p1 = F.Promise.throwing[Int](new RuntimeException("1"))
-      val p2 =
-        p1.fallbackTo(F.Promise.throwing[Int](new RuntimeException("2")))
+      val p2 = p1.fallbackTo(F.Promise.throwing[Int](new RuntimeException("2")))
       p2.get(5, SECONDS) must throwA[RuntimeException]("1")
     }
 
@@ -315,10 +312,8 @@ object FSpec extends Specification with ExecutionSpecification {
 
     "throw a promise timeout exception" in {
       //F.Promise.timeout().get(15, SECONDS) must throwA[TimeoutException] // Too slow to run for normal testing
-      F.Promise.timeout(2).get(1, SECONDS) must throwA[
-          F.PromiseTimeoutException]
-      F.Promise.timeout(2, MILLISECONDS).get(1, SECONDS) must throwA[
-          F.PromiseTimeoutException]
+      F.Promise.timeout(2).get(1, SECONDS) must throwA[F.PromiseTimeoutException]
+      F.Promise.timeout(2, MILLISECONDS).get(1, SECONDS) must throwA[F.PromiseTimeoutException]
     }
 
     "combine a sequence of promises from a vararg" in {
@@ -332,9 +327,8 @@ object FSpec extends Specification with ExecutionSpecification {
     "combine a sequence of promises from an iterable" in {
       mustExecute(8) { ec =>
         import F.Promise.pure
-        F.Promise
-          .sequence[Int](Arrays.asList(pure(1), pure(2), pure(3)), ec)
-          .get(5, SECONDS) must equalTo(Arrays.asList(1, 2, 3))
+        F.Promise.sequence[Int](Arrays.asList(pure(1), pure(2), pure(3)), ec).get(5, SECONDS) must equalTo(
+            Arrays.asList(1, 2, 3))
       }
     }
 
@@ -346,8 +340,7 @@ object FSpec extends Specification with ExecutionSpecification {
       tup._2 must equalTo("hello")
     }
 
-    def orDriver(): (Promise[Int], Promise[String],
-    F.Promise[F.Either[Int, String]]) = {
+    def orDriver(): (Promise[Int], Promise[String], F.Promise[F.Either[Int, String]]) = {
       val pl = Promise[Int]()
       val pr = Promise[String]()
       val por = F.Promise

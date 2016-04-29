@@ -25,28 +25,25 @@ package play.api.libs.iteratee {
       *
       * TODO: Rename to `tryFuture`.
       */
-    def eagerFuture[A](body: => A): Future[A] =
-      try Future.successful(body) catch {
-        case NonFatal(e) => Future.failed(e)
-      }
+    def eagerFuture[A](body: => A): Future[A] = try Future.successful(body) catch {
+      case NonFatal(e) => Future.failed(e)
+    }
 
     /**
       * Executes code in the given ExecutionContext, flattening the resulting Future.
       */
-    def executeFuture[A](body: => Future[A])(
-        implicit ec: ExecutionContext): Future[A] = {
+    def executeFuture[A](body: => Future[A])(implicit ec: ExecutionContext): Future[A] = {
       Future {
         body
-      }(ec /* Future.apply will prepare */ ).flatMap(identityFunc
-            .asInstanceOf[Future[A] => Future[A]])(Execution.trampoline)
+      }(ec /* Future.apply will prepare */ )
+        .flatMap(identityFunc.asInstanceOf[Future[A] => Future[A]])(Execution.trampoline)
     }
 
     /**
       * Executes code in the given ExecutionContext, flattening the resulting Iteratee.
       */
     def executeIteratee[A, E](body: => Iteratee[A, E])(
-        implicit ec: ExecutionContext): Iteratee[A, E] =
-      Iteratee.flatten(Future(body)(ec))
+        implicit ec: ExecutionContext): Iteratee[A, E] = Iteratee.flatten(Future(body)(ec))
 
     /**
       * Prepare an ExecutionContext and pass it to the given function, returning the result of

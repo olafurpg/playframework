@@ -30,8 +30,7 @@ object ResultsSpec extends Specification {
     }
 
     "support Content-Type overriding" in {
-      val Result(ResponseHeader(_, headers, _), _, _) =
-        Ok("hello").as("text/html")
+      val Result(ResponseHeader(_, headers, _), _, _) = Ok("hello").as("text/html")
       headers must havePair("Content-Type" -> "text/html")
     }
 
@@ -48,21 +47,18 @@ object ResultsSpec extends Specification {
     }
 
     "support cookies helper" in {
-      val setCookieHeader = Cookies.encode(
-          Seq(Cookie("session", "items"), Cookie("preferences", "blue")))
+      val setCookieHeader =
+        Cookies.encode(Seq(Cookie("session", "items"), Cookie("preferences", "blue")))
 
-      val decodedCookies =
-        Cookies.decode(setCookieHeader).map(c => c.name -> c).toMap
+      val decodedCookies = Cookies.decode(setCookieHeader).map(c => c.name -> c).toMap
       decodedCookies.size must be_==(2)
       decodedCookies("session").value must be_==("items")
       decodedCookies("preferences").value must be_==("blue")
 
       val newCookieHeader =
-        Cookies.merge(setCookieHeader,
-                      Seq(Cookie("lang", "fr"), Cookie("session", "items2")))
+        Cookies.merge(setCookieHeader, Seq(Cookie("lang", "fr"), Cookie("session", "items2")))
 
-      val newDecodedCookies =
-        Cookies.decode(newCookieHeader).map(c => c.name -> c).toMap
+      val newDecodedCookies = Cookies.decode(newCookieHeader).map(c => c.name -> c).toMap
       newDecodedCookies.size must be_==(3)
       newDecodedCookies("session").value must be_==("items2")
       newDecodedCookies("preferences").value must be_==("blue")
@@ -74,8 +70,7 @@ object ResultsSpec extends Specification {
         .withCookies(Cookie("lang", "fr"), Cookie("session", "items2"))
         .discardingCookies(DiscardingCookie("logged"))
 
-      val setCookies =
-        Cookies.decode(headers("Set-Cookie")).map(c => c.name -> c).toMap
+      val setCookies = Cookies.decode(headers("Set-Cookie")).map(c => c.name -> c).toMap
       setCookies.size must be_==(4)
       setCookies("session").value must be_==("items2")
       setCookies("session").maxAge must beNone
@@ -89,8 +84,7 @@ object ResultsSpec extends Specification {
       def testWithCookies(cookies1: List[Cookie],
                           cookies2: List[Cookie],
                           expected: Option[Set[Cookie]]) = {
-        val result =
-          Ok("hello").withCookies(cookies1:_*).withCookies(cookies2:_*)
+        val result = Ok("hello").withCookies(cookies1:_*).withCookies(cookies2:_*)
         result.header.headers.get("Set-Cookie").map(Cookies.decode(_).to[Set]) must_== expected
       }
       val preferencesCookie = Cookie("preferences", "blue")
@@ -112,22 +106,17 @@ object ResultsSpec extends Specification {
     }
 
     "support clearing a language cookie using clearingLang" in {
-      implicit val messagesApi =
-        new DefaultMessagesApi(Environment.simple(),
-                               Configuration.reference,
-                               new DefaultLangs(Configuration.reference))
-      val cookie =
-        Cookies.decode(Ok.clearingLang.header.headers("Set-Cookie")).head
+      implicit val messagesApi = new DefaultMessagesApi(Environment.simple(),
+                                                        Configuration.reference,
+                                                        new DefaultLangs(Configuration.reference))
+      val cookie = Cookies.decode(Ok.clearingLang.header.headers("Set-Cookie")).head
       cookie.name must_== Play.langCookieName
       cookie.value must_== ""
     }
 
     "allow discarding a cookie by deprecated names method" in {
       Cookies
-        .decode(Ok
-              .discardingCookies(DiscardingCookie("blah"))
-              .header
-              .headers("Set-Cookie"))
+        .decode(Ok.discardingCookies(DiscardingCookie("blah")).header.headers("Set-Cookie"))
         .head
         .name must_== "blah"
     }
@@ -135,8 +124,7 @@ object ResultsSpec extends Specification {
     "allow discarding multiple cookies by deprecated names method" in {
       val cookies = Cookies
         .decode(Ok
-              .discardingCookies(DiscardingCookie("foo"),
-                                 DiscardingCookie("bar"))
+              .discardingCookies(DiscardingCookie("foo"), DiscardingCookie("bar"))
               .header
               .headers("Set-Cookie"))
         .map(_.name)
@@ -241,8 +229,7 @@ object ResultsSpec extends Specification {
 
   "chunking enumeratee" should {
     "chunk a stream" in {
-      consume(enumerator("a", "bc", "def") &> chunk) must containTheSameElementsAs(
-          Seq(
+      consume(enumerator("a", "bc", "def") &> chunk) must containTheSameElementsAs(Seq(
               "1\r\na\r\n",
               "2\r\nbc\r\n",
               "3\r\ndef\r\n",
@@ -252,10 +239,8 @@ object ResultsSpec extends Specification {
 
     "support trailers" in {
       consume(enumerator("a", "bc", "def") &> chunk(Some(
-                  Iteratee
-                    .consume[Array[Byte]]()
-                    .map(data => Seq("Full-Data" -> new String(data)))
-                ))) must containTheSameElementsAs(Seq(
+                  Iteratee.consume[Array[Byte]]().map(data => Seq("Full-Data" -> new String(data)))
+              ))) must containTheSameElementsAs(Seq(
               "1\r\na\r\n",
               "2\r\nbc\r\n",
               "3\r\ndef\r\n",
@@ -266,35 +251,29 @@ object ResultsSpec extends Specification {
 
   "dechunking enumeratee" should {
     "dechunk a chunked stream" in {
-      consume(enumerator("a", "bc", "def") &> chunk &> dechunk) must containTheSameElementsAs(
-          Seq(
+      consume(enumerator("a", "bc", "def") &> chunk &> dechunk) must containTheSameElementsAs(Seq(
               "a",
               "bc",
               "def"
           ))
     }
     "dechunk an empty stream" in {
-      consume(enumerator("0\r\n\r\n") &> dechunk) must containTheSameElementsAs(
-          Seq())
+      consume(enumerator("0\r\n\r\n") &> dechunk) must containTheSameElementsAs(Seq())
     }
     "dechunk a stream with trailers, ignoring the trailers" in {
       consume(enumerator("a", "bc", "def") &> chunk(Some(
-                  Iteratee
-                    .consume[Array[Byte]]()
-                    .map(data => Seq("Full-Data" -> new String(data)))
-                )) &> dechunk) must containTheSameElementsAs(Seq(
+                  Iteratee.consume[Array[Byte]]().map(data => Seq("Full-Data" -> new String(data)))
+              )) &> dechunk) must containTheSameElementsAs(Seq(
               "a",
               "bc",
               "def"
           ))
     }
     "dechunk a stream with trailers and get the trailers" in {
-      def consumeWithTrailers(
-          enumerator: Enumerator[Either[Array[Byte], Seq[(String, String)]]]) =
+      def consumeWithTrailers(enumerator: Enumerator[Either[Array[Byte], Seq[(String, String)]]]) =
         Await
           .result(
-              enumerator |>>> Iteratee
-                .getChunks[Either[Array[Byte], Seq[(String, String)]]],
+              enumerator |>>> Iteratee.getChunks[Either[Array[Byte], Seq[(String, String)]]],
               Duration(5, TimeUnit.SECONDS)
           )
           .map {
@@ -303,10 +282,8 @@ object ResultsSpec extends Specification {
           }
 
       consumeWithTrailers(enumerator("a", "bc", "def") &> chunk(Some(
-                  Iteratee
-                    .consume[Array[Byte]]()
-                    .map(_ => Seq("Full-Data" -> "333"))
-                )) &> dechunkWithTrailers) must containTheSameElementsAs(Seq(
+                  Iteratee.consume[Array[Byte]]().map(_ => Seq("Full-Data" -> "333"))
+              )) &> dechunkWithTrailers) must containTheSameElementsAs(Seq(
               Left("a"),
               Left("bc"),
               Left("def"),
@@ -314,8 +291,7 @@ object ResultsSpec extends Specification {
           ))
     }
     "dechunk a stream that is not split at chunks" in {
-      consume(
-          enumerator("1\r\na\r\n2\r\nbc\r\n3\r\ndef\r\n0\r\n\r\n") &> dechunk) must containTheSameElementsAs(
+      consume(enumerator("1\r\na\r\n2\r\nbc\r\n3\r\ndef\r\n0\r\n\r\n") &> dechunk) must containTheSameElementsAs(
           Seq(
               "a",
               "bc",

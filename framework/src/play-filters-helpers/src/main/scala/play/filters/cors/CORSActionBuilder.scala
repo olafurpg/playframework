@@ -16,14 +16,12 @@ import play.api.mvc.{ActionBuilder, Request, Result}
   * @see [[CORSFilter]]
   * @see [[http://www.w3.org/TR/cors/ CORS specification]]
   */
-trait CORSActionBuilder
-    extends ActionBuilder[Request] with AbstractCORSPolicy {
+trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSPolicy {
 
   override protected val logger = Logger.apply(classOf[CORSActionBuilder])
 
   override def invokeBlock[A](
-      request: Request[A],
-      block: Request[A] => Future[Result]): Future[Result] = {
+      request: Request[A], block: Request[A] => Future[Result]): Future[Result] = {
     filterRequest(() => block(request), request)
   }
 }
@@ -61,14 +59,13 @@ object CORSActionBuilder {
     * @param  configuration  The configuration to load the config from
     * @param  configPath  The path to the subtree of the application configuration.
     */
-  def apply(configuration: Configuration,
-            configPath: String = "play.filters.cors"): CORSActionBuilder =
+  def apply(
+      configuration: Configuration, configPath: String = "play.filters.cors"): CORSActionBuilder =
     new CORSActionBuilder {
       override protected def corsConfig = {
         val config = PlayConfig(configuration)
         val prototype = config.get[Config]("play.filters.cors")
-        val corsConfig = PlayConfig(
-            config.get[Config](configPath).withFallback(prototype))
+        val corsConfig = PlayConfig(config.get[Config](configPath).withFallback(prototype))
         CORSConfig.fromUnprefixedConfiguration(corsConfig)
       }
     }

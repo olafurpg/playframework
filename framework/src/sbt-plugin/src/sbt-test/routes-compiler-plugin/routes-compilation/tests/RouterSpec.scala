@@ -7,16 +7,12 @@ object RouterSpec extends PlaySpecification {
 
   "reverse routes containing boolean parameters" in {
     "in the query string" in {
-      controllers.routes.Application.takeBool(true).url must equalTo(
-          "/take-bool?b=true")
-      controllers.routes.Application.takeBool(false).url must equalTo(
-          "/take-bool?b=false")
+      controllers.routes.Application.takeBool(true).url must equalTo("/take-bool?b=true")
+      controllers.routes.Application.takeBool(false).url must equalTo("/take-bool?b=false")
     }
     "in the  path" in {
-      controllers.routes.Application.takeBool2(true).url must equalTo(
-          "/take-bool-2/true")
-      controllers.routes.Application.takeBool2(false).url must equalTo(
-          "/take-bool-2/false")
+      controllers.routes.Application.takeBool2(true).url must equalTo("/take-bool-2/true")
+      controllers.routes.Application.takeBool2(false).url must equalTo("/take-bool-2/false")
     }
   }
 
@@ -27,10 +23,8 @@ object RouterSpec extends PlaySpecification {
       val Some(result2) = route(FakeRequest(GET, "/take-bool?b=false"))
       contentAsString(result2) must equalTo("false")
       // Bind boolean values from 1 and 0 integers too
-      contentAsString(route(FakeRequest(GET, "/take-bool?b=1")).get) must equalTo(
-          "true")
-      contentAsString(route(FakeRequest(GET, "/take-bool?b=0")).get) must equalTo(
-          "false")
+      contentAsString(route(FakeRequest(GET, "/take-bool?b=1")).get) must equalTo("true")
+      contentAsString(route(FakeRequest(GET, "/take-bool?b=0")).get) must equalTo("false")
     }
     "from the path" in new WithApplication() {
       val Some(result) = route(FakeRequest(GET, "/take-bool-2/true"))
@@ -38,18 +32,16 @@ object RouterSpec extends PlaySpecification {
       val Some(result2) = route(FakeRequest(GET, "/take-bool-2/false"))
       contentAsString(result2) must equalTo("false")
       // Bind boolean values from 1 and 0 integers too
-      contentAsString(route(FakeRequest(GET, "/take-bool-2/1")).get) must equalTo(
-          "true")
-      contentAsString(route(FakeRequest(GET, "/take-bool-2/0")).get) must equalTo(
-          "false")
+      contentAsString(route(FakeRequest(GET, "/take-bool-2/1")).get) must equalTo("true")
+      contentAsString(route(FakeRequest(GET, "/take-bool-2/0")).get) must equalTo("false")
     }
   }
 
   "bind int parameters from the query string as a list" in {
 
     "from a list of numbers" in new WithApplication() {
-      val Some(result) = route(FakeRequest(
-              GET, controllers.routes.Application.takeList(List(1, 2, 3)).url))
+      val Some(result) =
+        route(FakeRequest(GET, controllers.routes.Application.takeList(List(1, 2, 3)).url))
       contentAsString(result) must equalTo("1,2,3")
     }
     "from a list of numbers and letters" in new WithApplication() {
@@ -74,8 +66,7 @@ object RouterSpec extends PlaySpecification {
                       staticDecoded: String,
                       queryDecoded: String) = {
       val path = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
-      val expected =
-        s"dynamic=$dynamicDecoded static=$staticDecoded query=$queryDecoded"
+      val expected = s"dynamic=$dynamicDecoded static=$staticDecoded query=$queryDecoded"
       val Some(result) = route(FakeRequest(GET, path))
       val actual = contentAsString(result)
       actual must equalTo(expected)
@@ -86,10 +77,9 @@ object RouterSpec extends PlaySpecification {
                       dynamicEncoded: String,
                       staticEncoded: String,
                       queryEncoded: String) = {
-      val expected =
-        s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
-      val call = controllers.routes.Application
-        .urlcoding(dynamicDecoded, staticDecoded, queryDecoded)
+      val expected = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
+      val call =
+        controllers.routes.Application.urlcoding(dynamicDecoded, staticDecoded, queryDecoded)
       call.url must equalTo(expected)
     }
     checkDecoding("a", "a", "a", "a", "a", "a")
@@ -151,9 +141,7 @@ object RouterSpec extends PlaySpecification {
       controllers.routes.Assets.versioned("css/nonfingerprinted.css").url must_== "/public/css/nonfingerprinted.css"
     }
     "selected the minified non fingerprinted version" in new WithApplication() {
-      controllers.routes.Assets
-        .versioned("css/nonfingerprinted-minmain.css")
-        .url must_== "/public/css/nonfingerprinted-minmain-min.css"
+      controllers.routes.Assets.versioned("css/nonfingerprinted-minmain.css").url must_== "/public/css/nonfingerprinted-minmain-min.css"
     }
   }
 }

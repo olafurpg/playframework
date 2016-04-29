@@ -65,6 +65,5 @@ trait I18NSupportLowPriorityImplicits {
   /**
     * @return A [[Messages]] value that uses the [[Lang]] found in the implicit scope
     */
-  implicit def lang2Messages(implicit lang: Lang): Messages =
-    Messages(lang, messagesApi)
+  implicit def lang2Messages(implicit lang: Lang): Messages = Messages(lang, messagesApi)
 }

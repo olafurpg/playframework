@@ -36,8 +36,7 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
       |codings are assigned a qvalue of 0, except the identity coding which gets q=0.001,
       |which is the lowest possible acceptable qvalue.
       |This seems to be the most consistent behaviour with respect to the other "accept"
-      |header fields described in sect 14.1-5.""".stripMargin in withApplication(
-        Ok("meep")) {
+      |header fields described in sect 14.1-5.""".stripMargin in withApplication(Ok("meep")) {
 
       val (plain, gzipped) = (None, Some("gzip"))
 
@@ -46,8 +45,7 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
       "gzip" !! gzipped | "compress,gzip" !! gzipped | "compress, gzip" !! gzipped | "gzip,compress" !! gzipped | "deflate, gzip,compress" !! gzipped | "gzip, compress" !! gzipped | "identity, gzip, compress" !! gzipped | "GZip" !! gzipped | "*" !! gzipped | "*;q=0" !! plain | "*; q=0" !! plain | "*;q=0.000" !! plain | "gzip;q=0" !! plain | "gzip; q=0.00" !! plain | "*;q=0, gZIP" !! gzipped | "compress;q=0.1, *;q=0, gzip" !! gzipped | "compress;q=0.1, *;q=0, gzip;q=0.005" !! gzipped | "compress, gzip;q=0.001" !! gzipped | "compress, gzip;q=0.002" !! gzipped | "compress;q=1, *;q=0, gzip;q=0.000" !! plain | "compress;q=1, *;q=0" !! plain | "identity" !! plain | "gzip;q=0.5, identity" !! plain | "gzip;q=0.5, identity;q=1" !! plain | "gzip;q=0.6, identity;q=0.5" !! gzipped | "*;q=0.7, gzip;q=0.6, identity;q=0.4" !! gzipped | "" !! plain |> {
 
         (codings, expectedEncoding) =>
-          header(CONTENT_ENCODING, requestAccepting(codings)) must be equalTo
-          (expectedEncoding)
+          header(CONTENT_ENCODING, requestAccepting(codings)) must be equalTo (expectedEncoding)
       }
     }
 
@@ -56,8 +54,7 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
     }
 
     "not gzip HEAD requests" in withApplication(Ok) {
-      checkNotGzipped(route(FakeRequest("HEAD", "/").withHeaders(
-                              ACCEPT_ENCODING -> "gzip")).get,
+      checkNotGzipped(route(FakeRequest("HEAD", "/").withHeaders(ACCEPT_ENCODING -> "gzip")).get,
                       "")
     }
 
@@ -69,14 +66,12 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
       checkNotGzipped(makeGzipRequest, "")
     }
 
-    "not gzip chunked responses" in withApplication(
-        Ok.chunked(Enumerator("foo", "bar"))) {
+    "not gzip chunked responses" in withApplication(Ok.chunked(Enumerator("foo", "bar"))) {
       val result = makeGzipRequest
       header(CONTENT_ENCODING, result) must beNone
       header(CONTENT_LENGTH, result) must beNone
       header(TRANSFER_ENCODING, result) must beSome("chunked")
-      new String(await(await(result).body &> dechunk |>>> Iteratee
-                       .consume[Array[Byte]]()),
+      new String(await(await(result).body &> dechunk |>>> Iteratee.consume[Array[Byte]]()),
                  "UTF-8") must_== "foobar"
     }
 
@@ -104,12 +99,11 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
       checkGzipped(result)
       header(CONTENT_LENGTH, result) must beNone
       header(TRANSFER_ENCODING, result) must beSome("chunked")
-      gunzip(await(await(result).body &> dechunk |>>> Iteratee
-                .consume[Array[Byte]]())) must_== body
+      gunzip(await(await(result).body &> dechunk |>>> Iteratee.consume[Array[Byte]]())) must_== body
     }
 
-    "buffer the first chunk even if it exceeds the threshold" in withApplication(
-        Ok("foobarblah"), 15) {
+    "buffer the first chunk even if it exceeds the threshold" in withApplication(Ok("foobarblah"),
+                                                                                 15) {
       checkGzippedBody(makeGzipRequest, "foobarblah")
     }
 
@@ -123,8 +117,7 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
         Ok("hello").withHeaders(VARY -> "original")) {
       val result = makeGzipRequest
       checkGzipped(result)
-      header(VARY, result) must beSome.which(
-          header => header contains "original,")
+      header(VARY, result) must beSome.which(header => header contains "original,")
     }
   }
 
@@ -132,8 +125,7 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
     def filters = Seq(gzipFilter)
   }
 
-  def withApplication[T](result: Result, chunkedThreshold: Int = 1024)(
-      block: => T): T = {
+  def withApplication[T](result: Result, chunkedThreshold: Int = 1024)(block: => T): T = {
     running(new GuiceApplicationBuilder()
           .configure(
               "play.filters.gzip.chunkedThreshold" -> chunkedThreshold,
@@ -169,8 +161,7 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
   def checkGzippedBody(result: Future[Result], body: String) = {
     checkGzipped(result)
     val resultBody = contentAsBytes(result)
-    header(CONTENT_LENGTH, result) must beSome(
-        Integer.toString(resultBody.length))
+    header(CONTENT_LENGTH, result) must beSome(Integer.toString(resultBody.length))
     gunzip(resultBody) must_== body
   }
 

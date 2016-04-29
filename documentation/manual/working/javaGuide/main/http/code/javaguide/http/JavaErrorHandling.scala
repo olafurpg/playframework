@@ -12,8 +12,7 @@ object JavaErrorHandling extends PlaySpecification with WsTestClient {
 
   def fakeApp[A](implicit ct: ClassTag[A]) = {
     FakeApplication(
-        additionalConfiguration = Map(
-              "play.http.errorHandler" -> ct.runtimeClass.getName),
+        additionalConfiguration = Map("play.http.errorHandler" -> ct.runtimeClass.getName),
         withRoutes = {
           case (_, "/error") => Action(_ => throw new RuntimeException("foo"))
         }
@@ -21,16 +20,12 @@ object JavaErrorHandling extends PlaySpecification with WsTestClient {
   }
 
   "java error handling" should {
-    "allow providing a custom error handler" in new WithServer(
-        fakeApp[root.ErrorHandler]) {
-      await(wsUrl("/error").get()).body must startWith(
-          "A server error occurred: ")
+    "allow providing a custom error handler" in new WithServer(fakeApp[root.ErrorHandler]) {
+      await(wsUrl("/error").get()).body must startWith("A server error occurred: ")
     }
 
-    "allow providing a custom error handler" in new WithServer(
-        fakeApp[`def`.ErrorHandler]) {
-      await(wsUrl("/error").get()).body must not startWith
-      ("A server error occurred: ")
+    "allow providing a custom error handler" in new WithServer(fakeApp[`def`.ErrorHandler]) {
+      await(wsUrl("/error").get()).body must not startWith ("A server error occurred: ")
     }
   }
 }

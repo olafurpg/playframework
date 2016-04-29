@@ -10,17 +10,14 @@ import org.specs2.mutable._
 import concurrent.duration.Duration
 import concurrent.Await
 
-object ParsingSpec
-    extends Specification with IterateeSpecification
-    with ExecutionSpecification {
+object ParsingSpec extends Specification with IterateeSpecification with ExecutionSpecification {
 
   "Parsing" should {
 
     "split case 1" in {
       mustExecute(10) { foldEC =>
         val data = Enumerator(
-            List("xx", "kxckikixckikio", "cockik", "isdodskikisd", "ksdloii")
-              .map(_.getBytes):_*)
+            List("xx", "kxckikixckikio", "cockik", "isdodskikisd", "ksdloii").map(_.getBytes):_*)
         val parsed =
           data |>>> Parsing
             .search("kiki".getBytes)

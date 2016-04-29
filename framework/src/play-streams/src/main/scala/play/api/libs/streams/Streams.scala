@@ -15,8 +15,7 @@ object Streams {
     * Publisher will emit a single element with the value. For a failed
     * Future the Publisher will emit an onError event.
     */
-  def futureToPublisher[T](fut: Future[T]): Publisher[T] =
-    new impl.FuturePublisher(fut)
+  def futureToPublisher[T](fut: Future[T]): Publisher[T] = new impl.FuturePublisher(fut)
 
   /**
     * Adapt a Promise into a Subscriber. The Subscriber accepts a
@@ -26,8 +25,7 @@ object Streams {
     *
     * A call to onError after onNext is called will be ignored.
     */
-  def promiseToSubscriber[T](prom: Promise[T]): Subscriber[T] =
-    new impl.PromiseSubscriber(prom)
+  def promiseToSubscriber[T](prom: Promise[T]): Subscriber[T] = new impl.PromiseSubscriber(prom)
 
   /**
     * Adapt a Promise into a Processor, creating an Processor that
@@ -64,8 +62,7 @@ object Streams {
     * careful because this means that it is possible for the Subscriber
     * to "consume" events, even if the Iteratee doesn't.
     */
-  def iterateeToSubscriber[T, U](
-      iter: Iteratee[T, U]): (Subscriber[T], Iteratee[T, U]) = {
+  def iterateeToSubscriber[T, U](iter: Iteratee[T, U]): (Subscriber[T], Iteratee[T, U]) = {
     val subr = new impl.IterateeSubscriber(iter)
     val resultIter = subr.result
     (subr, resultIter)
@@ -84,8 +81,7 @@ object Streams {
     iterateeFoldToPublisher[T, U, U](iter, {
       case Step.Done(x, _) => Future.successful(x)
       case notDone: Step [T, U] =>
-        Future.failed(
-            new Exception("Can only get value from Done iteratee: $notDone"))
+        Future.failed(new Exception("Can only get value from Done iteratee: $notDone"))
     })(Execution.trampoline)
   }
 
@@ -93,8 +89,7 @@ object Streams {
     * Fold an Iteratee and publish its result. This method is used
     * by iterateeDoneToPublisher to extract the value of a Done iteratee.
     */
-  private def iterateeFoldToPublisher[T, U, V](
-      iter: Iteratee[T, U], f: Step[T, U] => Future[V])(
+  private def iterateeFoldToPublisher[T, U, V](iter: Iteratee[T, U], f: Step[T, U] => Future[V])(
       implicit ec: ExecutionContext): Publisher[V] = {
     val fut: Future[V] = iter.fold(f)(ec.prepare)
     val pubr: Publisher[V] = futureToPublisher(fut)
@@ -123,8 +118,7 @@ object Streams {
     * be ignored. If it is set to Some(x) then it will call onNext
     * with the value x.
     */
-  def enumeratorToPublisher[T](
-      enum: Enumerator[T], emptyElement: Option[T] = None): Publisher[T] =
+  def enumeratorToPublisher[T](enum: Enumerator[T], emptyElement: Option[T] = None): Publisher[T] =
     new impl.EnumeratorPublisher(enum, emptyElement)
 
   /**

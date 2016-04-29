@@ -47,12 +47,10 @@ object BuildSettings {
     scalariformSettings ++ Seq(
         organization := "com.typesafe.play",
         homepage := Some(url("https://playframework.com")),
-        licenses +=
-        ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html")),
+        licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html")),
         ivyLoggingLevel := UpdateLogging.DownloadOnly,
         resolvers ++= ResolverSettings.playResolvers,
-        resolvers +=
-          "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases", // specs2 depends on scalaz-stream
+        resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases", // specs2 depends on scalaz-stream
         javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:-options"),
         scalacOptions ++= Seq("-encoding",
                               "UTF-8",
@@ -74,8 +72,7 @@ object BuildSettings {
     playCommonSettings ++ mimaDefaultSettings ++ Seq(
         previousArtifact := {
           if (crossPaths.value) {
-            Some(
-                organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % previousVersion)
+            Some(organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % previousVersion)
           } else {
             Some(organization.value % moduleName.value % previousVersion)
           }
@@ -198,8 +195,7 @@ object BuildSettings {
     }
   }
 
-  val scalaParserCombinators =
-    "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1"
+  val scalaParserCombinators = "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1"
 }
 
 object PlayBuild extends Build {
@@ -209,73 +205,58 @@ object PlayBuild extends Build {
   import Generators._
   import Tasks._
 
-  lazy val BuildLinkProject =
-    PlayNonCrossBuiltProject("Build-Link", "build-link")
-      .settings(libraryDependencies ++= link)
-      .dependsOn(PlayExceptionsProject)
+  lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "build-link")
+    .settings(libraryDependencies ++= link)
+    .dependsOn(PlayExceptionsProject)
 
-  lazy val RunSupportProject =
-    PlayDevelopmentProject("Run-Support", "run-support")
-      .settings(libraryDependencies ++=
-            runSupportDependencies(sbtVersion.value, scalaVersion.value))
-      .dependsOn(BuildLinkProject)
+  lazy val RunSupportProject = PlayDevelopmentProject("Run-Support", "run-support")
+    .settings(libraryDependencies ++= runSupportDependencies(sbtVersion.value, scalaVersion.value))
+    .dependsOn(BuildLinkProject)
 
   // extra run-support project that is only compiled against sbt scala version
-  lazy val SbtRunSupportProject =
-    PlaySbtProject("SBT-Run-Support", "run-support")
-      .settings(
-          target := target.value / "sbt-run-support",
-          libraryDependencies ++=
-            runSupportDependencies(sbtVersion.value, scalaVersion.value)
-      )
-      .dependsOn(BuildLinkProject)
+  lazy val SbtRunSupportProject = PlaySbtProject("SBT-Run-Support", "run-support")
+    .settings(
+        target := target.value / "sbt-run-support",
+        libraryDependencies ++= runSupportDependencies(sbtVersion.value, scalaVersion.value)
+    )
+    .dependsOn(BuildLinkProject)
 
-  lazy val RoutesCompilerProject =
-    PlaySbtProject("Routes-Compiler", "routes-compiler")
-      .enablePlugins(SbtTwirl)
-      .settings(
-          libraryDependencies ++= routesCompilerDependencies,
-          TwirlKeys.templateFormats :=
-            Map("twirl" -> "play.routes.compiler.ScalaFormat")
-      )
+  lazy val RoutesCompilerProject = PlaySbtProject("Routes-Compiler", "routes-compiler")
+    .enablePlugins(SbtTwirl)
+    .settings(
+        libraryDependencies ++= routesCompilerDependencies,
+        TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
+    )
 
-  lazy val IterateesProject =
-    PlayCrossBuiltProject("Play-Iteratees", "iteratees")
-      .settings(libraryDependencies ++= iterateesDependencies)
+  lazy val IterateesProject = PlayCrossBuiltProject("Play-Iteratees", "iteratees")
+    .settings(libraryDependencies ++= iterateesDependencies)
 
-  lazy val StreamsProject =
-    PlayCrossBuiltProject("Play-Streams-Experimental", "play-streams")
-      .settings(libraryDependencies ++= streamsDependencies)
-      .dependsOn(IterateesProject)
+  lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams-Experimental", "play-streams")
+    .settings(libraryDependencies ++= streamsDependencies)
+    .dependsOn(IterateesProject)
 
-  lazy val FunctionalProject = PlayCrossBuiltProject(
-      "Play-Functional", "play-functional")
+  lazy val FunctionalProject = PlayCrossBuiltProject("Play-Functional", "play-functional")
 
-  lazy val DataCommonsProject = PlayCrossBuiltProject(
-      "Play-DataCommons", "play-datacommons")
+  lazy val DataCommonsProject = PlayCrossBuiltProject("Play-DataCommons", "play-datacommons")
 
   lazy val JsonProject = PlayCrossBuiltProject("Play-Json", "play-json")
     .settings(libraryDependencies ++= jsonDependencies(scalaVersion.value))
     .dependsOn(IterateesProject, FunctionalProject, DataCommonsProject)
 
-  lazy val PlayExceptionsProject = PlayNonCrossBuiltProject(
-      "Play-Exceptions", "play-exceptions")
+  lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "play-exceptions")
 
-  lazy val PlayNettyUtilsProject =
-    PlayNonCrossBuiltProject("Play-Netty-Utils", "play-netty-utils")
-      .settings(javacOptions in (Compile, doc) += "-Xdoclint:none")
+  lazy val PlayNettyUtilsProject = PlayNonCrossBuiltProject("Play-Netty-Utils", "play-netty-utils")
+    .settings(javacOptions in (Compile, doc) += "-Xdoclint:none")
 
   lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     .enablePlugins(SbtTwirl)
     .settings(
         addScalaModules(scalaParserCombinators),
-        libraryDependencies ++=
-          runtime(scalaVersion.value) ++ scalacheckDependencies,
-        sourceGenerators in Compile <+= (
-            version,
-            scalaVersion,
-            sbtVersion,
-            sourceManaged in Compile) map PlayVersion,
+        libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies,
+        sourceGenerators in Compile <+= (version,
+                                         scalaVersion,
+                                         sbtVersion,
+                                         sourceManaged in Compile) map PlayVersion,
         sourceDirectories in (Compile, TwirlKeys.compileTemplates) :=
         (unmanagedSourceDirectories in Compile).value,
         TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
@@ -288,24 +269,21 @@ object PlayBuild extends Build {
                JsonProject,
                PlayNettyUtilsProject)
 
-  lazy val PlayServerProject =
-    PlayCrossBuiltProject("Play-Server", "play-server")
-      .settings(libraryDependencies ++= playServerDependencies)
-      .dependsOn(
-          PlayProject,
-          IterateesProject % "test->test;compile->compile"
-      )
+  lazy val PlayServerProject = PlayCrossBuiltProject("Play-Server", "play-server")
+    .settings(libraryDependencies ++= playServerDependencies)
+    .dependsOn(
+        PlayProject,
+        IterateesProject % "test->test;compile->compile"
+    )
 
-  lazy val PlayNettyServerProject =
-    PlayCrossBuiltProject("Play-Netty-Server", "play-netty-server")
-      .settings(libraryDependencies ++= netty)
-      .dependsOn(PlayServerProject)
+  lazy val PlayNettyServerProject = PlayCrossBuiltProject("Play-Netty-Server", "play-netty-server")
+    .settings(libraryDependencies ++= netty)
+    .dependsOn(PlayServerProject)
 
   import ScriptedPlugin._
 
   lazy val PlayAkkaHttpServerProject =
-    PlayCrossBuiltProject("Play-Akka-Http-Server-Experimental",
-                          "play-akka-http-server")
+    PlayCrossBuiltProject("Play-Akka-Http-Server-Experimental", "play-akka-http-server")
       .settings(libraryDependencies ++= akkaHttp)
       // Include scripted tests here as well as in the SBT Plugin, because we
       // don't want the SBT Plugin to have a dependency on an experimental module.
@@ -318,16 +296,14 @@ object PlayBuild extends Build {
     .dependsOn(PlayProject)
     .dependsOn(PlaySpecs2Project % "test")
 
-  lazy val PlayJavaJdbcProject =
-    PlayCrossBuiltProject("Play-Java-JDBC", "play-java-jdbc")
-      .settings(libraryDependencies ++= javaJdbcDeps)
-      .dependsOn(PlayJdbcProject, PlayJavaProject)
-      .dependsOn(PlaySpecs2Project % "test")
+  lazy val PlayJavaJdbcProject = PlayCrossBuiltProject("Play-Java-JDBC", "play-java-jdbc")
+    .settings(libraryDependencies ++= javaJdbcDeps)
+    .dependsOn(PlayJdbcProject, PlayJavaProject)
+    .dependsOn(PlaySpecs2Project % "test")
 
-  lazy val PlayJpaProject =
-    PlayCrossBuiltProject("Play-Java-JPA", "play-java-jpa")
-      .settings(libraryDependencies ++= jpaDeps)
-      .dependsOn(PlayJavaJdbcProject % "compile;test->test")
+  lazy val PlayJpaProject = PlayCrossBuiltProject("Play-Java-JPA", "play-java-jpa")
+    .settings(libraryDependencies ++= jpaDeps)
+    .dependsOn(PlayJavaJdbcProject % "compile;test->test")
 
   lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "play-test")
     .settings(
@@ -336,13 +312,12 @@ object PlayBuild extends Build {
     )
     .dependsOn(PlayNettyServerProject)
 
-  lazy val PlaySpecs2Project =
-    PlayCrossBuiltProject("Play-Specs2", "play-specs2")
-      .settings(
-          libraryDependencies ++= specsBuild,
-          parallelExecution in Test := false
-      )
-      .dependsOn(PlayTestProject)
+  lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "play-specs2")
+    .settings(
+        libraryDependencies ++= specsBuild,
+        parallelExecution in Test := false
+    )
+    .dependsOn(PlayTestProject)
 
   lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "play-java")
     .settings(libraryDependencies ++= javaDeps ++ javaTestDeps)
@@ -357,13 +332,11 @@ object PlayBuild extends Build {
 
   lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "sbt-plugin")
     .settings(
-        libraryDependencies ++=
-          sbtDependencies(sbtVersion.value, scalaVersion.value),
-        sourceGenerators in Compile <+=
-          (version,
-         scalaVersion in PlayProject,
-         sbtVersion,
-         sourceManaged in Compile) map PlayVersion,
+        libraryDependencies ++= sbtDependencies(sbtVersion.value, scalaVersion.value),
+        sourceGenerators in Compile <+= (version,
+                                         scalaVersion in PlayProject,
+                                         sbtVersion,
+                                         sourceManaged in Compile) map PlayVersion,
         // This only publishes the sbt plugin projects on each scripted run.
         // The runtests script does a full publish before running tests.
         // When developing the sbt plugins, run a publishLocal in the root project first.
@@ -376,33 +349,29 @@ object PlayBuild extends Build {
 
   val ProtocolCompile = Tags.Tag("protocol-compile")
 
-  lazy val ForkRunProtocolProject = PlayDevelopmentProject("Fork-Run-Protocol",
-                                                           "fork-run-protocol")
-    .settings(libraryDependencies ++=
-                forkRunProtocolDependencies(scalaBinaryVersion.value),
-              compile in Compile <<= (compile in Compile) tag ProtocolCompile,
-              doc in Compile <<= (doc in Compile) tag ProtocolCompile)
-    .dependsOn(RunSupportProject)
+  lazy val ForkRunProtocolProject =
+    PlayDevelopmentProject("Fork-Run-Protocol", "fork-run-protocol")
+      .settings(libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value),
+                compile in Compile <<= (compile in Compile) tag ProtocolCompile,
+                doc in Compile <<= (doc in Compile) tag ProtocolCompile)
+      .dependsOn(RunSupportProject)
 
   // extra fork-run-protocol project that is only compiled against sbt scala version
-  lazy val SbtForkRunProtocolProject = PlaySbtProject("SBT-Fork-Run-Protocol",
-                                                      "fork-run-protocol")
+  lazy val SbtForkRunProtocolProject = PlaySbtProject("SBT-Fork-Run-Protocol", "fork-run-protocol")
     .settings(target := target.value / "sbt-fork-run-protocol",
-              libraryDependencies ++=
-                forkRunProtocolDependencies(scalaBinaryVersion.value),
+              libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value),
               compile in Compile <<= (compile in Compile) tag ProtocolCompile,
               doc in Compile <<= (doc in Compile) tag ProtocolCompile)
     .dependsOn(SbtRunSupportProject)
 
   lazy val ForkRunProject = PlayDevelopmentProject("Fork-Run", "fork-run")
-    .settings(
-        libraryDependencies ++= forkRunDependencies(scalaBinaryVersion.value))
+    .settings(libraryDependencies ++= forkRunDependencies(scalaBinaryVersion.value))
     .dependsOn(ForkRunProtocolProject)
 
   lazy val SbtForkRunPluginProject =
     PlaySbtPluginProject("SBT-Fork-Run-Plugin", "sbt-fork-run-plugin")
-      .settings(libraryDependencies ++= sbtForkRunPluginDependencies(
-                    sbtVersion.value, scalaVersion.value),
+      .settings(libraryDependencies ++=
+                  sbtForkRunPluginDependencies(sbtVersion.value, scalaVersion.value),
                 // This only publishes the sbt plugin projects on each scripted run.
                 // The runtests script does a full publish before running tests.
                 // When developing the sbt plugins, run a publishLocal in the root project first.
@@ -418,14 +387,12 @@ object PlayBuild extends Build {
         libraryDependencies ++= playWsDeps,
         parallelExecution in Test := false,
         // quieten deprecation warnings in tests
-        scalacOptions in Test := (scalacOptions in Test).value diff Seq(
-            "-deprecation")
+        scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
     )
     .dependsOn(PlayProject)
     .dependsOn(PlaySpecs2Project % "test")
 
-  lazy val PlayWsJavaProject = PlayCrossBuiltProject("Play-Java-WS",
-                                                     "play-java-ws")
+  lazy val PlayWsJavaProject = PlayCrossBuiltProject("Play-Java-WS", "play-java-ws")
     .settings(
         libraryDependencies ++= playWsDeps,
         parallelExecution in Test := false
@@ -466,13 +433,12 @@ object PlayBuild extends Build {
     .dependsOn(PlayProject)
     .dependsOn(PlaySpecs2Project % "test")
 
-  lazy val PlayDocsSbtPlugin =
-    PlaySbtPluginProject("Play-Docs-SBT-Plugin", "play-docs-sbt-plugin")
-      .enablePlugins(SbtTwirl)
-      .settings(
-          libraryDependencies ++= playDocsSbtPluginDependencies
-      )
-      .dependsOn(SbtPluginProject)
+  lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-SBT-Plugin", "play-docs-sbt-plugin")
+    .enablePlugins(SbtTwirl)
+    .settings(
+        libraryDependencies ++= playDocsSbtPluginDependencies
+    )
+    .dependsOn(SbtPluginProject)
 
   lazy val publishedProjects = Seq[ProjectReference](
       PlayProject,

@@ -38,8 +38,7 @@ trait DBApi {
   */
 class DefaultDBApi(
     configuration: Map[String, Config],
-    defaultConnectionPool: ConnectionPool = new HikariCPConnectionPool(
-          Environment.simple()),
+    defaultConnectionPool: ConnectionPool = new HikariCPConnectionPool(Environment.simple()),
     environment: Environment = Environment.simple(),
     injector: Injector = NewInstanceInjector) extends DBApi {
 
@@ -61,9 +60,9 @@ class DefaultDBApi(
   }
 
   def database(name: String): Database = {
-    databaseByName.getOrElse(name,
-                             throw new IllegalArgumentException(
-                                 s"Could not find database for $name"))
+    databaseByName.getOrElse(
+        name,
+        throw new IllegalArgumentException(s"Could not find database for $name"))
   }
 
   /**
@@ -73,12 +72,11 @@ class DefaultDBApi(
     databases foreach { db =>
       try {
         db.getConnection.close()
-        if (logConnection)
-          logger.info(s"Database [${db.name}] connected at ${db.url}")
+        if (logConnection) logger.info(s"Database [${db.name}] connected at ${db.url}")
       } catch {
         case NonFatal(e) =>
-          throw Configuration(configuration(db.name)).reportError(
-              "url", s"Cannot connect to database [${db.name}]", Some(e))
+          throw Configuration(configuration(db.name))
+            .reportError("url", s"Cannot connect to database [${db.name}]", Some(e))
       }
     }
   }

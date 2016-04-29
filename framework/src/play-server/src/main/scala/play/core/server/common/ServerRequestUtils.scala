@@ -18,10 +18,8 @@ object ServerRequestUtils {
   def findRemoteAddress(forwardedHeaderHandler: ForwardedHeaderHandler,
                         headers: Headers,
                         connectionRemoteAddress: InetSocketAddress): String = {
-    val forwardedAddress: Option[String] =
-      forwardedHeaderHandler.remoteAddress(headers)
-    forwardedAddress.getOrElse(
-        connectionRemoteAddress.getAddress.getHostAddress)
+    val forwardedAddress: Option[String] = forwardedHeaderHandler.remoteAddress(headers)
+    forwardedAddress.getOrElse(connectionRemoteAddress.getAddress.getHostAddress)
   }
 
   /**

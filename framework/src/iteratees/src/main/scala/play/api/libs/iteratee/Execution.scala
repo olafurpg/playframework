@@ -12,12 +12,10 @@ import scala.concurrent.ExecutionContext
   */
 object Execution {
 
-  def defaultExecutionContext: ExecutionContext =
-    Implicits.defaultExecutionContext
+  def defaultExecutionContext: ExecutionContext = Implicits.defaultExecutionContext
 
   object Implicits {
-    implicit def defaultExecutionContext: ExecutionContext =
-      Execution.trampoline
+    implicit def defaultExecutionContext: ExecutionContext = Execution.trampoline
     implicit def trampoline: ExecutionContext = Execution.trampoline
   }
 

@@ -149,10 +149,7 @@ object Files {
     */
   @deprecated("Use Java 7 Files API instead", "2.3")
   def writeFileIfChanged(path: File, content: String): Unit = {
-    if (content != Option(path)
-          .filter(_.exists)
-          .map(readFile(_))
-          .getOrElse("")) {
+    if (content != Option(path).filter(_.exists).map(readFile(_)).getOrElse("")) {
       writeFile(path, content)
     }
   }
@@ -171,8 +168,7 @@ object Files {
 
     def readFile(path: File): String = Files.readFile(path)
 
-    def writeFile(path: File, content: String): Unit =
-      Files.writeFile(path, content)
+    def writeFile(path: File, content: String): Unit = Files.writeFile(path, content)
 
     def createDirectory(path: File): File = Files.createDirectory(path)
 

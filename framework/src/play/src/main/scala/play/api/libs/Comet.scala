@@ -35,14 +35,13 @@ object Comet {
     /**
       * String messages.
       */
-    implicit val stringMessages = CometMessage[String](
-        str => "'" + StringEscapeUtils.escapeEcmaScript(str) + "'")
+    implicit val stringMessages =
+      CometMessage[String](str => "'" + StringEscapeUtils.escapeEcmaScript(str) + "'")
 
     /**
       * Json messages.
       */
-    implicit val jsonMessages =
-      CometMessage[play.api.libs.json.JsValue](Json.stringify)
+    implicit val jsonMessages = CometMessage[play.api.libs.json.JsValue](Json.stringify)
   }
 
   /**
@@ -54,14 +53,12 @@ object Comet {
     */
   def apply[E](
       callback: String,
-      initialChunk: Html = Html(
-            Array.fill[Char](5 * 1024)(' ').mkString + "<html><body>"))(
+      initialChunk: Html = Html(Array.fill[Char](5 * 1024)(' ').mkString + "<html><body>"))(
       implicit encoder: CometMessage[E]) = new Enumeratee[E, Html] {
 
     def applyOn[A](inner: Iteratee[Html, A]): Iteratee[E, Iteratee[Html, A]] = {
 
-      val fedWithInitialChunk =
-        Iteratee.flatten(Enumerator(initialChunk) |>> inner)
+      val fedWithInitialChunk = Iteratee.flatten(Enumerator(initialChunk) |>> inner)
       val eToScript = Enumeratee.map[E](data =>
             Html("""<script type="text/javascript">""" + callback + """(""" +
                 encoder.toJavascriptMessage(data) + """);</script>"""))

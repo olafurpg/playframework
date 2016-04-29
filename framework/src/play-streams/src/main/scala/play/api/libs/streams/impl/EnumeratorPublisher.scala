@@ -11,17 +11,14 @@ import scala.language.higherKinds
 /**
   * Creates Subscriptions that link Subscribers to an Enumerator.
   */
-private[streams] trait EnumeratorSubscriptionFactory[T]
-    extends SubscriptionFactory[T] {
+private[streams] trait EnumeratorSubscriptionFactory[T] extends SubscriptionFactory[T] {
 
   def enum: Enumerator[T]
   def emptyElement: Option[T]
 
   override def createSubscription[U >: T](
-      subr: Subscriber[U],
-      onSubscriptionEnded: SubscriptionHandle[U] => Unit) = {
-    new EnumeratorSubscription[T, U](
-        enum, emptyElement, subr, onSubscriptionEnded)
+      subr: Subscriber[U], onSubscriptionEnded: SubscriptionHandle[U] => Unit) = {
+    new EnumeratorSubscription[T, U](enum, emptyElement, subr, onSubscriptionEnded)
   }
 }
 
@@ -45,8 +42,7 @@ private[streams] object EnumeratorSubscription {
     * @param attached The attached Iteratee we're using to read from the
     * Enumerator. Will be Unattached until the first element is requested.
     */
-  final case class Requested[T](n: Long, attached: IterateeState[T])
-      extends State[T]
+  final case class Requested[T](n: Long, attached: IterateeState[T]) extends State[T]
 
   /**
     * A Subscription completed by the Publisher.
@@ -73,8 +69,7 @@ private[streams] object EnumeratorSubscription {
   /**
     * The Iteratee state when we're reading from the Enumerator.
     */
-  final case class Attached[T](link: Promise[Iteratee[T, Unit]])
-      extends IterateeState[T]
+  final case class Attached[T](link: Promise[Iteratee[T, Unit]]) extends IterateeState[T]
 }
 
 import EnumeratorSubscription._
@@ -87,8 +82,8 @@ private[streams] class EnumeratorSubscription[T, U >: T](
     emptyElement: Option[T],
     subr: Subscriber[U],
     onSubscriptionEnded: SubscriptionHandle[U] => Unit)
-    extends StateMachine[State[T]](initialState = Requested[T](0, Unattached))
-    with Subscription with SubscriptionHandle[U] {
+    extends StateMachine[State[T]](initialState = Requested[T](0, Unattached)) with Subscription
+    with SubscriptionHandle[U] {
 
   // SubscriptionHandle methods
 
@@ -152,8 +147,7 @@ private[streams] class EnumeratorSubscription[T, U >: T](
     case Cancelled =>
       ()
     case Completed =>
-      throw new IllegalStateException(
-          "Shouldn't receive another element once completed")
+      throw new IllegalStateException("Shouldn't receive another element once completed")
   }
 
   /**
@@ -166,8 +160,7 @@ private[streams] class EnumeratorSubscription[T, U >: T](
     case Cancelled =>
       ()
     case Completed =>
-      throw new IllegalStateException(
-          "Shouldn't receive an empty input once completed")
+      throw new IllegalStateException("Shouldn't receive an empty input once completed")
   }
 
   /**

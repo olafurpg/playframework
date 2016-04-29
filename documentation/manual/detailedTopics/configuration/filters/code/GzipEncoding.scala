@@ -22,16 +22,13 @@ object GzipEncoding extends PlaySpecification {
 
     "allow custom strategies for when to gzip" in {
       val filter = //#should-gzip
-      new GzipFilter(shouldGzip = (request, response) =>
-              response.headers
-                .get("Content-Type")
-                .exists(_.startsWith("text/html")))
+      new GzipFilter(shouldGzip = (request,
+            response) => response.headers.get("Content-Type").exists(_.startsWith("text/html")))
       //#should-gzip
 
       import play.api.mvc._
       running(FakeApplication()) {
-        header(CONTENT_ENCODING,
-               filter(Action(Results.Ok("foo")))(gzipRequest).run) must beNone
+        header(CONTENT_ENCODING, filter(Action(Results.Ok("foo")))(gzipRequest).run) must beNone
       }
     }
   }

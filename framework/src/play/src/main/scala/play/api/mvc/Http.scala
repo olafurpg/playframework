@@ -88,8 +88,7 @@ package play.api.mvc {
     /**
       * Helper method to access a queryString parameter.
       */
-    def getQueryString(key: String): Option[String] =
-      queryString.get(key).flatMap(_.headOption)
+    def getQueryString(key: String): Option[String] = queryString.get(key).flatMap(_.headOption)
 
     /**
       * The HTTP host (domain, optionally port)
@@ -123,27 +122,23 @@ package play.api.mvc {
       * @return true if `mimeType` matches the Accept header, otherwise false
       */
     def accepts(mimeType: String): Boolean = {
-      acceptedTypes.isEmpty ||
-      acceptedTypes.find(_.accepts(mimeType)).isDefined
+      acceptedTypes.isEmpty || acceptedTypes.find(_.accepts(mimeType)).isDefined
     }
 
     /**
       * The HTTP cookies.
       */
-    lazy val cookies: Cookies = Cookies(
-        headers.get(play.api.http.HeaderNames.COOKIE))
+    lazy val cookies: Cookies = Cookies(headers.get(play.api.http.HeaderNames.COOKIE))
 
     /**
       * Parses the `Session` cookie and returns the `Session` data.
       */
-    lazy val session: Session =
-      Session.decodeFromCookie(cookies.get(Session.COOKIE_NAME))
+    lazy val session: Session = Session.decodeFromCookie(cookies.get(Session.COOKIE_NAME))
 
     /**
       * Parses the `Flash` cookie and returns the `Flash` data.
       */
-    lazy val flash: Flash =
-      Flash.decodeFromCookie(cookies.get(Flash.COOKIE_NAME))
+    lazy val flash: Flash = Flash.decodeFromCookie(cookies.get(Flash.COOKIE_NAME))
 
     /**
       * Returns the raw query string.
@@ -229,8 +224,7 @@ package play.api.mvc {
     /**
       * @return The items of an Accept* header, with their q-value.
       */
-    private[play] def acceptHeader(
-        headers: Headers, headerName: String): Seq[(Double, String)] = {
+    private[play] def acceptHeader(headers: Headers, headerName: String): Seq[(Double, String)] = {
       for {
         header <- headers.get(headerName).toList
         value0 <- header.split(',')
@@ -244,17 +238,16 @@ package play.api.mvc {
     }
   }
 
-  private[play] class RequestHeaderImpl(
-      val id: Long,
-      val tags: Map[String, String],
-      val uri: String,
-      val path: String,
-      val method: String,
-      val version: String,
-      val queryString: Map[String, Seq[String]],
-      val headers: Headers,
-      val remoteAddress: String,
-      val secure: Boolean) extends RequestHeader {}
+  private[play] class RequestHeaderImpl(val id: Long,
+                                        val tags: Map[String, String],
+                                        val uri: String,
+                                        val path: String,
+                                        val method: String,
+                                        val version: String,
+                                        val queryString: Map[String, Seq[String]],
+                                        val headers: Headers,
+                                        val remoteAddress: String,
+                                        val secure: Boolean) extends RequestHeader {}
 
   /**
     * The complete HTTP request.
@@ -343,8 +336,7 @@ package play.api.mvc {
     * @param method the request HTTP method
     * @param url the request URL
     */
-  case class Call(method: String, url: String, fragment: String = null)
-      extends play.mvc.Call {
+  case class Call(method: String, url: String, fragment: String = null) extends play.mvc.Call {
 
     /**
       * Transform this call to an absolute URL.
@@ -357,15 +349,13 @@ package play.api.mvc {
       * // == "http://$host/url", or "https://$host/url" if secure
       * }}}
       */
-    def absoluteURL()(implicit request: RequestHeader): String =
-      absoluteURL(request.secure)
+    def absoluteURL()(implicit request: RequestHeader): String = absoluteURL(request.secure)
 
     /**
       * Transform this call to an absolute URL.
       */
     def absoluteURL(secure: Boolean)(implicit request: RequestHeader): String =
-      "http" + (if (secure) "s" else "") + "://" + request.host + this.url +
-      this.appendFragment
+      "http" + (if (secure) "s" else "") + "://" + request.host + this.url + this.appendFragment
 
     /**
       * Transform this call to an WebSocket URL.
@@ -378,14 +368,12 @@ package play.api.mvc {
       * // == "ws://$host/url", or "wss://$host/url" if secure
       * }}}
       */
-    def webSocketURL()(implicit request: RequestHeader): String =
-      webSocketURL(request.secure)
+    def webSocketURL()(implicit request: RequestHeader): String = webSocketURL(request.secure)
 
     /**
       * Transform this call to an WebSocket URL.
       */
-    def webSocketURL(secure: Boolean)(
-        implicit request: RequestHeader): String =
+    def webSocketURL(secure: Boolean)(implicit request: RequestHeader): String =
       "ws" + (if (secure) "s" else "") + "://" + request.host + this.url
 
     override def toString = this.url + this.appendFragment
@@ -404,8 +392,7 @@ package play.api.mvc {
     /**
       * Retrieves the first header value which is associated with the given key.
       */
-    def apply(key: String): String =
-      get(key).getOrElse(scala.sys.error("Header doesn't exist"))
+    def apply(key: String): String = get(key).getOrElse(scala.sys.error("Header doesn't exist"))
 
     override def equals(other: Any) = {
       other.isInstanceOf[Headers] && toMap == other.asInstanceOf[Headers].toMap
@@ -444,8 +431,7 @@ package play.api.mvc {
     /**
       * Append the given headers, replacing any existing headers having the same keys
       */
-    def replace(headers: (String, String)*) =
-      remove(headers.map(_._1):_*).add(headers:_*)
+    def replace(headers: (String, String)*) = remove(headers.map(_._1):_*).add(headers:_*)
 
     /**
       * Transform the Headers to a Map
@@ -462,8 +448,7 @@ package play.api.mvc {
     /**
       * Transform the Headers to a Map by ignoring multiple values.
       */
-    lazy val toSimpleMap: Map[String, String] =
-      toMap.mapValues(_.headOption.getOrElse(""))
+    lazy val toSimpleMap: Map[String, String] = toMap.mapValues(_.headOption.getOrElse(""))
 
     override def toString = headers.toString()
   }
@@ -539,9 +524,7 @@ package play.api.mvc {
         data
           .split("&")
           .map(_.split("=", 2))
-          .map(p =>
-                URLDecoder.decode(p(0), "UTF-8") -> URLDecoder.decode(p(1),
-                                                                      "UTF-8"))
+          .map(p => URLDecoder.decode(p(0), "UTF-8") -> URLDecoder.decode(p(1), "UTF-8"))
           .toMap
       }
 
@@ -595,8 +578,7 @@ package play.api.mvc {
       if (cookie.isEmpty) emptyCookie
       else {
         val extractedCookie: Cookie = cookie.get
-        if (extractedCookie.name != COOKIE_NAME)
-          emptyCookie /* can this happen? */
+        if (extractedCookie.name != COOKIE_NAME) emptyCookie /* can this happen? */
         else {
           deserialize(decode(extractedCookie.value))
         }
@@ -681,8 +663,7 @@ package play.api.mvc {
     val emptyCookie = new Session
     override val isSigned = true
     override def secure = HttpConfiguration.current.session.secure
-    override def maxAge =
-      HttpConfiguration.current.session.maxAge.map(_.toSeconds.toInt)
+    override def maxAge = HttpConfiguration.current.session.maxAge.map(_.toSeconds.toInt)
     override def httpOnly = HttpConfiguration.current.session.httpOnly
     override def path = HttpConfiguration.current.context
     override def domain = HttpConfiguration.current.session.domain
@@ -809,8 +790,7 @@ package play.api.mvc {
     /**
       * Retrieves the cookie that is associated with the given key.
       */
-    def apply(name: String): Cookie =
-      get(name).getOrElse(scala.sys.error("Cookie doesn't exist"))
+    def apply(name: String): Cookie = get(name).getOrElse(scala.sys.error("Cookie doesn't exist"))
   }
 
   /**
@@ -891,8 +871,7 @@ package play.api.mvc {
           }
           .toSeq
       }.getOrElse {
-        logger.debug(
-            s"Couldn't decode the Cookie header containing: $cookieHeader")
+        logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")
         Nil
       }
     }

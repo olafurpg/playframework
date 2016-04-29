@@ -40,21 +40,18 @@ object Reflect {
   def bindingsFromConfiguration[ScalaTrait,
                                 JavaInterface,
                                 JavaAdapter <: ScalaTrait,
-                                Default <: ScalaTrait](
-      environment: Environment,
-      config: PlayConfig,
-      key: String,
-      defaultClassName: String)(
+                                Default <: ScalaTrait](environment: Environment,
+                                                       config: PlayConfig,
+                                                       key: String,
+                                                       defaultClassName: String)(
       implicit scalaTrait: SubClassOf[ScalaTrait],
       javaInterface: SubClassOf[JavaInterface],
       javaAdapter: ClassTag[JavaAdapter],
       default: ClassTag[Default]): Seq[Binding[_]] = {
 
-    def bind[T : SubClassOf]: BindingKey[T] =
-      BindingKey(implicitly[SubClassOf[T]].runtimeClass)
+    def bind[T : SubClassOf]: BindingKey[T] = BindingKey(implicitly[SubClassOf[T]].runtimeClass)
 
-    configuredClass[ScalaTrait, JavaInterface, Default](
-        environment, config, key, defaultClassName) match {
+    configuredClass[ScalaTrait, JavaInterface, Default](environment, config, key, defaultClassName) match {
 
       // Directly implements the scala trait
       case Some(Left(direct)) =>
@@ -104,8 +101,7 @@ object Reflect {
                                 default: ClassTag[Default]
   ): Option[Either[Class[_ <: ScalaTrait], Class[_ <: JavaInterface]]] = {
 
-    def loadClass(
-        className: String, notFoundFatal: Boolean): Option[Class[_]] = {
+    def loadClass(className: String, notFoundFatal: Boolean): Option[Class[_]] = {
       try {
         Some(environment.classLoader.loadClass(className))
       } catch {
@@ -113,8 +109,7 @@ object Reflect {
         case e: VirtualMachineError => throw e
         case e: ThreadDeath => throw e
         case e: Throwable =>
-          throw new PlayException(
-              s"Cannot load $key", s"$key [$className] was not loaded.", e)
+          throw new PlayException(s"Cannot load $key", s"$key [$className] was not loaded.", e)
       }
     }
 
@@ -124,8 +119,7 @@ object Reflect {
       // If empty, use the default
       case None =>
         // If no value, load the default class name, but if it's not found, then fallback to the default class
-        loadClass(defaultClassName, notFoundFatal = false)
-          .orElse(Some(default.runtimeClass))
+        loadClass(defaultClassName, notFoundFatal = false).orElse(Some(default.runtimeClass))
       // If a value, load that class
       case Some(className) => loadClass(className, notFoundFatal = true)
     }
@@ -154,13 +148,11 @@ object Reflect {
       case e: ThreadDeath => throw e
       case e: Throwable =>
         val name = simpleName(implicitly[ClassTag[T]].runtimeClass)
-        throw new PlayException(
-            s"Cannot load $name", s"$name [$fqcn] cannot be instantiated.", e)
+        throw new PlayException(s"Cannot load $name", s"$name [$fqcn] cannot be instantiated.", e)
     }
   }
 
-  def getClass[T : ClassTag](
-      fqcn: String, classLoader: ClassLoader): Class[_ <: T] = {
+  def getClass[T : ClassTag](fqcn: String, classLoader: ClassLoader): Class[_ <: T] = {
     val c = Class.forName(fqcn, false, classLoader).asInstanceOf[Class[_ <: T]]
     val t = implicitly[ClassTag[T]].runtimeClass
     if (t.isAssignableFrom(c)) c
@@ -171,9 +163,7 @@ object Reflect {
     val o = clazz.newInstance
     val t = implicitly[ClassTag[T]].runtimeClass
     if (t.isInstance(o)) o.asInstanceOf[T]
-    else
-      throw new ClassCastException(
-          clazz.getName + " is not an instance of " + t)
+    else throw new ClassCastException(clazz.getName + " is not an instance of " + t)
   }
 
   def simpleName(clazz: Class[_]): String = {
@@ -193,7 +183,6 @@ object Reflect {
 
   object SubClassOf {
     implicit def provide[T : ClassTag]: SubClassOf[T] =
-      new SubClassOf[T](
-          implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]])
+      new SubClassOf[T](implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]])
   }
 }

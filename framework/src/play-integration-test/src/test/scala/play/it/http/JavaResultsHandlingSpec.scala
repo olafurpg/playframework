@@ -20,8 +20,7 @@ object AkkaHttpJavaResultsHandlingSpec
     extends JavaResultsHandlingSpec with AkkaHttpIntegrationSpecification
 
 trait JavaResultsHandlingSpec
-    extends PlaySpecification with WsTestClient
-    with ServerIntegrationSpecification {
+    extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
   "Java results handling" should {
     def makeRequest[T](controller: MockController)(block: WSResponse => T) = {
@@ -119,8 +118,7 @@ trait JavaResultsHandlingSpec
       response.body must_== "data: a\n\ndata: b\n\n"
     }
 
-    "buffer input stream results of one chunk" in makeRequest(
-        new MockController {
+    "buffer input stream results of one chunk" in makeRequest(new MockController {
       def action = {
         Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")))
       }
@@ -130,8 +128,7 @@ trait JavaResultsHandlingSpec
       response.body must_== "hello"
     }
 
-    "chunk input stream results of more than one chunk" in makeRequest(
-        new MockController {
+    "chunk input stream results of more than one chunk" in makeRequest(new MockController {
       def action = {
         // chunk size 2 to force more than one chunk
         Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")), 2)
@@ -142,8 +139,7 @@ trait JavaResultsHandlingSpec
       response.body must_== "hello"
     }
 
-    "not chunk input stream results if a content length is set" in makeRequest(
-        new MockController {
+    "not chunk input stream results if a content length is set" in makeRequest(new MockController {
       def action = {
         response.setHeader(CONTENT_LENGTH, "5")
         // chunk size 2 to force more than one chunk
@@ -164,8 +160,7 @@ trait JavaResultsHandlingSpec
               JAction(app, new MockController {
                 def action = {
                   // chunk size 2 to force more than one chunk
-                  Results.ok(
-                      new ByteArrayInputStream("hello".getBytes("utf-8")), 2)
+                  Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")), 2)
                 }
               })
           }

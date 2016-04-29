@@ -43,8 +43,7 @@ class CSRFFilter(config: => CSRFConfig,
 
 object CSRFFilter {
   def apply(config: => CSRFConfig = CSRFConfig.global,
-            tokenProvider: TokenProvider = new ConfigTokenProvider(
-                  CSRFConfig.global),
+            tokenProvider: TokenProvider = new ConfigTokenProvider(CSRFConfig.global),
             errorHandler: ErrorHandler = DefaultErrorHandler): CSRFFilter = {
     new CSRFFilter(config, tokenProvider, errorHandler)
   }

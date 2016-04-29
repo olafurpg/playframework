@@ -29,10 +29,8 @@ import java.net.{InetSocketAddress, URI}
 import java.io.IOException
 import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame
 
-private[play] class PlayDefaultUpstreamHandler(
-    server: Server, allChannels: DefaultChannelGroup)
-    extends SimpleChannelUpstreamHandler with WebSocketHandler
-    with RequestBodyHandler {
+private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup)
+    extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
 
   import PlayDefaultUpstreamHandler._
 
@@ -51,8 +49,7 @@ private[play] class PlayDefaultUpstreamHandler(
     ctx.getChannel.write(response).addListener(ChannelFutureListener.CLOSE)
   }
 
-  override def exceptionCaught(
-      ctx: ChannelHandlerContext, event: ExceptionEvent): Unit = {
+  override def exceptionCaught(ctx: ChannelHandlerContext, event: ExceptionEvent): Unit = {
 
     event.getCause match {
       // IO exceptions happen all the time, it usually just means that the client has closed the connection before fully
@@ -64,8 +61,8 @@ private[play] class PlayDefaultUpstreamHandler(
         logger.warn("Handling TooLongFrameException", e)
         sendSimpleErrorResponse(ctx, HttpResponseStatus.REQUEST_URI_TOO_LONG)
       case e: IllegalArgumentException
-          if Option(e.getMessage).exists(
-              _.contains("Header value contains a prohibited character")) =>
+          if Option(e.getMessage)
+            .exists(_.contains("Header value contains a prohibited character")) =>
         // https://github.com/netty/netty/blob/netty-3.9.3.Final/src/main/java/org/jboss/netty/handler/codec/http/HttpHeaders.java#L1075-L1080
         logger.debug("Handling Header value error", e)
         sendSimpleErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST)
@@ -75,8 +72,7 @@ private[play] class PlayDefaultUpstreamHandler(
     }
   }
 
-  override def channelConnected(
-      ctx: ChannelHandlerContext, e: ChannelStateEvent) {
+  override def channelConnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
     Option(ctx.getPipeline.get(classOf[SslHandler])).map { sslHandler =>
       sslHandler.handshake()
     }
@@ -100,20 +96,17 @@ private[play] class PlayDefaultUpstreamHandler(
           ServerRequestUtils.findRemoteAddress(
               forwardedHeaderHandler,
               rHeaders,
-              connectionRemoteAddress = e.getRemoteAddress
-                  .asInstanceOf[InetSocketAddress])
+              connectionRemoteAddress = e.getRemoteAddress.asInstanceOf[InetSocketAddress])
         def rSecure =
           ServerRequestUtils.findSecureProtocol(
               forwardedHeaderHandler,
               rHeaders,
-              connectionSecureProtocol = ctx.getPipeline
-                  .get(classOf[SslHandler]) != null
+              connectionSecureProtocol = ctx.getPipeline.get(classOf[SslHandler]) != null
           )
 
         def tryToCreateRequest = {
           val parameters =
-            Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala
-              .mapValues(_.asScala)
+            Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
           // wrapping into URI to handle absoluteURI
           val path = new URI(nettyUri.getPath).getRawPath
           createRequestHeader(path, parameters)
@@ -140,8 +133,7 @@ private[play] class PlayDefaultUpstreamHandler(
         }
 
         val (requestHeader,
-             handler: Either [Future [Result], (Handler,
-             Application)] @unchecked) = Exception
+             handler: Either [Future [Result], (Handler, Application)] @unchecked) = Exception
           .allCatch[RequestHeader]
           .either(tryToCreateRequest)
           .fold(
@@ -192,8 +184,8 @@ private[play] class PlayDefaultUpstreamHandler(
           case Right((ws@WebSocket(f), app)) if websocketableRequest.check =>
             logger.trace("Serving this request with: " + ws)
 
-            val executed = Future(f(requestHeader))(
-                play.api.libs.concurrent.Execution.defaultContext)
+            val executed =
+              Future(f(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
 
             import play.api.libs.iteratee.Execution.Implicits.trampoline
             executed
@@ -204,20 +196,18 @@ private[play] class PlayDefaultUpstreamHandler(
                   val a = EssentialAction(_ => Done(result, Input.Empty))
                   handleAction(a, Some(app))
                 case Right(socket) =>
-                  val bufferLimit = app.configuration
-                    .getBytes("play.websocket.buffer.limit")
-                    .getOrElse(65536L)
+                  val bufferLimit =
+                    app.configuration.getBytes("play.websocket.buffer.limit").getOrElse(65536L)
 
-                  val enumerator = websocketHandshake(
-                      ctx, nettyHttpRequest, e, bufferLimit)(ws.inFormatter)
+                  val enumerator =
+                    websocketHandshake(ctx, nettyHttpRequest, e, bufferLimit)(ws.inFormatter)
                   socket(enumerator, socketOut(ctx)(ws.outFormatter))
               }
               .recover {
                 case error =>
-                  app.errorHandler.onServerError(requestHeader, error).map {
-                    result =>
-                      val a = EssentialAction(_ => Done(result, Input.Empty))
-                      handleAction(a, Some(app))
+                  app.errorHandler.onServerError(requestHeader, error).map { result =>
+                    val a = EssentialAction(_ => Done(result, Input.Empty))
+                    handleAction(a, Some(app))
                   }
               }
 
@@ -230,8 +220,8 @@ private[play] class PlayDefaultUpstreamHandler(
           case Left(e) =>
             logger.trace("No handler, got direct result: " + e)
             import play.api.libs.iteratee.Execution.Implicits.trampoline
-            val a = EssentialAction(_ =>
-                  Iteratee.flatten(e.map(result => Done(result, Input.Empty))))
+            val a = EssentialAction(
+                _ => Iteratee.flatten(e.map(result => Done(result, Input.Empty))))
             handleAction(a, None)
         }
 
@@ -239,15 +229,14 @@ private[play] class PlayDefaultUpstreamHandler(
           logger.trace("Serving this request with: " + action)
 
           val bodyParser = Iteratee.flatten(
-              scala.concurrent.Future(action(requestHeader))(
-                  play.api.libs.concurrent.Execution.defaultContext)
+              scala.concurrent
+                .Future(action(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
           )
 
           import play.api.libs.iteratee.Execution.Implicits.trampoline
 
-          val expectContinue: Option[_] = requestHeader.headers
-            .get("Expect")
-            .filter(_.equalsIgnoreCase("100-continue"))
+          val expectContinue: Option[_] =
+            requestHeader.headers.get("Expect").filter(_.equalsIgnoreCase("100-continue"))
 
           // Regardless of whether the client is expecting 100 continue or not, we need to feed the body here in the
           // Netty thread, so that the handler is replaced in this thread, so that if the client does start sending
@@ -257,8 +246,7 @@ private[play] class PlayDefaultUpstreamHandler(
             if (nettyHttpRequest.isChunked) {
 
               val pipeline = ctx.getChannel.getPipeline
-              val result = newRequestBodyUpstreamHandler(
-                  bodyParser, { handler =>
+              val result = newRequestBodyUpstreamHandler(bodyParser, { handler =>
                 pipeline.replace("handler", "handler", handler)
               }, {
                 pipeline.replace("handler", "handler", this)
@@ -282,53 +270,42 @@ private[play] class PlayDefaultUpstreamHandler(
 
           // An iteratee containing the result and the sequence number.
           // Sequence number will be 1 if a 100 continue response has been sent, otherwise 0.
-          val eventuallyResultWithSequence: Future[(Result, Int)] =
-            expectContinue match {
-              case Some(_) => {
-                  bodyParser.unflatten.flatMap {
-                    case Step.Cont(k) =>
-                      sendDownstream(
-                          0,
-                          false,
-                          new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-                                                  HttpResponseStatus.CONTINUE))
-                      eventuallyResult.map((_, 1))
-                    case Step.Done(result, _) => {
-                        // Return the result immediately, and ensure that the connection is set to close
-                        // Connection must be set to close because whatever comes next in the stream is either the request
-                        // body, because the client waited too long for our response, or the next request, and there's no way
-                        // for us to know which.  See RFC2616 Section 8.2.3.
-                        Future.successful(
-                            (result.copy(connection = HttpConnection.Close),
-                             0))
-                      }
-                    case Step.Error(msg, _) => {
-                        e.getChannel.setReadable(true)
-                        val error = new RuntimeException(
-                            "Body parser iteratee in error: " + msg)
-                        val result =
-                          errorHandler(app).onServerError(requestHeader, error)
-                        result.map(r =>
-                              (r.copy(connection = HttpConnection.Close), 0))
-                      }
-                  }
+          val eventuallyResultWithSequence: Future[(Result, Int)] = expectContinue match {
+            case Some(_) => {
+                bodyParser.unflatten.flatMap {
+                  case Step.Cont(k) =>
+                    sendDownstream(
+                        0,
+                        false,
+                        new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE))
+                    eventuallyResult.map((_, 1))
+                  case Step.Done(result, _) => {
+                      // Return the result immediately, and ensure that the connection is set to close
+                      // Connection must be set to close because whatever comes next in the stream is either the request
+                      // body, because the client waited too long for our response, or the next request, and there's no way
+                      // for us to know which.  See RFC2616 Section 8.2.3.
+                      Future.successful((result.copy(connection = HttpConnection.Close), 0))
+                    }
+                  case Step.Error(msg, _) => {
+                      e.getChannel.setReadable(true)
+                      val error = new RuntimeException("Body parser iteratee in error: " + msg)
+                      val result = errorHandler(app).onServerError(requestHeader, error)
+                      result.map(r => (r.copy(connection = HttpConnection.Close), 0))
+                    }
                 }
-              case None => eventuallyResult.map((_, 0))
-            }
+              }
+            case None => eventuallyResult.map((_, 0))
+          }
 
           val sent = eventuallyResultWithSequence.recoverWith {
             case error =>
-              logger.error(
-                  "Cannot invoke the action, eventually got an error: " +
-                  error)
+              logger.error("Cannot invoke the action, eventually got an error: " + error)
               e.getChannel.setReadable(true)
               errorHandler(app).onServerError(requestHeader, error).map((_, 0))
           }.flatMap {
             case (result, sequence) =>
-              val cleanedResult =
-                ServerResultUtils.cleanFlashCookie(requestHeader, result)
-              NettyResultStreamer.sendResult(
-                  requestHeader, cleanedResult, nettyVersion, sequence)
+              val cleanedResult = ServerResultUtils.cleanFlashCookie(requestHeader, result)
+              NettyResultStreamer.sendResult(requestHeader, cleanedResult, nettyVersion, sequence)
           }
         }
 
@@ -344,12 +321,11 @@ private[play] class PlayDefaultUpstreamHandler(
 
   def socketOut[A](ctx: ChannelHandlerContext)(
       frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]
-      ): Iteratee[A, Unit] = {
+  ): Iteratee[A, Unit] = {
     import play.api.libs.iteratee.Execution.Implicits.trampoline
 
     val channel = ctx.getChannel
-    val basicFrameFormatter = frameFormatter
-      .asInstanceOf[BasicFrameFormatter[A]]
+    val basicFrameFormatter = frameFormatter.asInstanceOf[BasicFrameFormatter[A]]
 
     import NettyFuture._
 
@@ -359,16 +335,13 @@ private[play] class PlayDefaultUpstreamHandler(
         val nettyFrame: WebSocketFrame = basicFrame match {
           case TextFrame(text) => new TextWebSocketFrame(true, 0, text)
           case BinaryFrame(bytes) =>
-            new BinaryWebSocketFrame(
-                true, 0, ChannelBuffers.wrappedBuffer(bytes))
+            new BinaryWebSocketFrame(true, 0, ChannelBuffers.wrappedBuffer(bytes))
         }
         Iteratee.flatten(channel.write(nettyFrame).toScala.map(_ => iteratee))
       case e@EOF =>
         if (channel.isOpen) {
           Iteratee.flatten(for {
-            _ <- channel
-              .write(new CloseWebSocketFrame(WebSocketNormalClose, ""))
-              .toScala
+            _ <- channel.write(new CloseWebSocketFrame(WebSocketNormalClose, "")).toScala
             _ <- channel.close().toScala
           } yield Done((), e))
         } else Done((), e)
@@ -379,16 +352,13 @@ private[play] class PlayDefaultUpstreamHandler(
   }
 
   def getHeaders(nettyRequest: HttpRequest): Headers = {
-    val pairs =
-      nettyRequest.headers().entries().asScala.map(h => h.getKey -> h.getValue)
+    val pairs = nettyRequest.headers().entries().asScala.map(h => h.getKey -> h.getValue)
     new Headers(pairs)
   }
 
   def sendDownstream(subSequence: Int, last: Boolean, message: Object)(
-      implicit ctx: ChannelHandlerContext,
-      oue: OrderedUpstreamMessageEvent) = {
-    val ode = new OrderedDownstreamChannelEvent(
-        oue, subSequence, last, message)
+      implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent) = {
+    val ode = new OrderedDownstreamChannelEvent(oue, subSequence, last, message)
     ctx.sendDownstream(ode)
     ode.getFuture
   }

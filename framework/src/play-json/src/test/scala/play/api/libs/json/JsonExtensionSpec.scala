@@ -111,8 +111,7 @@ object JsonExtensionSpec extends Specification {
 
       implicit val userWrites = Json.writes[User]
 
-      Json.toJson(User(45, "toto")) must beEqualTo(
-          Json.obj("name" -> "toto", "age" -> 45))
+      Json.toJson(User(45, "toto")) must beEqualTo(Json.obj("name" -> "toto", "age" -> 45))
     }
 
     "create a format[User]" in {
@@ -122,8 +121,7 @@ object JsonExtensionSpec extends Specification {
 
       Json.fromJson[User](Json.obj("name" -> "toto", "age" -> 45)) must beEqualTo(
           JsSuccess(User(45, "toto")))
-      Json.toJson(User(45, "toto")) must beEqualTo(
-          Json.obj("name" -> "toto", "age" -> 45))
+      Json.toJson(User(45, "toto")) must beEqualTo(Json.obj("name" -> "toto", "age" -> 45))
     }
 
     "create a reads[Dog]" in {
@@ -359,16 +357,15 @@ object JsonExtensionSpec extends Specification {
           "int" -> Json.obj("obj" -> 1)
       )
       Json.toJson(wrapped) must beEqualTo(expectedJsObj)
-      Json.fromJson[WrappedGenericInt](expectedJsObj).get must beEqualTo(
-          wrapped)
+      Json.fromJson[WrappedGenericInt](expectedJsObj).get must beEqualTo(wrapped)
     }
 
     "create a format[WrappedGenericIntString]" in {
       import play.api.libs.json.Json._
       import play.api.libs.functional.syntax._
 
-      implicit def genericEntityWrapperFormat[A : Format, B : Format]: Format[
-          GenericCaseClass2[A, B]] =
+      implicit def genericEntityWrapperFormat[A : Format,
+                                              B : Format]: Format[GenericCaseClass2[A, B]] =
         (((__ \ "obj1").format[A] and (__ \ "obj2").format[B]))(
             GenericCaseClass2[A, B] _, unlift(GenericCaseClass2.unapply[A, B]))
 
@@ -380,8 +377,7 @@ object JsonExtensionSpec extends Specification {
           "intString" -> Json.obj("obj1" -> 1, "obj2" -> "hello")
       )
       Json.toJson(genericHolder) must beEqualTo(expectedJsObj)
-      Json.fromJson[WrappedGenericIntString](expectedJsObj).get must beEqualTo(
-          genericHolder)
+      Json.fromJson[WrappedGenericIntString](expectedJsObj).get must beEqualTo(genericHolder)
     }
 
     "VarArgsOnly reads, writes, format" should {
@@ -438,9 +434,9 @@ object JsonExtensionSpec extends Specification {
       implicit val userReads = Json.reads[UserMap]
 
       Json.fromJson[UserMap](
-          Json.obj("name" -> "toto",
-                   "friends" -> Json.obj("tutu" -> Json.obj(
-                           "name" -> "tutu", "friends" -> Json.obj())))
+          Json.obj(
+              "name" -> "toto",
+              "friends" -> Json.obj("tutu" -> Json.obj("name" -> "tutu", "friends" -> Json.obj())))
       ) must beEqualTo(
           JsSuccess(UserMap("toto", Map("tutu" -> UserMap("tutu"))))
       )
@@ -449,22 +445,19 @@ object JsonExtensionSpec extends Specification {
     "manage Boxed class" in {
       import play.api.libs.functional.syntax._
 
-      implicit def idReads[A](implicit rds: Reads[A]): Reads[Id[A]] =
-        Reads[Id[A]] { js =>
-          rds.reads(js).map(Id[A](_))
-        }
+      implicit def idReads[A](implicit rds: Reads[A]): Reads[Id[A]] = Reads[Id[A]] { js =>
+        rds.reads(js).map(Id[A](_))
+      }
 
       //val c2Reads1 = Json.reads[C2]
 
       implicit def c1Reads[A](implicit rds: Reads[Id[A]]) = {
-        ((__ \ 'id).read(rds) and (__ \ 'name).read[String])((id,
-            name) => C1[A](id, name))
+        ((__ \ 'id).read(rds) and (__ \ 'name).read[String])((id, name) => C1[A](id, name))
       }
 
       val js = Json.obj("id" -> 123L, "name" -> "toto")
 
-      js.validate(c1Reads[Long]).get must beEqualTo(
-          C1[Long](Id[Long](123L), "toto"))
+      js.validate(c1Reads[Long]).get must beEqualTo(C1[Long](Id[Long](123L), "toto"))
     }
 
     /**
@@ -551,8 +544,7 @@ object JsonExtensionSpec extends Specification {
     }
 
     "test case reads in companion object" in {
-      Json.fromJson[Person](Json.toJson(Person("bob", 15))).get must beEqualTo(
-          Person("bob", 15))
+      Json.fromJson[Person](Json.toJson(Person("bob", 15))).get must beEqualTo(Person("bob", 15))
     }
 
     "test case single-field in companion object" in {

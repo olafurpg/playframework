@@ -50,8 +50,7 @@ object DefaultHostnameVerifierSpec extends Specification with Mockito {
 
       session.getId returns "1234".getBytes("UTF-8")
       session.getPeerCertificates returns Array(cert)
-      mockChecker.`match`("example.com", cert) throws
-      (new CertificateException("derp"))
+      mockChecker.`match`("example.com", cert) throws (new CertificateException("derp"))
 
       val actual = verifier.verify("example.com", session)
 
@@ -69,8 +68,7 @@ object DefaultHostnameVerifierSpec extends Specification with Mockito {
 
       session.getId returns "1234".getBytes("UTF-8")
       session.getPeerCertificates returns null // very rude, but that's Java APIs for you
-      mockChecker.`match`("example.com", cert) throws
-      (new CertificateException("derp"))
+      mockChecker.`match`("example.com", cert) throws (new CertificateException("derp"))
 
       val actual = verifier.verify("example.com", session)
 
@@ -85,8 +83,7 @@ object DefaultHostnameVerifierSpec extends Specification with Mockito {
       val verifier = new DefaultHostnameVerifier() {
         override def hostnameChecker = mockChecker
         override def isKerberos(principal: Principal) = true
-        override def matchKerberos(hostname: String, principal: Principal) =
-          true
+        override def matchKerberos(hostname: String, principal: Principal) = true
       }
 
       session.getId returns "1234".getBytes("UTF-8")
@@ -106,8 +103,7 @@ object DefaultHostnameVerifierSpec extends Specification with Mockito {
       val verifier = new DefaultHostnameVerifier() {
         override def hostnameChecker = mockChecker
         override def isKerberos(principal: Principal) = true
-        override def matchKerberos(hostname: String, principal: Principal) =
-          false
+        override def matchKerberos(hostname: String, principal: Principal) = false
       }
 
       session.getId returns "1234".getBytes("UTF-8")

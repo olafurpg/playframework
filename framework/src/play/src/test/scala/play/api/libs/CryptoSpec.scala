@@ -37,11 +37,9 @@ object CryptoSpec extends Specification {
       val key = "0123456789abcdef"
       // old way to encrypt things
       val cipher = Cipher.getInstance("AES")
-      val skeySpec =
-        new SecretKeySpec(key.substring(0, 16).getBytes("utf-8"), "AES")
+      val skeySpec = new SecretKeySpec(key.substring(0, 16).getBytes("utf-8"), "AES")
       cipher.init(Cipher.ENCRYPT_MODE, skeySpec)
-      val encrypted =
-        Codecs.toHexString(cipher.doFinal(text.getBytes("utf-8")))
+      val encrypted = Codecs.toHexString(cipher.doFinal(text.getBytes("utf-8")))
       val cryptoConfig = CryptoConfig(key, None, "AES/CTR/NoPadding")
       val crypto = new Crypto(cryptoConfig)
       // should be decryptable
@@ -54,12 +52,11 @@ object CryptoSpec extends Specification {
       val Secret = "abcdefghijklmnopqrs"
 
       def parseSecret(mode: Mode.Mode, secret: Option[String] = None) = {
-        new CryptoConfigParser(
-            Environment.simple(mode = mode),
-            Configuration.reference ++ Configuration.from(
-                secret.map("play.crypto.secret" -> _).toMap +
-                ("play.crypto.aes.transformation" -> "AES")
-            )).get.secret
+        new CryptoConfigParser(Environment.simple(mode = mode),
+                               Configuration.reference ++ Configuration.from(
+                                   secret.map("play.crypto.secret" -> _).toMap +
+                                   ("play.crypto.aes.transformation" -> "AES")
+                               )).get.secret
       }
 
       "load a configured secret in prod" in {

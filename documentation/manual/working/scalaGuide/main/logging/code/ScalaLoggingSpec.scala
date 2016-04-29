@@ -71,8 +71,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
       val logger: Logger = Logger(this.getClass())
       //#logging-create-logger-class
 
-      logger.underlyingLogger.getName must equalTo(
-          "scalaguide.logging.ScalaLoggingSpec")
+      logger.underlyingLogger.getName must equalTo("scalaguide.logging.ScalaLoggingSpec")
     }
 
     "allow for using multiple loggers" in {
@@ -96,8 +95,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
 
         object AccessLoggingAction extends ActionBuilder[Request] {
 
-          def invokeBlock[A](request: Request[A],
-                             block: (Request[A]) => Future[Result]) = {
+          def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
             accessLogger.info(
                 s"method=${request.method} uri=${request.uri} remote-address=${request.remoteAddress}")
             block(request)
@@ -167,8 +165,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
       }
       //#logging-pattern-filter
 
-      AccessLoggingFilter.accessLogger.underlyingLogger.getName must equalTo(
-          "access")
+      AccessLoggingFilter.accessLogger.underlyingLogger.getName must equalTo("access")
     }
   }
 

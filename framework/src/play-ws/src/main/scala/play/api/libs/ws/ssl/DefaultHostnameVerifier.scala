@@ -36,12 +36,10 @@ class DefaultHostnameVerifier extends HostnameVerifier {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  def hostnameChecker: HostnameChecker =
-    HostnameChecker.getInstance(HostnameChecker.TYPE_TLS)
+  def hostnameChecker: HostnameChecker = HostnameChecker.getInstance(HostnameChecker.TYPE_TLS)
 
   def matchKerberos(hostname: String, principal: Principal) =
-    HostnameChecker.`match`(
-        hostname, principal.asInstanceOf[KerberosPrincipal])
+    HostnameChecker.`match`(hostname, principal.asInstanceOf[KerberosPrincipal])
 
   def isKerberos(principal: Principal): Boolean =
     principal != null && principal.isInstanceOf[KerberosPrincipal]
@@ -70,8 +68,7 @@ class DefaultHostnameVerifier extends HostnameVerifier {
 
         case notMatch =>
           // Peer does not have any certificates or they aren't X.509
-          logger.debug(
-              s"verify: Peer does not have any certificates: $notMatch")
+          logger.debug(s"verify: Peer does not have any certificates: $notMatch")
           false
       }
     } catch {

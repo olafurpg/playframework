@@ -83,8 +83,7 @@ object FakesSpec extends PlaySpecification {
     }
 
     "set a Content-Type header when one is unspecified and required" in new FakeRequestCallScope {
-      val request =
-        FakeRequest(GET, "/testCall").withJsonBody(Json.obj("foo" -> "bar"))
+      val request = FakeRequest(GET, "/testCall").withJsonBody(Json.obj("foo" -> "bar"))
 
       contentTypeForFakeRequest(request) must contain("application/json")
     }
@@ -99,8 +98,7 @@ object FakesSpec extends PlaySpecification {
 }
 
 trait FakeRequestCallScope extends Scope {
-  def contentTypeForFakeRequest[T](
-      request: FakeRequest[AnyContentAsJson]): String = {
+  def contentTypeForFakeRequest[T](request: FakeRequest[AnyContentAsJson]): String = {
     var testContentType: Option[String] = None
     val action = Action { request =>
       testContentType = request.headers.get(CONTENT_TYPE); Ok

@@ -21,25 +21,23 @@ object BasicHttpClient {
     * @param requests The requests to make
     * @return The parsed number of responses.  This may be more than the number of requests, if continue headers are sent.
     */
-  def makeRequests(port: Int,
-                   checkClosed: Boolean = false,
-                   trickleFeed: Option[Long] = None)(
-      requests: BasicRequest*): Seq[BasicResponse] = {
+  def makeRequests(
+      port: Int,
+      checkClosed: Boolean = false,
+      trickleFeed: Option[Long] = None)(requests: BasicRequest*): Seq[BasicResponse] = {
     val client = new BasicHttpClient(port)
 
     try {
       var requestNo = 0
       val responses = requests.flatMap { request =>
         requestNo += 1
-        client.sendRequest(
-            request, requestNo.toString, trickleFeed = trickleFeed)
+        client.sendRequest(request, requestNo.toString, trickleFeed = trickleFeed)
       }
 
       if (checkClosed) {
         val line = client.reader.readLine()
         if (line != null) {
-          throw new RuntimeException(
-              "Unexpected data after responses received: " + line)
+          throw new RuntimeException("Unexpected data after responses received: " + line)
         }
       }
 
@@ -49,16 +47,14 @@ object BasicHttpClient {
     }
   }
 
-  def pipelineRequests(
-      port: Int, requests: BasicRequest*): Seq[BasicResponse] = {
+  def pipelineRequests(port: Int, requests: BasicRequest*): Seq[BasicResponse] = {
     val client = new BasicHttpClient(port)
 
     try {
       var requestNo = 0
       requests.foreach { request =>
         requestNo += 1
-        client.sendRequest(
-            request, requestNo.toString, waitForResponses = false)
+        client.sendRequest(request, requestNo.toString, waitForResponses = false)
       }
       for (i <- 0 until requests.length) yield {
         client.readResponse(requestNo.toString)
@@ -149,8 +145,8 @@ class BasicHttpClient(port: Int) {
         case Array(v, s, r) => (v, s.toInt, r)
         case Array(v, s) => (v, s.toInt, "")
         case _ =>
-          throw new RuntimeException("Invalid status line for response " +
-              responseDesc + ": " + statusLine)
+          throw new RuntimeException(
+              "Invalid status line for response " + responseDesc + ": " + statusLine)
       }
       // Read headers
       def readHeaders: List[(String, String)] = {
@@ -200,8 +196,7 @@ class BasicHttpClient(port: Int) {
           headers.get(CONTENT_LENGTH).map { length =>
             readCompletely(length.toInt)
           } getOrElse {
-            if (status != CONTINUE && status != NOT_MODIFIED &&
-                status != NO_CONTENT) {
+            if (status != CONTINUE && status != NOT_MODIFIED && status != NO_CONTENT) {
               IOUtils.toString(reader)
             } else {
               ""
@@ -233,12 +228,11 @@ class BasicHttpClient(port: Int) {
   * @param body The body, left is a plain body, right is for chunked bodies, which is a sequence of chunks and a map of
   *             trailers
   */
-case class BasicResponse(
-    version: String,
-    status: Int,
-    reasonPhrase: String,
-    headers: Map[String, String],
-    body: Either[String, (Seq[String], Map[String, String])])
+case class BasicResponse(version: String,
+                         status: Int,
+                         reasonPhrase: String,
+                         headers: Map[String, String],
+                         body: Either[String, (Seq[String], Map[String, String])])
 
 /**
   * A basic request

@@ -14,13 +14,10 @@ import scala.concurrent.Future
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object NettyHttpPipeliningSpec
-    extends HttpPipeliningSpec with NettyIntegrationSpecification
-object AkkaHttpHttpPipeliningSpec
-    extends HttpPipeliningSpec with AkkaHttpIntegrationSpecification
+object NettyHttpPipeliningSpec extends HttpPipeliningSpec with NettyIntegrationSpecification
+object AkkaHttpHttpPipeliningSpec extends HttpPipeliningSpec with AkkaHttpIntegrationSpecification
 
-trait HttpPipeliningSpec
-    extends PlaySpecification with ServerIntegrationSpecification {
+trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   "Play's http pipelining support" should {
 
@@ -40,16 +37,15 @@ trait HttpPipeliningSpec
         EssentialAction { req =>
       req.path match {
         case "/long" =>
-          Iteratee.flatten(Promise.timeout(
-                  Done(Results.Ok("long")), 100, TimeUnit.MILLISECONDS))
+          Iteratee.flatten(Promise.timeout(Done(Results.Ok("long")), 100, TimeUnit.MILLISECONDS))
         case "/short" => Done(Results.Ok("short"))
         case _ => Done(Results.NotFound)
       }
     }) { port =>
-      val responses = BasicHttpClient.pipelineRequests(
-          port,
-          BasicRequest("GET", "/long", "HTTP/1.1", Map(), ""),
-          BasicRequest("GET", "/short", "HTTP/1.1", Map(), ""))
+      val responses =
+        BasicHttpClient.pipelineRequests(port,
+                                         BasicRequest("GET", "/long", "HTTP/1.1", Map(), ""),
+                                         BasicRequest("GET", "/short", "HTTP/1.1", Map(), ""))
       responses(0).status must_== 200
       responses(0).body must beLeft("long")
       responses(1).status must_== 200
@@ -61,24 +57,25 @@ trait HttpPipeliningSpec
       req.path match {
         case "/long" =>
           Done(
-              Results.Ok.chunked(Enumerator.unfoldM[Int, String](0) { chunk =>
-                if (chunk < 3) {
-                  Promise.timeout(Some((chunk + 1, chunk.toString)),
-                                  50,
-                                  TimeUnit.MILLISECONDS)
-                } else {
-                  Future.successful(None)
-                }
+              Results.Ok.chunked(Enumerator.unfoldM[Int, String](0) {
+                chunk =>
+                  if (chunk < 3) {
+                    Promise.timeout(Some((chunk + 1, chunk.toString)),
+                                    50,
+                                    TimeUnit.MILLISECONDS)
+                  } else {
+                    Future.successful(None)
+                  }
               })
           )
         case "/short" => Done(Results.Ok("short"))
         case _ => Done(Results.NotFound)
       }
     }) { port =>
-      val responses = BasicHttpClient.pipelineRequests(
-          port,
-          BasicRequest("GET", "/long", "HTTP/1.1", Map(), ""),
-          BasicRequest("GET", "/short", "HTTP/1.1", Map(), ""))
+      val responses =
+        BasicHttpClient.pipelineRequests(port,
+                                         BasicRequest("GET", "/long", "HTTP/1.1", Map(), ""),
+                                         BasicRequest("GET", "/short", "HTTP/1.1", Map(), ""))
       responses(0).status must_== 200
       responses(0).body must beRight
       responses(0).body.right.get._1 must containAllOf(Seq("0", "1", "2")).inOrder

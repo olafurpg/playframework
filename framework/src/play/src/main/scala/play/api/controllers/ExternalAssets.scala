@@ -39,25 +39,22 @@ object ExternalAssets extends Controller {
     * @param absoluteRootPath the root folder for searching the static resource files such as `"/home/peter/public"`, `C:\external` or `relativeToYourApp`
     * @param file the file part extracted from the URL
     */
-  def at(rootPath: String, file: String): Action[AnyContent] =
-    Action { request =>
-      Play.mode match {
-        case Mode.Prod => NotFound
-        case _ => {
+  def at(rootPath: String, file: String): Action[AnyContent] = Action { request =>
+    Play.mode match {
+      case Mode.Prod => NotFound
+      case _ => {
 
-            val fileToServe = rootPath match {
-              case AbsolutePath(_) => new File(rootPath, file)
-              case _ => new File(Play.application.getFile(rootPath), file)
-            }
-
-            if (fileToServe.exists) {
-              Ok
-                .sendFile(fileToServe, inline = true)
-                .withHeaders(CACHE_CONTROL -> "max-age=3600")
-            } else {
-              NotFound
-            }
+          val fileToServe = rootPath match {
+            case AbsolutePath(_) => new File(rootPath, file)
+            case _ => new File(Play.application.getFile(rootPath), file)
           }
-      }
+
+          if (fileToServe.exists) {
+            Ok.sendFile(fileToServe, inline = true).withHeaders(CACHE_CONTROL -> "max-age=3600")
+          } else {
+            NotFound
+          }
+        }
     }
+  }
 }

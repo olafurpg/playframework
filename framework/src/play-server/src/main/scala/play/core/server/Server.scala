@@ -28,8 +28,8 @@ trait Server extends ServerWithStop {
 
   def mode: Mode.Mode
 
-  def getHandlerFor(request: RequestHeader
-      ): Either[Future[Result], (RequestHeader, Handler, Application)] = {
+  def getHandlerFor(
+      request: RequestHeader): Either[Future[Result], (RequestHeader, Handler, Application)] = {
 
     import scala.util.control.Exception
 
@@ -54,8 +54,7 @@ trait Server extends ServerWithStop {
 
     Exception
       .allCatch[Option[Future[Result]]]
-      .either(
-          applicationProvider.handleWebCommand(request).map(Future.successful))
+      .either(applicationProvider.handleWebCommand(request).map(Future.successful))
       .left
       .map(logExceptionAndGetResult)
       .right
@@ -113,8 +112,7 @@ object Server {
     * @return The result of the block of code.
     */
   def withApplication[T](application: Application,
-                         config: ServerConfig = ServerConfig(
-                               port = Some(0), mode = Mode.Test))(
+                         config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(
       block: Port => T)(implicit provider: ServerProvider): T = {
     Play.start(application)
     val server = provider.createServer(config, application)
@@ -138,12 +136,10 @@ object Server {
     * @param provider The server provider.
     * @return The result of the block of code.
     */
-  def withRouter[T](
-      config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(
-      routes: PartialFunction[RequestHeader, Handler])(
-      block: Port => T)(implicit provider: ServerProvider): T = {
-    val application = new BuiltInComponentsFromContext(
-        ApplicationLoader.Context(
+  def withRouter[T](config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(
+      routes: PartialFunction[RequestHeader, Handler])(block: Port => T)(
+      implicit provider: ServerProvider): T = {
+    val application = new BuiltInComponentsFromContext(ApplicationLoader.Context(
             Environment.simple(path = config.rootDir, mode = config.mode),
             None,
             new DefaultWebCommands(),
@@ -158,8 +154,7 @@ object Server {
 private[play] object JavaServerHelper {
   def forRouter(router: Router, mode: Mode.Mode, port: Int): Server = {
     val r = router
-    val application = new BuiltInComponentsFromContext(
-        ApplicationLoader.Context(
+    val application = new BuiltInComponentsFromContext(ApplicationLoader.Context(
             Environment.simple(mode = mode),
             None,
             new DefaultWebCommands(),

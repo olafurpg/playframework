@@ -14,8 +14,7 @@ import scala.concurrent.duration.Duration
 /**
   * Wraps a Result to make it Serializable.
   */
-private[play] final class SerializableResult(constructorResult: Result)
-    extends Externalizable {
+private[play] final class SerializableResult(constructorResult: Result) extends Externalizable {
 
   /**
     * Create an empty object. Must call `readExternal` after calling
@@ -31,9 +30,8 @@ private[play] final class SerializableResult(constructorResult: Result)
   private var cachedResult: Result = constructorResult
 
   def result: Result = {
-    assert(
-        cachedResult != null,
-        "Result should have been provided in constructor or when deserializing")
+    assert(cachedResult != null,
+           "Result should have been provided in constructor or when deserializing")
     cachedResult
   }
   override def readExternal(in: ObjectInput): Unit = {
@@ -77,8 +75,7 @@ private[play] final class SerializableResult(constructorResult: Result)
         case 1 => HttpConnection.KeepAlive
         case 2 => HttpConnection.Close
         case unknown =>
-          throw new IOException(
-              s"Can't deserialize HttpConnection coded as: $unknown")
+          throw new IOException(s"Can't deserialize HttpConnection coded as: $unknown")
       }
     }
 
@@ -103,8 +100,8 @@ private[play] final class SerializableResult(constructorResult: Result)
     }
 
     {
-      val bodyChunks: List[Array[Byte]] = Await.result(
-          cachedResult.body |>>> Iteratee.getChunks[Array[Byte]], Duration.Inf)
+      val bodyChunks: List[Array[Byte]] =
+        Await.result(cachedResult.body |>>> Iteratee.getChunks[Array[Byte]], Duration.Inf)
       out.writeInt(bodyChunks.length)
       for ((chunk, i) <- bodyChunks.zipWithIndex) {
         out.writeInt(chunk.length)
@@ -117,8 +114,7 @@ private[play] final class SerializableResult(constructorResult: Result)
         case HttpConnection.KeepAlive => 1
         case HttpConnection.Close => 2
         case unknown =>
-          throw new IOException(
-              s"Can't serialize HttpConnection value: $unknown")
+          throw new IOException(s"Can't serialize HttpConnection value: $unknown")
       }
       out.writeInt(connectionInt)
     }

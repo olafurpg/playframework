@@ -24,13 +24,11 @@ trait BasicFrameFormatter[A] extends FrameFormatter[A] { top =>
   def fromFrame(frame: BasicFrame): A
   def fromFrameDefined(clazz: Class[_]): Boolean
 
-  def transform[B](fba: B => A, fab: A => B): FrameFormatter[B] =
-    new BasicFrameFormatter[B] {
-      def toFrame(value: B): BasicFrame = top.toFrame(fba(value))
-      def fromFrame(frame: BasicFrame): B = fab(top.fromFrame(frame))
-      def fromFrameDefined(clazz: Class[_]): Boolean =
-        top.fromFrameDefined(clazz)
-    }
+  def transform[B](fba: B => A, fab: A => B): FrameFormatter[B] = new BasicFrameFormatter[B] {
+    def toFrame(value: B): BasicFrame = top.toFrame(fba(value))
+    def fromFrame(frame: BasicFrame): B = fab(top.fromFrame(frame))
+    def fromFrameDefined(clazz: Class[_]): Boolean = top.fromFrameDefined(clazz)
+  }
 }
 
 object BasicFrameFormatter {
@@ -69,16 +67,14 @@ object BasicFrameFormatter {
   }
 
   object mixedFrame extends BasicFrameFormatter[Either[String, Array[Byte]]] {
-    def toFrame(either: Either[String, Array[Byte]]): BasicFrame =
-      either match {
-        case Left(text) => TextFrame(text)
-        case Right(bytes) => BinaryFrame(bytes)
-      }
-    def fromFrame(frame: BasicFrame): Either[String, Array[Byte]] =
-      frame match {
-        case TextFrame(text) => Left(text)
-        case BinaryFrame(bytes) => Right(bytes)
-      }
+    def toFrame(either: Either[String, Array[Byte]]): BasicFrame = either match {
+      case Left(text) => TextFrame(text)
+      case Right(bytes) => BinaryFrame(bytes)
+    }
+    def fromFrame(frame: BasicFrame): Either[String, Array[Byte]] = frame match {
+      case TextFrame(text) => Left(text)
+      case BinaryFrame(bytes) => Right(bytes)
+    }
     def fromFrameDefined(clazz: Class[_]): Boolean = clazz match {
       case `textFrameClass` => true
       case `binaryFrameClass` => true

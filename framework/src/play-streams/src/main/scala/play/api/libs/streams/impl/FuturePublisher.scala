@@ -9,14 +9,12 @@ import scala.util.{Failure, Success, Try}
 /*
  * Creates Subscriptions that link Subscribers to a Future.
  */
-private[streams] trait FutureSubscriptionFactory[T]
-    extends SubscriptionFactory[T] {
+private[streams] trait FutureSubscriptionFactory[T] extends SubscriptionFactory[T] {
 
   def fut: Future[T]
 
   override def createSubscription[U >: T](
-      subr: Subscriber[U],
-      onSubscriptionEnded: SubscriptionHandle[U] => Unit) = {
+      subr: Subscriber[U], onSubscriptionEnded: SubscriptionHandle[U] => Unit) = {
     new FutureSubscription[T, U](fut, subr, onSubscriptionEnded)
   }
 }
@@ -60,11 +58,9 @@ private[streams] object FutureSubscription {
 import FutureSubscription._
 
 private[streams] class FutureSubscription[T, U >: T](
-    fut: Future[T],
-    subr: Subscriber[U],
-    onSubscriptionEnded: SubscriptionHandle[U] => Unit)
-    extends StateMachine[State](initialState = AwaitingRequest)
-    with Subscription with SubscriptionHandle[U] {
+    fut: Future[T], subr: Subscriber[U], onSubscriptionEnded: SubscriptionHandle[U] => Unit)
+    extends StateMachine[State](initialState = AwaitingRequest) with Subscription
+    with SubscriptionHandle[U] {
 
   // SubscriptionHandle methods
 

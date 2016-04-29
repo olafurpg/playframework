@@ -32,14 +32,12 @@ object Configuration {
   private[this] lazy val dontAllowMissingConfigOptions =
     ConfigParseOptions.defaults().setAllowMissing(false)
 
-  private[this] lazy val dontAllowMissingConfig =
-    ConfigFactory.load(dontAllowMissingConfigOptions)
+  private[this] lazy val dontAllowMissingConfig = ConfigFactory.load(dontAllowMissingConfigOptions)
 
-  private[play] def load(
-      classLoader: ClassLoader,
-      properties: Properties,
-      directSettings: Map[String, String],
-      allowMissingApplicationConf: Boolean): Configuration = {
+  private[play] def load(classLoader: ClassLoader,
+                         properties: Properties,
+                         directSettings: Map[String, String],
+                         allowMissingApplicationConf: Boolean): Configuration = {
 
     try {
       // Get configuration from the system properties.
@@ -61,15 +59,14 @@ object Configuration {
             .orElse(Option(properties.getProperty(key)))
 
           {
-            setting("config.resource").map(resource =>
-                  ConfigFactory.parseResources(classLoader, resource))
+            setting("config.resource")
+              .map(resource => ConfigFactory.parseResources(classLoader, resource))
           } orElse {
-          setting("config.file").map(
-              fileName => ConfigFactory.parseFileAnySyntax(new File(fileName)))
+          setting("config.file")
+            .map(fileName => ConfigFactory.parseFileAnySyntax(new File(fileName)))
         } getOrElse {
-          val parseOptions = ConfigParseOptions.defaults
-            .setClassLoader(classLoader)
-            .setAllowMissing(true)
+          val parseOptions =
+            ConfigParseOptions.defaults.setClassLoader(classLoader).setAllowMissing(true)
           ConfigFactory.defaultApplication(parseOptions)
         }
       }
@@ -77,13 +74,12 @@ object Configuration {
       // Resolve another .conf file so that we can override values in Akka's
       // reference.conf, but still make it possible for users to override
       // Play's values in their application.conf.
-      val playOverridesConfig: Config = ConfigFactory.parseResources(
-          classLoader, "play/reference-overrides.conf")
+      val playOverridesConfig: Config =
+        ConfigFactory.parseResources(classLoader, "play/reference-overrides.conf")
 
       // Resolve reference.conf ourselves because ConfigFactory.defaultReference resolves
       // values, and we won't have a value for `play.server.dir` until all our config is combined.
-      val referenceConfig: Config =
-        ConfigFactory.parseResources(classLoader, "reference.conf")
+      val referenceConfig: Config = ConfigFactory.parseResources(classLoader, "reference.conf")
 
       // Combine all the config together into one big config
       val combinedConfig: Config = Seq(
@@ -138,8 +134,7 @@ object Configuration {
   /**
     * Load a new Configuration from the Environment.
     */
-  def load(environment: Environment,
-           devSettings: Map[String, String]): Configuration = {
+  def load(environment: Environment, devSettings: Map[String, String]): Configuration = {
     load(environment.classLoader,
          System.getProperties,
          devSettings,
@@ -149,8 +144,7 @@ object Configuration {
   /**
     * Load a new Configuration from the Environment.
     */
-  def load(environment: Environment): Configuration =
-    load(environment, Map.empty[String, String])
+  def load(environment: Environment): Configuration = load(environment, Map.empty[String, String])
 
   /**
     * Returns an empty Configuration object.
@@ -173,8 +167,7 @@ object Configuration {
       case v => v
     }
 
-    Configuration(ConfigFactory.parseMap(
-            toJava(data).asInstanceOf[java.util.Map[String, AnyRef]]))
+    Configuration(ConfigFactory.parseMap(toJava(data).asInstanceOf[java.util.Map[String, AnyRef]]))
   }
 
   /**
@@ -251,17 +244,15 @@ case class Configuration(underlying: Config) {
     * @param validValues valid values for this configuration
     * @return a configuration value
     */
-  def getString(
-      path: String, validValues: Option[Set[String]] = None): Option[String] =
+  def getString(path: String, validValues: Option[Set[String]] = None): Option[String] =
     readValue(path, underlying.getString(path)).map { value =>
       validValues match {
         case Some(values) if values.contains(value) => value
         case Some(values) if values.isEmpty => value
         case Some(values) =>
-          throw reportError(path,
-                            "Incorrect value, one of " +
-                            (values.reduceLeft(_ + ", " + _)) +
-                            " was expected.")
+          throw reportError(
+              path,
+              "Incorrect value, one of " + (values.reduceLeft(_ + ", " + _)) + " was expected.")
         case None => value
       }
     }
@@ -280,8 +271,7 @@ case class Configuration(underlying: Config) {
     * @param path the configuration key, relative to the configuration root key
     * @return a configuration value
     */
-  def getInt(path: String): Option[Int] =
-    readValue(path, underlying.getInt(path))
+  def getInt(path: String): Option[Int] = readValue(path, underlying.getInt(path))
 
   /**
     * Retrieves a configuration value as a `Boolean`.
@@ -298,8 +288,7 @@ case class Configuration(underlying: Config) {
     * @param path the configuration key, relative to the configuration root key
     * @return a configuration value
     */
-  def getBoolean(path: String): Option[Boolean] =
-    readValue(path, underlying.getBoolean(path))
+  def getBoolean(path: String): Option[Boolean] = readValue(path, underlying.getBoolean(path))
 
   /**
     * Retrieves a configuration value as `Milliseconds`.
@@ -352,8 +341,7 @@ case class Configuration(underlying: Config) {
     * engine.maxSize = 512k
     * }}}
     */
-  def getBytes(path: String): Option[Long] =
-    readValue(path, underlying.getBytes(path))
+  def getBytes(path: String): Option[Long] = readValue(path, underlying.getBytes(path))
 
   /**
     * Retrieves a sub-configuration, i.e. a configuration instance containing all keys starting with a given prefix.
@@ -386,8 +374,7 @@ case class Configuration(underlying: Config) {
     * @param path the configuration key, relative to the configuration root key
     * @return a configuration value
     */
-  def getDouble(path: String): Option[Double] =
-    readValue(path, underlying.getDouble(path))
+  def getDouble(path: String): Option[Double] = readValue(path, underlying.getDouble(path))
 
   /**
     * Retrieves a configuration value as a `Long`.
@@ -403,8 +390,7 @@ case class Configuration(underlying: Config) {
     * @param path the configuration key, relative to the configuration root key
     * @return a configuration value
     */
-  def getLong(path: String): Option[Long] =
-    readValue(path, underlying.getLong(path))
+  def getLong(path: String): Option[Long] = readValue(path, underlying.getLong(path))
 
   /**
     * Retrieves a configuration value as a `Number`.
@@ -420,8 +406,7 @@ case class Configuration(underlying: Config) {
     * @param path the configuration key, relative to the configuration root key
     * @return a configuration value
     */
-  def getNumber(path: String): Option[Number] =
-    readValue(path, underlying.getNumber(path))
+  def getNumber(path: String): Option[Number] = readValue(path, underlying.getNumber(path))
 
   /**
     * Retrieves a configuration value as a List of `Boolean`.
@@ -498,8 +483,7 @@ case class Configuration(underlying: Config) {
     * engine.maxSizes = [512k, 256k, 256k]
     * }}}
     */
-  def getBytesSeq(path: String): Option[Seq[java.lang.Long]] =
-    getBytesList(path).map(asScalaList)
+  def getBytesSeq(path: String): Option[Seq[java.lang.Long]] = getBytesList(path).map(asScalaList)
 
   /**
     * Retrieves a List of sub-configurations, i.e. a configuration instance for each key that matches the path.
@@ -513,8 +497,7 @@ case class Configuration(underlying: Config) {
     * The root key of this new configuration will be "engine", and you can access any sub-keys relatively.
     */
   def getConfigList(path: String): Option[java.util.List[Configuration]] =
-    readValue[java.util.List[_ <: Config]](
-        path, underlying.getConfigList(path)).map { configs =>
+    readValue[java.util.List[_ <: Config]](path, underlying.getConfigList(path)).map { configs =>
       configs.asScala.map(Configuration(_)).asJava
     }
 
@@ -529,8 +512,7 @@ case class Configuration(underlying: Config) {
     *
     * The root key of this new configuration will be "engine", and you can access any sub-keys relatively.
     */
-  def getConfigSeq(path: String): Option[Seq[Configuration]] =
-    getConfigList(path).map(asScalaList)
+  def getConfigSeq(path: String): Option[Seq[Configuration]] = getConfigList(path).map(asScalaList)
 
   /**
     * Retrieves a configuration value as a List of `Double`.
@@ -601,8 +583,7 @@ case class Configuration(underlying: Config) {
     * engine.maxSizes = [100, 500, 2]
     * }}}
     */
-  def getIntSeq(path: String): Option[Seq[java.lang.Integer]] =
-    getIntList(path).map(asScalaList)
+  def getIntSeq(path: String): Option[Seq[java.lang.Integer]] = getIntList(path).map(asScalaList)
 
   /**
     * Gets a list value (with any element type) as a ConfigList, which implements java.util.List<ConfigValue>.
@@ -619,8 +600,7 @@ case class Configuration(underlying: Config) {
     * engine.maxSizes = ["foo", "bar"]
     * }}}
     */
-  def getList(path: String): Option[ConfigList] =
-    readValue(path, underlying.getList(path))
+  def getList(path: String): Option[ConfigList] = readValue(path, underlying.getList(path))
 
   /**
     * Retrieves a configuration value as a List of `Long`.
@@ -655,8 +635,7 @@ case class Configuration(underlying: Config) {
     * engine.maxSizes = [10000000000000, 500, 2000]
     * }}}
     */
-  def getLongSeq(path: String): Option[Seq[java.lang.Long]] =
-    getLongList(path).map(asScalaList)
+  def getLongSeq(path: String): Option[Seq[java.lang.Long]] = getLongList(path).map(asScalaList)
 
   /**
     * Retrieves a configuration value as List of `Milliseconds`.
@@ -673,8 +652,7 @@ case class Configuration(underlying: Config) {
     * engine.timeouts = [1 second, 1 second]
     * }}}
     */
-  def getMillisecondsList(
-      path: String): Option[java.util.List[java.lang.Long]] =
+  def getMillisecondsList(path: String): Option[java.util.List[java.lang.Long]] =
     readValue(path, underlying.getDurationList(path, TimeUnit.MILLISECONDS))
 
   /**
@@ -710,8 +688,7 @@ case class Configuration(underlying: Config) {
     * engine.timeouts = [1 second, 1 second]
     * }}}
     */
-  def getNanosecondsList(
-      path: String): Option[java.util.List[java.lang.Long]] =
+  def getNanosecondsList(path: String): Option[java.util.List[java.lang.Long]] =
     readValue(path, underlying.getDurationList(path, TimeUnit.NANOSECONDS))
 
   /**
@@ -784,8 +761,7 @@ case class Configuration(underlying: Config) {
     * }}}
     */
   def getObjectList(path: String): Option[java.util.List[_ <: ConfigObject]] =
-    readValue[java.util.List[_ <: ConfigObject]](
-        path, underlying.getObjectList(path))
+    readValue[java.util.List[_ <: ConfigObject]](path, underlying.getObjectList(path))
 
   /**
     * Retrieves a configuration value as a List of `String`.
@@ -838,8 +814,7 @@ case class Configuration(underlying: Config) {
     * engine.properties = {id: 1, power: 5}
     * }}}
     */
-  def getObject(path: String): Option[ConfigObject] =
-    readValue(path, underlying.getObject(path))
+  def getObject(path: String): Option[ConfigObject] = readValue(path, underlying.getObject(path))
 
   /**
     * Returns available keys.
@@ -887,14 +862,11 @@ case class Configuration(underlying: Config) {
     * @param e the related exception
     * @return a configuration exception
     */
-  def reportError(path: String,
-                  message: String,
-                  e: Option[Throwable] = None): PlayException = {
-    Configuration.configError(
-        if (underlying.hasPath(path)) underlying.getValue(path).origin
-        else underlying.root.origin,
-        message,
-        e)
+  def reportError(path: String, message: String, e: Option[Throwable] = None): PlayException = {
+    Configuration.configError(if (underlying.hasPath(path)) underlying.getValue(path).origin
+                              else underlying.root.origin,
+                              message,
+                              e)
   }
 
   /**
@@ -910,8 +882,7 @@ case class Configuration(underlying: Config) {
     * @param e the related exception
     * @return a configuration exception
     */
-  def globalError(
-      message: String, e: Option[Throwable] = None): PlayException = {
+  def globalError(message: String, e: Option[Throwable] = None): PlayException = {
     Configuration.configError(underlying.root.origin, message, e)
   }
 
@@ -919,8 +890,7 @@ case class Configuration(underlying: Config) {
     * Loads a String configuration item, looking at the deprecated key first, and outputting a warning if it's defined,
     * otherwise loading the new key.
     */
-  private[play] def getDeprecatedString(
-      key: String, deprecatedKey: String): String = {
+  private[play] def getDeprecatedString(key: String, deprecatedKey: String): String = {
     getString(deprecatedKey).fold(underlying.getString(key)) { value =>
       Logger.warn(s"$deprecatedKey is deprecated, use $key instead")
       value
@@ -931,8 +901,7 @@ case class Configuration(underlying: Config) {
     * Loads a String configuration item, looking at the deprecated key first, and outputting a warning if it's defined,
     * otherwise loading the new key.
     */
-  private[play] def getDeprecatedStringOpt(
-      key: String, deprecatedKey: String): Option[String] = {
+  private[play] def getDeprecatedStringOpt(key: String, deprecatedKey: String): Option[String] = {
     getString(deprecatedKey).map { value =>
       Logger.warn(s"$deprecatedKey is deprecated, use $key instead")
       value
@@ -943,8 +912,7 @@ case class Configuration(underlying: Config) {
     * Loads a Boolean configuration item, looking at the deprecated key first, and outputting a warning if it's defined,
     * otherwise loading the new key.
     */
-  private[play] def getDeprecatedBoolean(
-      key: String, deprecatedKey: String): Boolean = {
+  private[play] def getDeprecatedBoolean(key: String, deprecatedKey: String): Boolean = {
     getBoolean(deprecatedKey).fold(underlying.getBoolean(key)) { value =>
       Logger.warn(s"$deprecatedKey is deprecated, use $key instead")
       value
@@ -955,15 +923,13 @@ case class Configuration(underlying: Config) {
     * Loads a Duration configuration item, looking at the deprecated key first, and outputting a warning if it's defined,
     * otherwise loading the new key.
     */
-  private[play] def getDeprecatedDuration(
-      key: String, deprecatedKey: String): FiniteDuration = {
+  private[play] def getDeprecatedDuration(key: String, deprecatedKey: String): FiniteDuration = {
     new FiniteDuration(
-        getNanoseconds(deprecatedKey)
-          .fold(underlying.getDuration(key, TimeUnit.NANOSECONDS)) { value =>
-          Logger.warn(s"$deprecatedKey is deprecated, use $key instead")
-          value
-        },
-        TimeUnit.NANOSECONDS)
+        getNanoseconds(deprecatedKey).fold(underlying.getDuration(key, TimeUnit.NANOSECONDS)) {
+      value =>
+        Logger.warn(s"$deprecatedKey is deprecated, use $key instead")
+        value
+    }, TimeUnit.NANOSECONDS)
   }
 
   /**
@@ -1032,9 +998,7 @@ private[play] class PlayConfig(val underlying: Config) {
     *
     * Each object in the sequence will fallback to the object loaded from prototype.$path.
     */
-  def getPrototypedSeq(
-      path: String,
-      prototypePath: String = "prototype.$path"): Seq[PlayConfig] = {
+  def getPrototypedSeq(path: String, prototypePath: String = "prototype.$path"): Seq[PlayConfig] = {
     val prototype = underlying.getConfig(prototypePath.replace("$path", path))
     get[Seq[Config]](path).map { config =>
       new PlayConfig(config.withFallback(prototype))
@@ -1047,8 +1011,7 @@ private[play] class PlayConfig(val underlying: Config) {
     * Each value in the map will fallback to the object loaded from prototype.$path.
     */
   def getPrototypedMap(
-      path: String,
-      prototypePath: String = "prototype.$path"): Map[String, PlayConfig] = {
+      path: String, prototypePath: String = "prototype.$path"): Map[String, PlayConfig] = {
     val prototype = underlying.getConfig(prototypePath.replace("$path", path))
     get[Map[String, Config]](path).map {
       case (key, config) =>
@@ -1065,8 +1028,7 @@ private[play] class PlayConfig(val underlying: Config) {
     *
     * If the value of the item is null, this will return None, otherwise returns Some.
     */
-  def getOptionalDeprecated[A : ConfigLoader](
-      path: String, deprecated: String): Option[A] = {
+  def getOptionalDeprecated[A : ConfigLoader](path: String, deprecated: String): Option[A] = {
     if (underlying.hasPath(deprecated)) {
       reportDeprecation(path, deprecated)
       getOptional[A](deprecated)
@@ -1124,20 +1086,16 @@ private[play] class PlayConfig(val underlying: Config) {
     * @param e the related exception
     * @return a configuration exception
     */
-  def reportError(path: String,
-                  message: String,
-                  e: Option[Throwable] = None): PlayException = {
-    Configuration.configError(
-        if (underlying.hasPath(path)) underlying.getValue(path).origin
-        else underlying.root.origin,
-        message,
-        e)
+  def reportError(path: String, message: String, e: Option[Throwable] = None): PlayException = {
+    Configuration.configError(if (underlying.hasPath(path)) underlying.getValue(path).origin
+                              else underlying.root.origin,
+                              message,
+                              e)
   }
 
   private def reportDeprecation(path: String, deprecated: String): Unit = {
     val origin = underlying.getValue(deprecated).origin
-    Logger.warn(
-        s"${origin.description}: $deprecated is deprecated, use $path instead:")
+    Logger.warn(s"${origin.description}: $deprecated is deprecated, use $path instead:")
     Try {
       if (origin.url != null && origin.lineNumber() > 0) {
         val is = origin.url.openStream()
@@ -1161,8 +1119,7 @@ private[play] class PlayConfig(val underlying: Config) {
 
 private[play] object PlayConfig {
   def apply(underlying: Config) = new PlayConfig(underlying)
-  def apply(configuration: Configuration) =
-    new PlayConfig(configuration.underlying)
+  def apply(configuration: Configuration) = new PlayConfig(configuration.underlying)
 }
 
 /**
@@ -1179,10 +1136,9 @@ private[play] trait ConfigLoader[A] { self =>
 
 private[play] object ConfigLoader {
 
-  def apply[A](f: Config => String => A): ConfigLoader[A] =
-    new ConfigLoader[A] {
-      def load(config: Config, path: String): A = f(config)(path)
-    }
+  def apply[A](f: Config => String => A): ConfigLoader[A] = new ConfigLoader[A] {
+    def load(config: Config, path: String): A = f(config)(path)
+  }
 
   import scala.collection.JavaConverters._
 
@@ -1192,8 +1148,7 @@ private[play] object ConfigLoader {
   implicit val seqStringLoader = ConfigLoader(_.getStringList).map(toScala)
 
   implicit val intLoader = ConfigLoader(_.getInt)
-  implicit val seqIntLoader =
-    ConfigLoader(_.getIntList).map(toScala(_).map(_.toInt))
+  implicit val seqIntLoader = ConfigLoader(_.getIntList).map(toScala(_).map(_.toInt))
 
   implicit val booleanLoader = ConfigLoader(_.getBoolean)
   implicit val seqBooleanLoader =
@@ -1202,16 +1157,15 @@ private[play] object ConfigLoader {
   implicit val durationLoader: ConfigLoader[Duration] = ConfigLoader(config =>
         path =>
           if (!config.getIsNull(path))
-            FiniteDuration(config.getDuration(path, TimeUnit.MILLISECONDS),
-                           TimeUnit.MILLISECONDS) else Duration.Inf)
+            FiniteDuration(config.getDuration(path, TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS)
+          else Duration.Inf)
 
   implicit val finiteDurationLoader: ConfigLoader[FiniteDuration] =
     ConfigLoader(config => config.getDuration(_, TimeUnit.MILLISECONDS))
       .map(millis => FiniteDuration(millis, TimeUnit.MILLISECONDS))
   implicit val seqFiniteDurationLoader: ConfigLoader[Seq[FiniteDuration]] =
     ConfigLoader(config => config.getDurationList(_, TimeUnit.MILLISECONDS))
-      .map(toScala(_)
-          .map(millis => FiniteDuration(millis, TimeUnit.MILLISECONDS)))
+      .map(toScala(_).map(millis => FiniteDuration(millis, TimeUnit.MILLISECONDS)))
 
   implicit val doubleLoader = ConfigLoader(_.getDouble)
   implicit val seqDoubleLoader = ConfigLoader(_.getDoubleList).map(toScala)
@@ -1227,11 +1181,9 @@ private[play] object ConfigLoader {
     ConfigLoader(_.getConfigList).map(_.asScala)
 
   implicit val playConfigLoader = configLoader.map(new PlayConfig(_))
-  implicit val seqPlayConfigLoader =
-    seqConfigLoader.map(_.map(new PlayConfig(_)))
+  implicit val seqPlayConfigLoader = seqConfigLoader.map(_.map(new PlayConfig(_)))
 
-  implicit def mapLoader[A](
-      implicit valueLoader: ConfigLoader[A]): ConfigLoader[Map[String, A]] =
+  implicit def mapLoader[A](implicit valueLoader: ConfigLoader[A]): ConfigLoader[Map[String, A]] =
     new ConfigLoader[Map[String, A]] {
       def load(config: Config, path: String): Map[String, A] = {
         val obj = config.getObject(path)

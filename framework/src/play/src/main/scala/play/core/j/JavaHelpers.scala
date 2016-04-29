@@ -19,8 +19,7 @@ import collection.JavaConverters._
   */
 trait JavaHelpers {
 
-  def cookiesToScalaCookies(
-      cookies: java.lang.Iterable[play.mvc.Http.Cookie]): Seq[Cookie] = {
+  def cookiesToScalaCookies(cookies: java.lang.Iterable[play.mvc.Http.Cookie]): Seq[Cookie] = {
     cookies.asScala.toSeq map { c =>
       Cookie(c.name,
              c.value,
@@ -122,8 +121,7 @@ trait JavaHelpers {
     * @return The result
     */
   def invokeWithContextOpt(
-      request: RequestHeader,
-      f: JRequest => F.Promise[JResult]): Option[Future[Result]] = {
+      request: RequestHeader, f: JRequest => F.Promise[JResult]): Option[Future[Result]] = {
     Option(invokeWithContext(request, f))
   }
 
@@ -138,11 +136,10 @@ trait JavaHelpers {
     * @param f The function to invoke
     * @return The result
     */
-  def invokeWithContext(request: RequestHeader,
-                        f: JRequest => F.Promise[JResult]): Future[Result] = {
+  def invokeWithContext(
+      request: RequestHeader, f: JRequest => F.Promise[JResult]): Future[Result] = {
     withContext(request) { javaContext =>
-      f(javaContext.request()).wrapped
-        .map(createResult(javaContext, _))(trampoline)
+      f(javaContext.request()).wrapped.map(createResult(javaContext, _))(trampoline)
     }
   }
 
@@ -182,8 +179,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   def headers = createHeaderMap(header.headers)
 
-  def acceptLanguages =
-    header.acceptLanguages.map(new play.i18n.Lang(_)).asJava
+  def acceptLanguages = header.acceptLanguages.map(new play.i18n.Lang(_)).asJava
 
   def queryString = {
     header.queryString.mapValues(_.toArray).asJava
@@ -213,10 +209,8 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
     getHeader(headerName) != null
   }
 
-  private def createHeaderMap(
-      headers: Headers): java.util.Map[String, Array[String]] = {
-    val map = new java.util.TreeMap[String, Array[String]](
-        play.core.utils.CaseInsensitiveOrdered)
+  private def createHeaderMap(headers: Headers): java.util.Map[String, Array[String]] = {
+    val map = new java.util.TreeMap[String, Array[String]](play.core.utils.CaseInsensitiveOrdered)
     map.putAll(headers.toMap.mapValues(_.toArray).asJava)
     map
   }

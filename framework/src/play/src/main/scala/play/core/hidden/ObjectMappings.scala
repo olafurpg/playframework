@@ -123,19 +123,16 @@ class ObjectMapping1[R, A1](apply: Function1[A1, R],
       val a1 = field1.unbindAndValidate(v1)
 
       (a1._1) -> (a1._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String): ObjectMapping1[R, A1] =
     addPrefix(prefix)
-      .map(newKey =>
-            new ObjectMapping1(apply, unapply, f1, newKey, constraints))
+      .map(newKey => new ObjectMapping1(apply, unapply, f1, newKey, constraints))
       .getOrElse(this)
 
   def verifying(addConstraints: Constraint[R]*): ObjectMapping1[R, A1] = {
-    new ObjectMapping1(
-        apply, unapply, f1, key, constraints ++ addConstraints.toSeq)
+    new ObjectMapping1(apply, unapply, f1, key, constraints ++ addConstraints.toSeq)
   }
 
   val mappings = Seq(this) ++ field1.mappings
@@ -179,32 +176,28 @@ class ObjectMapping2[R, A1, A2](apply: Function2[A1, A2, R],
       val a2 = field2.unbindAndValidate(v2)
 
       (a1._1 ++ a2._1) -> (a1._2 ++ a2._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String): ObjectMapping2[R, A1, A2] =
     addPrefix(prefix)
-      .map(newKey =>
-            new ObjectMapping2(apply, unapply, f1, f2, newKey, constraints))
+      .map(newKey => new ObjectMapping2(apply, unapply, f1, f2, newKey, constraints))
       .getOrElse(this)
 
   def verifying(addConstraints: Constraint[R]*): ObjectMapping2[R, A1, A2] = {
-    new ObjectMapping2(
-        apply, unapply, f1, f2, key, constraints ++ addConstraints.toSeq)
+    new ObjectMapping2(apply, unapply, f1, f2, key, constraints ++ addConstraints.toSeq)
   }
 
   val mappings = Seq(this) ++ field1.mappings ++ field2.mappings
 }
 
-class ObjectMapping3[R, A1, A2, A3](
-    apply: Function3[A1, A2, A3, R],
-    unapply: Function1[R, Option[(A1, A2, A3)]],
-    f1: (String, Mapping[A1]),
-    f2: (String, Mapping[A2]),
-    f3: (String, Mapping[A3]),
-    val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
+class ObjectMapping3[R, A1, A2, A3](apply: Function3[A1, A2, A3, R],
+                                    unapply: Function1[R, Option[(A1, A2, A3)]],
+                                    f1: (String, Mapping[A1]),
+                                    f2: (String, Mapping[A2]),
+                                    f3: (String, Mapping[A3]),
+                                    val key: String = "",
+                                    val constraints: Seq[Constraint[R]] = Nil)
     extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
@@ -241,36 +234,29 @@ class ObjectMapping3[R, A1, A2, A3](
       val a3 = field3.unbindAndValidate(v3)
 
       (a1._1 ++ a2._1 ++ a3._1) -> (a1._2 ++ a2._2 ++ a3._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String): ObjectMapping3[R, A1, A2, A3] =
     addPrefix(prefix)
-      .map(newKey =>
-            new ObjectMapping3(
-                apply, unapply, f1, f2, f3, newKey, constraints))
+      .map(newKey => new ObjectMapping3(apply, unapply, f1, f2, f3, newKey, constraints))
       .getOrElse(this)
 
-  def verifying(
-      addConstraints: Constraint[R]*): ObjectMapping3[R, A1, A2, A3] = {
-    new ObjectMapping3(
-        apply, unapply, f1, f2, f3, key, constraints ++ addConstraints.toSeq)
+  def verifying(addConstraints: Constraint[R]*): ObjectMapping3[R, A1, A2, A3] = {
+    new ObjectMapping3(apply, unapply, f1, f2, f3, key, constraints ++ addConstraints.toSeq)
   }
 
-  val mappings =
-    Seq(this) ++ field1.mappings ++ field2.mappings ++ field3.mappings
+  val mappings = Seq(this) ++ field1.mappings ++ field2.mappings ++ field3.mappings
 }
 
-class ObjectMapping4[R, A1, A2, A3, A4](
-    apply: Function4[A1, A2, A3, A4, R],
-    unapply: Function1[R, Option[(A1, A2, A3, A4)]],
-    f1: (String, Mapping[A1]),
-    f2: (String, Mapping[A2]),
-    f3: (String, Mapping[A3]),
-    f4: (String, Mapping[A4]),
-    val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
+class ObjectMapping4[R, A1, A2, A3, A4](apply: Function4[A1, A2, A3, A4, R],
+                                        unapply: Function1[R, Option[(A1, A2, A3, A4)]],
+                                        f1: (String, Mapping[A1]),
+                                        f2: (String, Mapping[A2]),
+                                        f3: (String, Mapping[A3]),
+                                        f4: (String, Mapping[A4]),
+                                        val key: String = "",
+                                        val constraints: Seq[Constraint[R]] = Nil)
     extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
@@ -301,8 +287,7 @@ class ObjectMapping4[R, A1, A2, A3, A4](
   def unbind(value: R): Map[String, String] = {
     unapply(value).map { fields =>
       val (v1, v2, v3, v4) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4)
     }.getOrElse(Map.empty)
   }
 
@@ -315,19 +300,15 @@ class ObjectMapping4[R, A1, A2, A3, A4](
       val a4 = field4.unbindAndValidate(v4)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1) -> (a1._2 ++ a2._2 ++ a3._2 ++ a4._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String): ObjectMapping4[R, A1, A2, A3, A4] =
     addPrefix(prefix)
-      .map(newKey =>
-            new ObjectMapping4(
-                apply, unapply, f1, f2, f3, f4, newKey, constraints))
+      .map(newKey => new ObjectMapping4(apply, unapply, f1, f2, f3, f4, newKey, constraints))
       .getOrElse(this)
 
-  def verifying(
-      addConstraints: Constraint[R]*): ObjectMapping4[R, A1, A2, A3, A4] = {
+  def verifying(addConstraints: Constraint[R]*): ObjectMapping4[R, A1, A2, A3, A4] = {
     new ObjectMapping4(apply,
                        unapply,
                        f1,
@@ -342,16 +323,15 @@ class ObjectMapping4[R, A1, A2, A3, A4](
     Seq(this) ++ field1.mappings ++ field2.mappings ++ field3.mappings ++ field4.mappings
 }
 
-class ObjectMapping5[R, A1, A2, A3, A4, A5](
-    apply: Function5[A1, A2, A3, A4, A5, R],
-    unapply: Function1[R, Option[(A1, A2, A3, A4, A5)]],
-    f1: (String, Mapping[A1]),
-    f2: (String, Mapping[A2]),
-    f3: (String, Mapping[A3]),
-    f4: (String, Mapping[A4]),
-    f5: (String, Mapping[A5]),
-    val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
+class ObjectMapping5[R, A1, A2, A3, A4, A5](apply: Function5[A1, A2, A3, A4, A5, R],
+                                            unapply: Function1[R, Option[(A1, A2, A3, A4, A5)]],
+                                            f1: (String, Mapping[A1]),
+                                            f2: (String, Mapping[A2]),
+                                            f3: (String, Mapping[A3]),
+                                            f4: (String, Mapping[A4]),
+                                            f5: (String, Mapping[A5]),
+                                            val key: String = "",
+                                            val constraints: Seq[Constraint[R]] = Nil)
     extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
@@ -386,8 +366,8 @@ class ObjectMapping5[R, A1, A2, A3, A4, A5](
   def unbind(value: R): Map[String, String] = {
     unapply(value).map { fields =>
       val (v1, v2, v3, v4, v5) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5)
     }.getOrElse(Map.empty)
   }
 
@@ -400,21 +380,16 @@ class ObjectMapping5[R, A1, A2, A3, A4, A5](
       val a4 = field4.unbindAndValidate(v4)
       val a5 = field5.unbindAndValidate(v5)
 
-      (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1) ->
-      (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+      (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1) -> (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2)
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String): ObjectMapping5[R, A1, A2, A3, A4, A5] =
     addPrefix(prefix)
-      .map(newKey =>
-            new ObjectMapping5(
-                apply, unapply, f1, f2, f3, f4, f5, newKey, constraints))
+      .map(newKey => new ObjectMapping5(apply, unapply, f1, f2, f3, f4, f5, newKey, constraints))
       .getOrElse(this)
 
-  def verifying(addConstraints: Constraint[R]*
-      ): ObjectMapping5[R, A1, A2, A3, A4, A5] = {
+  def verifying(addConstraints: Constraint[R]*): ObjectMapping5[R, A1, A2, A3, A4, A5] = {
     new ObjectMapping5(apply,
                        unapply,
                        f1,
@@ -440,8 +415,7 @@ class ObjectMapping6[R, A1, A2, A3, A4, A5, A6](
     f5: (String, Mapping[A5]),
     f6: (String, Mapping[A6]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -479,8 +453,8 @@ class ObjectMapping6[R, A1, A2, A3, A4, A5, A6](
   def unbind(value: R): Map[String, String] = {
     unapply(value).map { fields =>
       val (v1, v2, v3, v4, v5, v6) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6)
     }.getOrElse(Map.empty)
   }
 
@@ -496,19 +470,16 @@ class ObjectMapping6[R, A1, A2, A3, A4, A5, A6](
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String): ObjectMapping6[R, A1, A2, A3, A4, A5, A6] =
     addPrefix(prefix)
       .map(newKey =>
-            new ObjectMapping6(
-                apply, unapply, f1, f2, f3, f4, f5, f6, newKey, constraints))
+            new ObjectMapping6(apply, unapply, f1, f2, f3, f4, f5, f6, newKey, constraints))
       .getOrElse(this)
 
-  def verifying(addConstraints: Constraint[R]*
-      ): ObjectMapping6[R, A1, A2, A3, A4, A5, A6] = {
+  def verifying(addConstraints: Constraint[R]*): ObjectMapping6[R, A1, A2, A3, A4, A5, A6] = {
     new ObjectMapping6(apply,
                        unapply,
                        f1,
@@ -536,8 +507,7 @@ class ObjectMapping7[R, A1, A2, A3, A4, A5, A6, A7](
     f6: (String, Mapping[A6]),
     f7: (String, Mapping[A7]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -579,9 +549,8 @@ class ObjectMapping7[R, A1, A2, A3, A4, A5, A6, A7](
   def unbind(value: R): Map[String, String] = {
     unapply(value).map { fields =>
       val (v1, v2, v3, v4, v5, v6, v7) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(
-          v7)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7)
     }.getOrElse(Map.empty)
   }
 
@@ -598,12 +567,10 @@ class ObjectMapping7[R, A1, A2, A3, A4, A5, A6, A7](
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
-  def withPrefix(
-      prefix: String): ObjectMapping7[R, A1, A2, A3, A4, A5, A6, A7] =
+  def withPrefix(prefix: String): ObjectMapping7[R, A1, A2, A3, A4, A5, A6, A7] =
     addPrefix(prefix)
       .map(newKey =>
             new ObjectMapping7(apply,
@@ -619,8 +586,7 @@ class ObjectMapping7[R, A1, A2, A3, A4, A5, A6, A7](
                                constraints))
       .getOrElse(this)
 
-  def verifying(addConstraints: Constraint[R]*
-      ): ObjectMapping7[R, A1, A2, A3, A4, A5, A6, A7] = {
+  def verifying(addConstraints: Constraint[R]*): ObjectMapping7[R, A1, A2, A3, A4, A5, A6, A7] = {
     new ObjectMapping7(apply,
                        unapply,
                        f1,
@@ -650,8 +616,7 @@ class ObjectMapping8[R, A1, A2, A3, A4, A5, A6, A7, A8](
     f7: (String, Mapping[A7]),
     f8: (String, Mapping[A8]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -697,9 +662,8 @@ class ObjectMapping8[R, A1, A2, A3, A4, A5, A6, A7, A8](
   def unbind(value: R): Map[String, String] = {
     unapply(value).map { fields =>
       val (v1, v2, v3, v4, v5, v6, v7, v8) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(
-          v7) ++ field8.unbind(v8)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8)
     }.getOrElse(Map.empty)
   }
 
@@ -717,12 +681,10 @@ class ObjectMapping8[R, A1, A2, A3, A4, A5, A6, A7, A8](
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
-  def withPrefix(
-      prefix: String): ObjectMapping8[R, A1, A2, A3, A4, A5, A6, A7, A8] =
+  def withPrefix(prefix: String): ObjectMapping8[R, A1, A2, A3, A4, A5, A6, A7, A8] =
     addPrefix(prefix)
       .map(newKey =>
             new ObjectMapping8(apply,
@@ -739,8 +701,8 @@ class ObjectMapping8[R, A1, A2, A3, A4, A5, A6, A7, A8](
                                constraints))
       .getOrElse(this)
 
-  def verifying(addConstraints: Constraint[R]*
-      ): ObjectMapping8[R, A1, A2, A3, A4, A5, A6, A7, A8] = {
+  def verifying(
+      addConstraints: Constraint[R]*): ObjectMapping8[R, A1, A2, A3, A4, A5, A6, A7, A8] = {
     new ObjectMapping8(apply,
                        unapply,
                        f1,
@@ -772,8 +734,7 @@ class ObjectMapping9[R, A1, A2, A3, A4, A5, A6, A7, A8, A9](
     f8: (String, Mapping[A8]),
     f9: (String, Mapping[A9]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -823,9 +784,9 @@ class ObjectMapping9[R, A1, A2, A3, A4, A5, A6, A7, A8, A9](
   def unbind(value: R): Map[String, String] = {
     unapply(value).map { fields =>
       val (v1, v2, v3, v4, v5, v6, v7, v8, v9) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(
-          v7) ++ field8.unbind(v8) ++ field9.unbind(v9)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8) ++ field9
+        .unbind(v9)
     }.getOrElse(Map.empty)
   }
 
@@ -844,12 +805,10 @@ class ObjectMapping9[R, A1, A2, A3, A4, A5, A6, A7, A8, A9](
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
-  def withPrefix(
-      prefix: String): ObjectMapping9[R, A1, A2, A3, A4, A5, A6, A7, A8, A9] =
+  def withPrefix(prefix: String): ObjectMapping9[R, A1, A2, A3, A4, A5, A6, A7, A8, A9] =
     addPrefix(prefix)
       .map(newKey =>
             new ObjectMapping9(apply,
@@ -867,8 +826,8 @@ class ObjectMapping9[R, A1, A2, A3, A4, A5, A6, A7, A8, A9](
                                constraints))
       .getOrElse(this)
 
-  def verifying(addConstraints: Constraint[R]*
-      ): ObjectMapping9[R, A1, A2, A3, A4, A5, A6, A7, A8, A9] = {
+  def verifying(
+      addConstraints: Constraint[R]*): ObjectMapping9[R, A1, A2, A3, A4, A5, A6, A7, A8, A9] = {
     new ObjectMapping9(apply,
                        unapply,
                        f1,
@@ -902,8 +861,7 @@ class ObjectMapping10[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
     f9: (String, Mapping[A9]),
     f10: (String, Mapping[A10]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -957,9 +915,9 @@ class ObjectMapping10[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
   def unbind(value: R): Map[String, String] = {
     unapply(value).map { fields =>
       val (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(
-          v7) ++ field8.unbind(v8) ++ field9.unbind(v9) ++ field10.unbind(v10)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8) ++ field9
+        .unbind(v9) ++ field10.unbind(v10)
     }.getOrElse(Map.empty)
   }
 
@@ -979,12 +937,10 @@ class ObjectMapping10[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
-  def withPrefix(prefix: String
-      ): ObjectMapping10[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] =
+  def withPrefix(prefix: String): ObjectMapping10[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] =
     addPrefix(prefix)
       .map(newKey =>
             new ObjectMapping10(apply,
@@ -1027,8 +983,7 @@ class ObjectMapping10[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
 
 class ObjectMapping11[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
     apply: Function11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R],
-    unapply: Function1[
-        R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)]],
+    unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)]],
     f1: (String, Mapping[A1]),
     f2: (String, Mapping[A2]),
     f3: (String, Mapping[A3]),
@@ -1041,8 +996,7 @@ class ObjectMapping11[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
     f10: (String, Mapping[A10]),
     f11: (String, Mapping[A11]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -1100,10 +1054,9 @@ class ObjectMapping11[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
   def unbind(value: R): Map[String, String] = {
     unapply(value).map { fields =>
       val (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7
-        .unbind(v7) ++ field8.unbind(v8) ++ field9.unbind(v9) ++ field10
-        .unbind(v10) ++ field11.unbind(v11)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8) ++ field9
+        .unbind(v9) ++ field10.unbind(v10) ++ field11.unbind(v11)
     }.getOrElse(Map.empty)
   }
 
@@ -1124,12 +1077,11 @@ class ObjectMapping11[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
-  def withPrefix(prefix: String
-      ): ObjectMapping11[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
+  def withPrefix(
+      prefix: String): ObjectMapping11[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
     addPrefix(prefix)
       .map(newKey =>
             new ObjectMapping11(apply,
@@ -1174,8 +1126,7 @@ class ObjectMapping11[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
 
 class ObjectMapping12[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
     apply: Function12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, R],
-    unapply: Function1[
-        R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)]],
+    unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)]],
     f1: (String, Mapping[A1]),
     f2: (String, Mapping[A2]),
     f3: (String, Mapping[A3]),
@@ -1189,8 +1140,7 @@ class ObjectMapping12[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
     f11: (String, Mapping[A11]),
     f12: (String, Mapping[A12]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -1252,10 +1202,9 @@ class ObjectMapping12[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
   def unbind(value: R): Map[String, String] = {
     unapply(value).map { fields =>
       val (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7
-        .unbind(v7) ++ field8.unbind(v8) ++ field9.unbind(v9) ++ field10
-        .unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8) ++ field9
+        .unbind(v9) ++ field10.unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12)
     }.getOrElse(Map.empty)
   }
 
@@ -1277,12 +1226,11 @@ class ObjectMapping12[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
-  def withPrefix(prefix: String): ObjectMapping12[
-      R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
+  def withPrefix(
+      prefix: String): ObjectMapping12[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
     addPrefix(prefix)
       .map(newKey =>
             new ObjectMapping12(apply,
@@ -1303,8 +1251,8 @@ class ObjectMapping12[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
                                 constraints))
       .getOrElse(this)
 
-  def verifying(addConstraints: Constraint[R]*): ObjectMapping12[
-      R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] = {
+  def verifying(addConstraints: Constraint[R]*
+      ): ObjectMapping12[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] = {
     new ObjectMapping12(apply,
                         unapply,
                         f1,
@@ -1327,12 +1275,9 @@ class ObjectMapping12[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
     Seq(this) ++ field1.mappings ++ field2.mappings ++ field3.mappings ++ field4.mappings ++ field5.mappings ++ field6.mappings ++ field7.mappings ++ field8.mappings ++ field9.mappings ++ field10.mappings ++ field11.mappings ++ field12.mappings
 }
 
-class ObjectMapping13[
-    R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
-    apply: Function13[
-        A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R],
-    unapply: Function1[
-        R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)]],
+class ObjectMapping13[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+    apply: Function13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R],
+    unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)]],
     f1: (String, Mapping[A1]),
     f2: (String, Mapping[A2]),
     f3: (String, Mapping[A3]),
@@ -1347,8 +1292,7 @@ class ObjectMapping13[
     f12: (String, Mapping[A12]),
     f13: (String, Mapping[A13]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -1414,10 +1358,9 @@ class ObjectMapping13[
   def unbind(value: R): Map[String, String] = {
     unapply(value).map { fields =>
       val (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7
-        .unbind(v7) ++ field8.unbind(v8) ++ field9.unbind(v9) ++ field10
-        .unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8) ++ field9
+        .unbind(v9) ++ field10.unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
         .unbind(v13)
     }.getOrElse(Map.empty)
   }
@@ -1441,13 +1384,11 @@ class ObjectMapping13[
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
-  def withPrefix(prefix: String
-      ): ObjectMapping13[
-      R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
+  def withPrefix(
+      prefix: String): ObjectMapping13[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
     addPrefix(prefix)
       .map(newKey =>
             new ObjectMapping13(apply,
@@ -1470,8 +1411,7 @@ class ObjectMapping13[
       .getOrElse(this)
 
   def verifying(addConstraints: Constraint[R]*
-      ): ObjectMapping13[
-      R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] = {
+      ): ObjectMapping13[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] = {
     new ObjectMapping13(apply,
                         unapply,
                         f1,
@@ -1495,13 +1435,9 @@ class ObjectMapping13[
     Seq(this) ++ field1.mappings ++ field2.mappings ++ field3.mappings ++ field4.mappings ++ field5.mappings ++ field6.mappings ++ field7.mappings ++ field8.mappings ++ field9.mappings ++ field10.mappings ++ field11.mappings ++ field12.mappings ++ field13.mappings
 }
 
-class ObjectMapping14[
-    R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
-    apply: Function14[
-        A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, R],
-    unapply: Function1[
-        R,
-        Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)]],
+class ObjectMapping14[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+    apply: Function14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, R],
+    unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)]],
     f1: (String, Mapping[A1]),
     f2: (String, Mapping[A2]),
     f3: (String, Mapping[A3]),
@@ -1517,8 +1453,7 @@ class ObjectMapping14[
     f13: (String, Mapping[A13]),
     f14: (String, Mapping[A14]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -1587,20 +1522,17 @@ class ObjectMapping14[
 
   def unbind(value: R): Map[String, String] = {
     unapply(value).map { fields =>
-      val (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) =
-        fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7
-        .unbind(v7) ++ field8.unbind(v8) ++ field9.unbind(v9) ++ field10
-        .unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
+      val (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) = fields
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8) ++ field9
+        .unbind(v9) ++ field10.unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
         .unbind(v13) ++ field14.unbind(v14)
     }.getOrElse(Map.empty)
   }
 
   def unbindAndValidate(value: R): (Map[String, String], Seq[FormError]) = {
     unapply(value).map { fields =>
-      val (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) =
-        fields
+      val (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) = fields
       val a1 = field1.unbindAndValidate(v1)
       val a2 = field2.unbindAndValidate(v2)
       val a3 = field3.unbindAndValidate(v3)
@@ -1618,13 +1550,11 @@ class ObjectMapping14[
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String
-      ): ObjectMapping14[
-      R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+      ): ObjectMapping14[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
     addPrefix(prefix)
       .map(newKey =>
             new ObjectMapping14(apply,
@@ -1648,8 +1578,7 @@ class ObjectMapping14[
       .getOrElse(this)
 
   def verifying(addConstraints: Constraint[R]*
-      ): ObjectMapping14[
-      R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] = {
+      ): ObjectMapping14[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] = {
     new ObjectMapping14(apply,
                         unapply,
                         f1,
@@ -1674,14 +1603,10 @@ class ObjectMapping14[
     Seq(this) ++ field1.mappings ++ field2.mappings ++ field3.mappings ++ field4.mappings ++ field5.mappings ++ field6.mappings ++ field7.mappings ++ field8.mappings ++ field9.mappings ++ field10.mappings ++ field11.mappings ++ field12.mappings ++ field13.mappings ++ field14.mappings
 }
 
-class ObjectMapping15[
-    R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
-    apply: Function15[
-        A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, R],
+class ObjectMapping15[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+    apply: Function15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, R],
     unapply: Function1[
-        R,
-        Option[
-            (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)]],
+        R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)]],
     f1: (String, Mapping[A1]),
     f2: (String, Mapping[A2]),
     f3: (String, Mapping[A3]),
@@ -1698,8 +1623,7 @@ class ObjectMapping15[
     f14: (String, Mapping[A14]),
     f15: (String, Mapping[A15]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -1772,20 +1696,17 @@ class ObjectMapping15[
 
   def unbind(value: R): Map[String, String] = {
     unapply(value).map { fields =>
-      val (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15) =
-        fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7
-        .unbind(v7) ++ field8.unbind(v8) ++ field9.unbind(v9) ++ field10
-        .unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
+      val (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15) = fields
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8) ++ field9
+        .unbind(v9) ++ field10.unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
         .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15)
     }.getOrElse(Map.empty)
   }
 
   def unbindAndValidate(value: R): (Map[String, String], Seq[FormError]) = {
     unapply(value).map { fields =>
-      val (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15) =
-        fields
+      val (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15) = fields
       val a1 = field1.unbindAndValidate(v1)
       val a2 = field2.unbindAndValidate(v2)
       val a3 = field3.unbindAndValidate(v3)
@@ -1804,13 +1725,11 @@ class ObjectMapping15[
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String
-      ): ObjectMapping15[
-      R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      ): ObjectMapping15[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
     addPrefix(prefix)
       .map(newKey =>
             new ObjectMapping15(apply,
@@ -1835,8 +1754,7 @@ class ObjectMapping15[
       .getOrElse(this)
 
   def verifying(addConstraints: Constraint[R]*
-      ): ObjectMapping15[
-      R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] = {
+      ): ObjectMapping15[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] = {
     new ObjectMapping15(apply,
                         unapply,
                         f1,
@@ -1862,8 +1780,7 @@ class ObjectMapping15[
     Seq(this) ++ field1.mappings ++ field2.mappings ++ field3.mappings ++ field4.mappings ++ field5.mappings ++ field6.mappings ++ field7.mappings ++ field8.mappings ++ field9.mappings ++ field10.mappings ++ field11.mappings ++ field12.mappings ++ field13.mappings ++ field14.mappings ++ field15.mappings
 }
 
-class ObjectMapping16[
-    R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+class ObjectMapping16[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
     apply: Function16[A1,
                       A2,
                       A3,
@@ -1882,9 +1799,7 @@ class ObjectMapping16[
                       A16,
                       R],
     unapply: Function1[
-        R,
-        Option[
-            (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)]],
+        R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)]],
     f1: (String, Mapping[A1]),
     f2: (String, Mapping[A2]),
     f3: (String, Mapping[A3]),
@@ -1902,8 +1817,7 @@ class ObjectMapping16[
     f15: (String, Mapping[A15]),
     f16: (String, Mapping[A16]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -1980,23 +1894,17 @@ class ObjectMapping16[
 
   def unbind(value: R): Map[String, String] = {
     unapply(value).map { fields =>
-      val (
-      v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16) =
-        fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7
-        .unbind(v7) ++ field8.unbind(v8) ++ field9.unbind(v9) ++ field10
-        .unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
-        .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15) ++ field16
-        .unbind(v16)
+      val (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16) = fields
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8) ++ field9
+        .unbind(v9) ++ field10.unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
+        .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15) ++ field16.unbind(v16)
     }.getOrElse(Map.empty)
   }
 
   def unbindAndValidate(value: R): (Map[String, String], Seq[FormError]) = {
     unapply(value).map { fields =>
-      val (
-      v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16) =
-        fields
+      val (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16) = fields
       val a1 = field1.unbindAndValidate(v1)
       val a2 = field2.unbindAndValidate(v2)
       val a3 = field3.unbindAndValidate(v3)
@@ -2016,8 +1924,7 @@ class ObjectMapping16[
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String
@@ -2143,9 +2050,7 @@ class ObjectMapping17[R,
                       A17,
                       R],
     unapply: Function1[
-        R,
-        Option[
-            (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)]],
+        R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)]],
     f1: (String, Mapping[A1]),
     f2: (String, Mapping[A2]),
     f3: (String, Mapping[A3]),
@@ -2164,8 +2069,7 @@ class ObjectMapping17[R,
     f16: (String, Mapping[A16]),
     f17: (String, Mapping[A17]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -2263,12 +2167,11 @@ class ObjectMapping17[R,
            v15,
            v16,
            v17) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7
-        .unbind(v7) ++ field8.unbind(v8) ++ field9.unbind(v9) ++ field10
-        .unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
-        .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15) ++ field16
-        .unbind(v16) ++ field17.unbind(v17)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8) ++ field9
+        .unbind(v9) ++ field10.unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
+        .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15) ++ field16.unbind(v16) ++ field17
+        .unbind(v17)
     }.getOrElse(Map.empty)
   }
 
@@ -2311,8 +2214,7 @@ class ObjectMapping17[R,
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1 ++ a17._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String
@@ -2445,8 +2347,7 @@ class ObjectMapping18[R,
                       R],
     unapply: Function1[
         R,
-        Option[
-            (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)]],
+        Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)]],
     f1: (String, Mapping[A1]),
     f2: (String, Mapping[A2]),
     f3: (String, Mapping[A3]),
@@ -2466,8 +2367,7 @@ class ObjectMapping18[R,
     f17: (String, Mapping[A17]),
     f18: (String, Mapping[A18]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -2570,12 +2470,11 @@ class ObjectMapping18[R,
            v16,
            v17,
            v18) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7
-        .unbind(v7) ++ field8.unbind(v8) ++ field9.unbind(v9) ++ field10
-        .unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
-        .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15) ++ field16
-        .unbind(v16) ++ field17.unbind(v17) ++ field18.unbind(v18)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8) ++ field9
+        .unbind(v9) ++ field10.unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
+        .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15) ++ field16.unbind(v16) ++ field17
+        .unbind(v17) ++ field18.unbind(v18)
     }.getOrElse(Map.empty)
   }
 
@@ -2620,8 +2519,7 @@ class ObjectMapping18[R,
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1 ++ a17._1 ++ a18._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String
@@ -2782,8 +2680,7 @@ class ObjectMapping19[R,
     f18: (String, Mapping[A18]),
     f19: (String, Mapping[A19]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -2891,13 +2788,11 @@ class ObjectMapping19[R,
            v17,
            v18,
            v19) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7
-        .unbind(v7) ++ field8.unbind(v8) ++ field9.unbind(v9) ++ field10
-        .unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
-        .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15) ++ field16
-        .unbind(v16) ++ field17.unbind(v17) ++ field18.unbind(v18) ++ field19
-        .unbind(v19)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8) ++ field9
+        .unbind(v9) ++ field10.unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
+        .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15) ++ field16.unbind(v16) ++ field17
+        .unbind(v17) ++ field18.unbind(v18) ++ field19.unbind(v19)
     }.getOrElse(Map.empty)
   }
 
@@ -2944,8 +2839,7 @@ class ObjectMapping19[R,
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1 ++ a17._1 ++ a18._1 ++ a19._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2 ++ a19._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String
@@ -3113,8 +3007,7 @@ class ObjectMapping20[R,
     f19: (String, Mapping[A19]),
     f20: (String, Mapping[A20]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -3227,13 +3120,11 @@ class ObjectMapping20[R,
            v18,
            v19,
            v20) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7
-        .unbind(v7) ++ field8.unbind(v8) ++ field9.unbind(v9) ++ field10
-        .unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
-        .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15) ++ field16
-        .unbind(v16) ++ field17.unbind(v17) ++ field18.unbind(v18) ++ field19
-        .unbind(v19) ++ field20.unbind(v20)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8) ++ field9
+        .unbind(v9) ++ field10.unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
+        .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15) ++ field16.unbind(v16) ++ field17
+        .unbind(v17) ++ field18.unbind(v18) ++ field19.unbind(v19) ++ field20.unbind(v20)
     }.getOrElse(Map.empty)
   }
 
@@ -3282,8 +3173,7 @@ class ObjectMapping20[R,
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1 ++ a17._1 ++ a18._1 ++ a19._1 ++ a20._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2 ++ a19._2 ++ a20._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String
@@ -3458,8 +3348,7 @@ class ObjectMapping21[R,
     f20: (String, Mapping[A20]),
     f21: (String, Mapping[A21]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -3577,13 +3466,12 @@ class ObjectMapping21[R,
            v19,
            v20,
            v21) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7
-        .unbind(v7) ++ field8.unbind(v8) ++ field9.unbind(v9) ++ field10
-        .unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
-        .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15) ++ field16
-        .unbind(v16) ++ field17.unbind(v17) ++ field18.unbind(v18) ++ field19
-        .unbind(v19) ++ field20.unbind(v20) ++ field21.unbind(v21)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8) ++ field9
+        .unbind(v9) ++ field10.unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
+        .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15) ++ field16.unbind(v16) ++ field17
+        .unbind(v17) ++ field18.unbind(v18) ++ field19.unbind(v19) ++ field20.unbind(v20) ++ field21
+        .unbind(v21)
     }.getOrElse(Map.empty)
   }
 
@@ -3634,8 +3522,7 @@ class ObjectMapping21[R,
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1 ++ a17._1 ++ a18._1 ++ a19._1 ++ a20._1 ++ a21._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2 ++ a19._2 ++ a20._2 ++ a21._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String
@@ -3817,8 +3704,7 @@ class ObjectMapping22[R,
     f21: (String, Mapping[A21]),
     f22: (String, Mapping[A22]),
     val key: String = "",
-    val constraints: Seq[Constraint[R]] = Nil)
-    extends Mapping[R] with ObjectMapping {
+    val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
   val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
 
@@ -3941,14 +3827,12 @@ class ObjectMapping22[R,
            v20,
            v21,
            v22) = fields
-      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4
-        .unbind(v4) ++ field5.unbind(v5) ++ field6.unbind(v6) ++ field7
-        .unbind(v7) ++ field8.unbind(v8) ++ field9.unbind(v9) ++ field10
-        .unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
-        .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15) ++ field16
-        .unbind(v16) ++ field17.unbind(v17) ++ field18.unbind(v18) ++ field19
-        .unbind(v19) ++ field20.unbind(v20) ++ field21.unbind(v21) ++ field22
-        .unbind(v22)
+      field1.unbind(v1) ++ field2.unbind(v2) ++ field3.unbind(v3) ++ field4.unbind(v4) ++ field5
+        .unbind(v5) ++ field6.unbind(v6) ++ field7.unbind(v7) ++ field8.unbind(v8) ++ field9
+        .unbind(v9) ++ field10.unbind(v10) ++ field11.unbind(v11) ++ field12.unbind(v12) ++ field13
+        .unbind(v13) ++ field14.unbind(v14) ++ field15.unbind(v15) ++ field16.unbind(v16) ++ field17
+        .unbind(v17) ++ field18.unbind(v18) ++ field19.unbind(v19) ++ field20.unbind(v20) ++ field21
+        .unbind(v21) ++ field22.unbind(v22)
     }.getOrElse(Map.empty)
   }
 
@@ -4001,8 +3885,7 @@ class ObjectMapping22[R,
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1 ++ a17._1 ++ a18._1 ++ a19._1 ++ a20._1 ++ a21._1 ++ a22._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2 ++ a19._2 ++ a20._2 ++ a21._2 ++ a22._2)
-    }.getOrElse(Map.empty[String, String] -> Seq(
-            FormError(key, "unbind.failed")))
+    }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
   def withPrefix(prefix: String

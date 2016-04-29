@@ -108,8 +108,8 @@ object Database {
             name: String = "default",
             config: Map[String, _ <: Any] = Map.empty): Database = {
     val dbConfig =
-      Configuration.reference.getConfig("play.db.prototype").get ++ Configuration
-        .from(Map("driver" -> driver, "url" -> url) ++ config)
+      Configuration.reference.getConfig("play.db.prototype").get ++ Configuration.from(
+          Map("driver" -> driver, "url" -> url) ++ config)
     new PooledDatabase(name, dbConfig)
   }
 
@@ -125,8 +125,7 @@ object Database {
                urlOptions: Map[String, String] = Map.empty,
                config: Map[String, _ <: Any] = Map.empty): Database = {
     val driver = "org.h2.Driver"
-    val urlExtra = urlOptions.map { case (k, v) => k + "=" + v }
-      .mkString(";", ";", "")
+    val urlExtra = urlOptions.map { case (k, v) => k + "=" + v }.mkString(";", ";", "")
     val url = "jdbc:h2:mem:" + name + urlExtra
     Database(driver, url, name, config)
   }
@@ -144,8 +143,7 @@ object Database {
   def withDatabase[T](driver: String,
                       url: String,
                       name: String = "default",
-                      config: Map[String, _ <: Any] = Map.empty)(
-      block: Database => T): T = {
+                      config: Map[String, _ <: Any] = Map.empty)(block: Database => T): T = {
     val database = Database(driver, url, name, config)
     try {
       block(database)
@@ -165,8 +163,7 @@ object Database {
     */
   def withInMemory[T](name: String = "default",
                       urlOptions: Map[String, String] = Map.empty,
-                      config: Map[String, _ <: Any] = Map.empty)(
-      block: Database => T): T = {
+                      config: Map[String, _ <: Any] = Map.empty)(block: Database => T): T = {
     val database = inMemory(name, urlOptions, config)
     try {
       block(database)
@@ -180,8 +177,7 @@ object Database {
   * Default implementation of the database API.
   * Provides driver registration and connection methods.
   */
-abstract class DefaultDatabase(
-    val name: String, configuration: Config, environment: Environment)
+abstract class DefaultDatabase(val name: String, configuration: Config, environment: Environment)
     extends Database {
 
   private val config = PlayConfig(configuration)
@@ -198,14 +194,13 @@ abstract class DefaultDatabase(
   lazy val driver: Option[Driver] = {
     databaseConfig.driver.map { driverClassName =>
       try {
-        val proxyDriver = new ProxyDriver(Reflect.createInstance[Driver](
-                driverClassName, environment.classLoader))
+        val proxyDriver =
+          new ProxyDriver(Reflect.createInstance[Driver](driverClassName, environment.classLoader))
         DriverManager.registerDriver(proxyDriver)
         proxyDriver
       } catch {
         case NonFatal(e) =>
-          throw config.reportError(
-              "driver", s"Driver not found: [$driverClassName}]", Some(e))
+          throw config.reportError("driver", s"Driver not found: [$driverClassName}]", Some(e))
       }
     }
   }
@@ -295,8 +290,7 @@ class PooledDatabase(name: String,
       Environment.simple(),
       new HikariCPConnectionPool(Environment.simple()))
 
-  def createDataSource(): DataSource =
-    pool.create(name, databaseConfig, configuration)
+  def createDataSource(): DataSource = pool.create(name, databaseConfig, configuration)
 
   def closeDataSource(dataSource: DataSource): Unit = pool.close(dataSource)
 }

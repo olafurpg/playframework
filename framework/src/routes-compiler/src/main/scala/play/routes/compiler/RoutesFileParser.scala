@@ -20,8 +20,7 @@ object RoutesFileParser {
     * @param routesFile The routes file to parse
     * @return Either the list of compilation errors encountered, or a list of routing rules
     */
-  def parse(
-      routesFile: File): Either[Seq[RoutesCompilationError], List[Rule]] = {
+  def parse(routesFile: File): Either[Seq[RoutesCompilationError], List[Rule]] = {
 
     val routesContent = FileUtils.readFileToString(routesFile)
 
@@ -36,8 +35,7 @@ object RoutesFileParser {
     * @return Either the list of compilation errors encountered, or a list of routing rules
     */
   def parseContent(
-      routesContent: String,
-      routesFile: File): Either[Seq[RoutesCompilationError], List[Rule]] = {
+      routesContent: String, routesFile: File): Either[Seq[RoutesCompilationError], List[Rule]] = {
     val parser = new RoutesFileParser()
 
     parser.parse(routesContent) match {
@@ -57,8 +55,7 @@ object RoutesFileParser {
   /**
     * Validate the routes file
     */
-  private def validate(
-      file: java.io.File, routes: List[Route]): Seq[RoutesCompilationError] = {
+  private def validate(file: java.io.File, routes: List[Route]): Seq[RoutesCompilationError] = {
 
     import scala.collection.mutable._
     val errors = ListBuffer.empty[RoutesCompilationError]
@@ -104,11 +101,10 @@ object RoutesFileParser {
                 }
               }
               .getOrElse {
-                errors += RoutesCompilationError(
-                    file,
-                    "Missing parameter in call definition: " + name,
-                    Some(part.pos.line),
-                    Some(part.pos.column))
+                errors += RoutesCompilationError(file,
+                                                 "Missing parameter in call definition: " + name,
+                                                 Some(part.pos.line),
+                                                 Some(part.pos.column))
               }
           }
       }
@@ -119,11 +115,9 @@ object RoutesFileParser {
       r.call.packageName + r.call.controller + r.call.method
     }
 
-    val sameHandlerMethodParameterCountGroup = sameHandlerMethodGroup.groupBy {
-      g =>
-        (g._1,
-         g._2.groupBy(
-             route => route.call.parameters.map(p => p.length).getOrElse(0)))
+    val sameHandlerMethodParameterCountGroup = sameHandlerMethodGroup.groupBy { g =>
+      (g._1,
+       g._2.groupBy(route => route.call.parameters.map(p => p.length).getOrElse(0)))
     }
 
     sameHandlerMethodParameterCountGroup.find(g => g._1._2.size > 1).foreach {
@@ -181,8 +175,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
 
   // This won't be needed when we upgrade to Scala 2.11, we will then be able to use JavaTokenParser.ident:
   // https://github.com/scala/scala/pull/1466
-  def javaIdent: Parser[String] =
-    """\p{javaJavaIdentifierStart}\p{javaJavaIdentifierPart}*""".r
+  def javaIdent: Parser[String] = """\p{javaJavaIdentifierStart}\p{javaJavaIdentifierPart}*""".r
 
   def identifier: Parser[String] = namedError(javaIdent, "Identifier expected")
 
@@ -192,8 +185,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
     case c => Comment(c)
   }
 
-  def newLine: Parser[String] =
-    namedError((("\r" ?) ~> "\n"), "End of line expected")
+  def newLine: Parser[String] = namedError((("\r" ?) ~> "\n"), "End of line expected")
 
   def blankLine: Parser[Unit] = ignoreWhiteSpace ~> newLine ^^ { case _ => () }
 
@@ -216,16 +208,14 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
   }
 
   def multiString: Parser[String] = {
-    "\"\"\"" ~ (several((parentheses | not("\"\"\"") ~> """.""".r))) ~ commit(
-        "\"\"\"") ^^ {
+    "\"\"\"" ~ (several((parentheses | not("\"\"\"") ~> """.""".r))) ~ commit("\"\"\"") ^^ {
       case p1 ~ charList ~ p2 => p1 + charList.mkString + p2
     }
   }
 
   def httpVerb: Parser[HttpVerb] =
-    namedError(
-        "GET" | "POST" | "PUT" | "PATCH" | "HEAD" | "DELETE" | "OPTIONS",
-        "HTTP Verb expected") ^^ {
+    namedError("GET" | "POST" | "PUT" | "PATCH" | "HEAD" | "DELETE" | "OPTIONS",
+               "HTTP Verb expected") ^^ {
       case v => HttpVerb(v)
     }
 
@@ -233,14 +223,12 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
     case name => DynamicPart(name, """[^/]+""", encode = true)
   }
 
-  def multipleComponentsPathPart: Parser[DynamicPart] =
-    ("*" ~> identifier) ^^ {
-      case name => DynamicPart(name, """.+""", encode = false)
-    }
+  def multipleComponentsPathPart: Parser[DynamicPart] = ("*" ~> identifier) ^^ {
+    case name => DynamicPart(name, """.+""", encode = false)
+  }
 
   def regexComponentPathPart: Parser[DynamicPart] =
-    "$" ~> identifier ~
-    ("<" ~> (not(">") ~> """[^\s]""".r +) <~ ">" ^^ { case c => c.mkString }) ^^ {
+    "$" ~> identifier ~ ("<" ~> (not(">") ~> """[^\s]""".r +) <~ ">" ^^ { case c => c.mkString }) ^^ {
       case name ~ regex => DynamicPart(name, regex, encode = false)
     }
 
@@ -251,14 +239,12 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
 
   def path: Parser[PathPattern] =
     "/" ~
-    ((positioned(singleComponentPathPart) | positioned(
-                multipleComponentsPathPart) | positioned(
+    ((positioned(singleComponentPathPart) | positioned(multipleComponentsPathPart) | positioned(
                 regexComponentPathPart) | staticPathPart) *) ^^ {
       case _ ~ parts => PathPattern(parts)
     }
 
-  def space(s: String): Parser[String] =
-    (ignoreWhiteSpace ~> s <~ ignoreWhiteSpace)
+  def space(s: String): Parser[String] = (ignoreWhiteSpace ~> s <~ ignoreWhiteSpace)
 
   def parameterType: Parser[String] = ":" ~> ignoreWhiteSpace ~> simpleType
 
@@ -278,26 +264,22 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
     }
   }
 
-  def types: Parser[String] =
-    rep1sep(simpleType, space(",")) ^^ (_ mkString ",")
+  def types: Parser[String] = rep1sep(simpleType, space(",")) ^^ (_ mkString ",")
 
-  def stableId: Parser[String] =
-    rep1sep(identifier, space(".")) ^^ (_ mkString ".")
+  def stableId: Parser[String] = rep1sep(identifier, space(".")) ^^ (_ mkString ".")
 
   def expression: Parser[String] =
     (multiString | string | parentheses | brackets | """[^),?=\n]""".r +) ^^ {
       case p => p.mkString
     }
 
-  def parameterFixedValue: Parser[String] =
-    "=" ~ ignoreWhiteSpace ~ expression ^^ {
-      case a ~ _ ~ b => a + b
-    }
+  def parameterFixedValue: Parser[String] = "=" ~ ignoreWhiteSpace ~ expression ^^ {
+    case a ~ _ ~ b => a + b
+  }
 
-  def parameterDefaultValue: Parser[String] =
-    "?=" ~ ignoreWhiteSpace ~ expression ^^ {
-      case a ~ _ ~ b => a + b
-    }
+  def parameterDefaultValue: Parser[String] = "?=" ~ ignoreWhiteSpace ~ expression ^^ {
+    case a ~ _ ~ b => a + b
+  }
 
   def parameter: Parser[Parameter] =
     (identifier <~ ignoreWhiteSpace) ~ opt(parameterType) ~
@@ -310,9 +292,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
     }
 
   def parameters: Parser[List[Parameter]] =
-    "(" ~> repsep(
-        ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace,
-        ",") <~ ")"
+    "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
 
   // Absolute method consists of a series of Java identifiers representing the package name, controller and method.
   // Since the Scala parser is greedy, we can't easily extract this out, so just parse at least 3
@@ -321,38 +301,33 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
       case first ~ _ ~ second ~ _ ~ rest => first :: second :: rest
     }, "Controller method call expected")
 
-  def call: Parser[HandlerCall] =
-    opt("@") ~ absoluteMethod ~ opt(parameters) ^^ {
-      case instantiate ~ absMethod ~ parameters =>
-        {
-          val (packageParts, classAndMethod) =
-            absMethod.splitAt(absMethod.size - 2)
-          val packageName = packageParts.mkString(".")
-          val className = classAndMethod(0)
-          val methodName = classAndMethod(1)
-          val dynamic = !instantiate.isEmpty
-          HandlerCall(packageName, className, dynamic, methodName, parameters)
-        }
-    }
+  def call: Parser[HandlerCall] = opt("@") ~ absoluteMethod ~ opt(parameters) ^^ {
+    case instantiate ~ absMethod ~ parameters =>
+      {
+        val (packageParts, classAndMethod) = absMethod.splitAt(absMethod.size - 2)
+        val packageName = packageParts.mkString(".")
+        val className = classAndMethod(0)
+        val methodName = classAndMethod(1)
+        val dynamic = !instantiate.isEmpty
+        HandlerCall(packageName, className, dynamic, methodName, parameters)
+      }
+  }
 
   def router: Parser[String] = rep1sep(identifier, ".") ^^ {
     case parts => parts.mkString(".")
   }
 
-  def route =
-    httpVerb ~! separator ~ path ~ separator ~ positioned(call) ~ ignoreWhiteSpace ^^ {
-      case v ~ _ ~ p ~ _ ~ c ~ _ => Route(v, p, c)
-    }
+  def route = httpVerb ~! separator ~ path ~ separator ~ positioned(call) ~ ignoreWhiteSpace ^^ {
+    case v ~ _ ~ p ~ _ ~ c ~ _ => Route(v, p, c)
+  }
 
-  def include =
-    "->" ~! separator ~ path ~ separator ~ router ~ ignoreWhiteSpace ^^ {
-      case _ ~ _ ~ p ~ _ ~ r ~ _ => Include(p.toString, r)
-    }
+  def include = "->" ~! separator ~ path ~ separator ~ router ~ ignoreWhiteSpace ^^ {
+    case _ ~ _ ~ p ~ _ ~ r ~ _ => Include(p.toString, r)
+  }
 
   def sentence: Parser[Product with Serializable] =
-    namedError(
-        (comment | positioned(include) | positioned(route)),
-        "HTTP Verb (GET, POST, ...), include (->) or comment (#) expected") <~
+    namedError((comment | positioned(include) | positioned(route)),
+               "HTTP Verb (GET, POST, ...), include (->) or comment (#) expected") <~
     (newLine | EOF)
 
   def parser: Parser[List[Rule]] = phrase((blankLine | sentence *) <~ end) ^^ {

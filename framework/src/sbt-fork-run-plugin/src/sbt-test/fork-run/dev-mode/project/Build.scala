@@ -22,8 +22,7 @@ object DevModeBuild {
   def settings: Seq[Setting[_]] =
     Seq(
         DevModeKeys.writeRunProperties := {
-          IO.write(file("run.properties"),
-                   s"project.version=${play.core.PlayVersion.current}")
+          IO.write(file("run.properties"), s"project.version=${play.core.PlayVersion.current}")
         },
         DevModeKeys.waitForServer := {
           DevModeBuild.waitForServer()
@@ -33,16 +32,13 @@ object DevModeBuild {
         },
         DevModeKeys.verifyReloads := {
           val expected = Def.spaceDelimited().parsed.head.toInt
-          val actual = try IO
-            .readLines(target.value / "reload.log")
-            .count(_.nonEmpty) catch {
+          val actual = try IO.readLines(target.value / "reload.log").count(_.nonEmpty) catch {
             case _: java.io.IOException => 0
           }
           if (expected == actual) {
             println(s"Expected and got $expected reloads")
           } else {
-            throw new RuntimeException(
-                s"Expected $expected reloads but got $actual")
+            throw new RuntimeException(s"Expected $expected reloads but got $actual")
           }
         },
         DevModeKeys.verifyResourceContains := {
@@ -62,16 +58,13 @@ object DevModeBuild {
     println(s"Connecting to server: attempt $attempts")
     try {
       val url = new java.net.URL("http://localhost:9000")
-      val connection =
-        url.openConnection().asInstanceOf[java.net.HttpURLConnection]
+      val connection = url.openConnection().asInstanceOf[java.net.HttpURLConnection]
       connection.connect()
       connection match {
         case h: java.net.HttpURLConnection =>
-          println(
-              s"Server gave us status ${h.getResponseCode} ${h.getResponseMessage}")
+          println(s"Server gave us status ${h.getResponseCode} ${h.getResponseMessage}")
           if (h.getResponseCode != 200)
-            throw new Exception(
-                s"Bad response code ${h.getResponseCode} from server")
+            throw new Exception(s"Bad response code ${h.getResponseCode} from server")
         case _ =>
           println(s"Not an HttpURLConnection? ${connection.getClass.getName}")
       }
@@ -133,8 +126,7 @@ object DevModeBuild {
         if (contents.contains(assertion)) {
           messages += s"Resource at $path contained $assertion"
         } else {
-          throw new RuntimeException(
-              s"Resource at $path didn't contain '$assertion':\n$contents")
+          throw new RuntimeException(s"Resource at $path didn't contain '$assertion':\n$contents")
         }
       }
 

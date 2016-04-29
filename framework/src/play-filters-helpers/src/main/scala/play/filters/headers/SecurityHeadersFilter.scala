@@ -35,8 +35,7 @@ object SecurityHeadersFilter {
   val X_FRAME_OPTIONS_HEADER = "X-Frame-Options"
   val X_XSS_PROTECTION_HEADER = "X-XSS-Protection"
   val X_CONTENT_TYPE_OPTIONS_HEADER = "X-Content-Type-Options"
-  val X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER =
-    "X-Permitted-Cross-Domain-Policies"
+  val X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = "X-Permitted-Cross-Domain-Policies"
   val CONTENT_SECURITY_POLICY_HEADER = "Content-Security-Policy"
 
   /**
@@ -45,8 +44,7 @@ object SecurityHeadersFilter {
     *
     * @return a configured SecurityHeadersFilter.
     */
-  def apply(
-      config: SecurityHeadersConfig = SecurityHeadersConfig()): SecurityHeadersFilter = {
+  def apply(config: SecurityHeadersConfig = SecurityHeadersConfig()): SecurityHeadersFilter = {
     new SecurityHeadersFilter(config)
   }
 
@@ -89,10 +87,8 @@ object SecurityHeadersConfig {
         frameOptions = config.getOptional[String]("frameOptions"),
         xssProtection = config.getOptional[String]("xssProtection"),
         contentTypeOptions = config.getOptional[String]("contentTypeOptions"),
-        permittedCrossDomainPolicies = config
-            .getOptional[String]("permittedCrossDomainPolicies"),
-        contentSecurityPolicy = config
-            .getOptional[String]("contentSecurityPolicy"))
+        permittedCrossDomainPolicies = config.getOptional[String]("permittedCrossDomainPolicies"),
+        contentSecurityPolicy = config.getOptional[String]("contentSecurityPolicy"))
   }
 }
 
@@ -101,8 +97,7 @@ object SecurityHeadersConfig {
   * method on the companion singleton for convenience.
   */
 @Singleton
-class SecurityHeadersFilter @Inject()(config: SecurityHeadersConfig)
-    extends EssentialFilter {
+class SecurityHeadersFilter @Inject()(config: SecurityHeadersConfig) extends EssentialFilter {
   import SecurityHeadersFilter._
 
   /**
@@ -114,8 +109,7 @@ class SecurityHeadersFilter @Inject()(config: SecurityHeadersConfig)
         config.frameOptions.map(X_FRAME_OPTIONS_HEADER -> _),
         config.xssProtection.map(X_XSS_PROTECTION_HEADER -> _),
         config.contentTypeOptions.map(X_CONTENT_TYPE_OPTIONS_HEADER -> _),
-        config.permittedCrossDomainPolicies.map(
-            X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER -> _),
+        config.permittedCrossDomainPolicies.map(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER -> _),
         config.contentSecurityPolicy.map(CONTENT_SECURITY_POLICY_HEADER -> _)
     ).flatten
 
@@ -156,6 +150,6 @@ trait SecurityHeadersComponents {
 
   lazy val securityHeadersConfig: SecurityHeadersConfig =
     SecurityHeadersConfig.fromConfiguration(configuration)
-  lazy val securityHeadersFilter: SecurityHeadersFilter =
-    SecurityHeadersFilter(securityHeadersConfig)
+  lazy val securityHeadersFilter: SecurityHeadersFilter = SecurityHeadersFilter(
+      securityHeadersConfig)
 }

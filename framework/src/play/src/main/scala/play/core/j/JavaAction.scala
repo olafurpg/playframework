@@ -22,8 +22,7 @@ import scala.concurrent.{ExecutionContext, Future}
   * @param controller The controller to be evaluated
   * @param method     The method to be evaluated
   */
-class JavaActionAnnotations(
-    val controller: Class[_], val method: java.lang.reflect.Method) {
+class JavaActionAnnotations(val controller: Class[_], val method: java.lang.reflect.Method) {
 
   val parser: BodyParser[play.mvc.Http.RequestBody] =
     Seq(method.getAnnotation(classOf[play.mvc.BodyParser.Of]),
@@ -36,9 +35,9 @@ class JavaActionAnnotations(
       .getOrElse(JavaParsers.default_(-1))
 
   val controllerAnnotations = play.api.libs.Collections
-    .unfoldLeft[Seq[java.lang.annotation.Annotation], Option[Class[_]]](
-        Option(controller)) { clazz =>
-      clazz.map(c => (Option(c.getSuperclass), c.getDeclaredAnnotations.toSeq))
+    .unfoldLeft[Seq[java.lang.annotation.Annotation], Option[Class[_]]](Option(controller)) {
+      clazz =>
+        clazz.map(c => (Option(c.getSuperclass), c.getDeclaredAnnotations.toSeq))
     }
     .flatten
 
@@ -46,11 +45,7 @@ class JavaActionAnnotations(
     (method.getDeclaredAnnotations ++ controllerAnnotations).collect {
       case a: play.mvc.With => a.value.map(c => (a, c)).toSeq
       case a if a.annotationType.isAnnotationPresent(classOf[play.mvc.With]) =>
-        a.annotationType
-          .getAnnotation(classOf[play.mvc.With])
-          .value
-          .map(c => (a, c))
-          .toSeq
+        a.annotationType.getAnnotation(classOf[play.mvc.With]).value.map(c => (a, c)).toSeq
     }.flatten.reverse
   }
 }
@@ -72,16 +67,15 @@ abstract class JavaAction(components: JavaHandlerComponents)
       def call(ctx: JContext): JPromise[JResult] = invocation
     }
 
-    val baseAction = components.requestHandler
-      .createAction(javaContext.request, annotations.method)
+    val baseAction =
+      components.requestHandler.createAction(javaContext.request, annotations.method)
     baseAction.delegate = rootAction
 
     val finalAction = components.requestHandler.wrapAction(
         annotations.actionMixins.foldLeft[JAction[_ <: Any]](baseAction) {
           case (delegate, (annotation, actionClass)) =>
-            val action = components.injector
-              .instanceOf(actionClass)
-              .asInstanceOf[play.mvc.Action[Object]]
+            val action =
+              components.injector.instanceOf(actionClass).asInstanceOf[play.mvc.Action[Object]]
             action.configuration = annotation
             action.delegate = delegate
             action
@@ -95,8 +89,7 @@ abstract class JavaAction(components: JavaHandlerComponents)
     val actionFuture: Future[Future[JResult]] = Future {
       finalAction.call(javaContext).wrapped
     }(trampolineWithContext)
-    val flattenedActionFuture: Future[JResult] =
-      actionFuture.flatMap(identity)(trampoline)
+    val flattenedActionFuture: Future[JResult] = actionFuture.flatMap(identity)(trampoline)
     val resultFuture: Future[Result] =
       flattenedActionFuture.map(createResult(javaContext, _))(trampoline)
     resultFuture

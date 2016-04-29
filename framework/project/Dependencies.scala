@@ -26,8 +26,7 @@ object Dependencies {
   ).map(_ % "2.5.2")
 
   val guava = "com.google.guava" % "guava" % "18.0"
-  val findBugs =
-    "com.google.code.findbugs" % "jsr305" % "2.0.3" // Needed by guava
+  val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.3" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.8"
 
   val h2database = "com.h2database" % "h2" % "1.4.187"
@@ -54,8 +53,7 @@ object Dependencies {
   )
   val javassist = link
 
-  val scalaJava8Compat =
-    "org.scala-lang.modules" %% "scala-java8-compat" % "0.3.0"
+  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.3.0"
 
   val springFrameworkVersion = "4.1.6.RELEASE"
 
@@ -67,19 +65,17 @@ object Dependencies {
         "org.hibernate" % "hibernate-validator" % "5.0.3.Final",
         // This is depended on by hibernate validator, we upgrade to 3.2.0 to avoid LGPL license of 3.1.x
         "org.jboss.logging" % "jboss-logging" % "3.2.1.Final",
-        ("org.springframework" % "spring-context" % springFrameworkVersion notTransitive
-            ())
+        ("org.springframework" % "spring-context" % springFrameworkVersion notTransitive ())
           .exclude("org.springframework", "spring-aop")
           .exclude("org.springframework", "spring-beans")
           .exclude("org.springframework", "spring-core")
           .exclude("org.springframework", "spring-expression")
           .exclude("org.springframework", "spring-asm"),
-        ("org.springframework" % "spring-core" % springFrameworkVersion notTransitive
-            ())
+        ("org.springframework" % "spring-core" % springFrameworkVersion notTransitive ())
           .exclude("org.springframework", "spring-asm")
           .exclude("commons-logging", "commons-logging"),
-        ("org.springframework" % "spring-beans" % springFrameworkVersion notTransitive
-            ()).exclude("org.springframework", "spring-core"),
+        ("org.springframework" % "spring-beans" % springFrameworkVersion notTransitive ())
+          .exclude("org.springframework", "spring-core"),
         ("org.reflections" % "reflections" % "0.9.9" notTransitive ())
           .exclude("javassist", "javassist"),
         // Used by the Java routing DSL
@@ -103,10 +99,9 @@ object Dependencies {
   val jodaConvert = "org.joda" % "joda-convert" % "1.7"
 
   def runtime(scalaVersion: String) =
-    Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map(
-        "org.slf4j" % _ % "1.7.12") ++ Seq("logback-core", "logback-classic")
-      .map("ch.qos.logback" % _ % "1.1.3") ++ Seq("akka-actor", "akka-slf4j")
-      .map("com.typesafe.akka" %% _ % "2.3.7") ++ jacksons ++ Seq(
+    Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.12") ++ Seq(
+        "logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.3") ++ Seq(
+        "akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.7") ++ jacksons ++ Seq(
         "org.scala-stm" %% "scala-stm" % "0.7",
         "commons-codec" % "commons-codec" % "1.10",
         jodatime,
@@ -119,8 +114,7 @@ object Dependencies {
         // and other libraries (pegdown) depend on a newer version with a different groupId,
         // and this causes binary issues.
         "com.google.inject" % "guice" % "3.0" classifier "no_aop" exclude
-        ("org.sonatype.sisu.inject",
-            "cglib") exclude ("aopalliance", "aopalliance"),
+        ("org.sonatype.sisu.inject", "cglib") exclude ("aopalliance", "aopalliance"),
         guava % Test,
         "org.scala-lang" % "scala-reflect" % scalaVersion
     ) ++ specsBuild.map(_ % Test) ++ javaTestDeps
@@ -140,8 +134,7 @@ object Dependencies {
         "commons-io" % "commons-io" % "2.4"
     ) ++ specsBuild.map(_ % Test)
 
-  private def sbtPluginDep(
-      sbtVersion: String, scalaVersion: String, moduleId: ModuleID) = {
+  private def sbtPluginDep(sbtVersion: String, scalaVersion: String, moduleId: ModuleID) = {
     moduleId.extra(
         "sbtVersion" -> CrossVersion.binarySbtVersion(sbtVersion),
         "scalaVersion" -> CrossVersion.binaryScalaVersion(scalaVersion)
@@ -205,8 +198,7 @@ object Dependencies {
   val typesafeConfig = "com.typesafe" % "config" % "1.3.0-M2"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
-    def sbtDep(moduleId: ModuleID) =
-      sbtPluginDep(sbtVersion, scalaVersion, moduleId)
+    def sbtDep(moduleId: ModuleID) = sbtPluginDep(sbtVersion, scalaVersion, moduleId)
 
     Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
@@ -216,8 +208,7 @@ object Dependencies {
         jnotify,
         sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
         sbtDep("com.typesafe.sbt" % "sbt-play-enhancer" % "1.1.0-RC1"),
-        sbtDep(
-            "com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
+        sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
         sbtDep("com.typesafe.sbt" % "sbt-web" % "1.1.1"),
         sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.2"),
         sbtDep("com.typesafe.sbt" % "sbt-webdriver" % "1.0.0")
@@ -246,9 +237,7 @@ object Dependencies {
     ) ++ specsBuild.map(_ % "test")
 
   def jsonDependencies(scalaVersion: String) =
-    Seq(jodatime,
-        jodaConvert,
-        "org.scala-lang" % "scala-reflect" % scalaVersion) ++ jacksons ++ specsBuild
+    Seq(jodatime, jodaConvert, "org.scala-lang" % "scala-reflect" % scalaVersion) ++ jacksons ++ specsBuild
       .map(_ % Test)
 
   val scalacheckDependencies = Seq(
@@ -266,19 +255,16 @@ object Dependencies {
         junitInterface,
         guava,
         findBugs,
-        ("org.fluentlenium" % "fluentlenium-core" % "0.10.3")
-          .exclude("org.jboss.netty", "netty")
+        ("org.fluentlenium" % "fluentlenium-core" % "0.10.3").exclude("org.jboss.netty", "netty")
     )
 
-  val playCacheDeps =
-    "net.sf.ehcache" % "ehcache-core" % "2.6.10" +: specsBuild.map(_ % Test)
+  val playCacheDeps = "net.sf.ehcache" % "ehcache-core" % "2.6.10" +: specsBuild.map(_ % Test)
 
   val playWsDeps =
     Seq(
         guava,
         "com.ning" % "async-http-client" % "1.9.18"
-    ) ++ Seq("signpost-core", "signpost-commonshttp4")
-      .map("oauth.signpost" % _ % "1.2.1.2") ++
+    ) ++ Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _ % "1.2.1.2") ++
     (specsBuild :+ specsMatcherExtra).map(_ % Test) :+ mockitoAll % Test
 
   val playDocsSbtPluginDependencies = Seq(

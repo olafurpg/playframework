@@ -18,8 +18,7 @@ object ScalaWebSockets extends PlaySpecification {
     "support actors" in {
 
       def runWebSocket[In, Out](webSocket: WebSocket[In, Out],
-                                in: Enumerator[In]
-      ): Either[Result, List[Out]] = {
+                                in: Enumerator[In]): Either[Result, List[Out]] = {
         await(webSocket.f(FakeRequest())).right.map { f =>
           val consumed = Promise[List[Out]]()
           def getChunks(chunks: List[Out]): Iteratee[Out, Unit] = Cont {
@@ -35,8 +34,7 @@ object ScalaWebSockets extends PlaySpecification {
       import akka.actor._
 
       "allow creating a simple echoing actor" in new WithApplication() {
-        runWebSocket(Samples.Controller1.socket,
-                     Enumerator("foo") >>> Enumerator.eof) must beRight.like {
+        runWebSocket(Samples.Controller1.socket, Enumerator("foo") >>> Enumerator.eof) must beRight.like {
           case list => list must_== List("I received your message: foo")
         }
       }
@@ -57,8 +55,7 @@ object ScalaWebSockets extends PlaySpecification {
         }
 
         runWebSocket(
-            WebSocket.acceptWithActor[String, String](
-                req => out => Props(new MyActor)),
+            WebSocket.acceptWithActor[String, String](req => out => Props(new MyActor)),
             Enumerator.eof
         ) must beRight[List[String]]
         closed must beTrue
@@ -76,24 +73,20 @@ object ScalaWebSockets extends PlaySpecification {
         }
 
         runWebSocket(
-            WebSocket.acceptWithActor[String, String](
-                req => out => Props(new MyActor)),
+            WebSocket.acceptWithActor[String, String](req => out => Props(new MyActor)),
             Enumerator.empty
         ) must beRight[List[String]]
       }
 
       "allow rejecting the WebSocket" in new WithApplication() {
-        runWebSocket(Samples.Controller2.socket, Enumerator.empty) must beLeft.which {
-          result =>
-            result.header.status must_== FORBIDDEN
+        runWebSocket(Samples.Controller2.socket, Enumerator.empty) must beLeft.which { result =>
+          result.header.status must_== FORBIDDEN
         }
       }
 
       "allow creating a json actor" in new WithApplication() {
         val json = Json.obj("foo" -> "bar")
-        runWebSocket(
-            Samples.Controller4.socket,
-            Enumerator[JsValue](json) >>> Enumerator.eof) must beRight.which {
+        runWebSocket(Samples.Controller4.socket, Enumerator[JsValue](json) >>> Enumerator.eof) must beRight.which {
           out =>
             out must_== List(json)
         }
@@ -112,8 +105,7 @@ object ScalaWebSockets extends PlaySpecification {
     "support iteratees" in {
 
       def runWebSocket[In, Out](webSocket: WebSocket[In, Out],
-                                in: Enumerator[In]
-      ): Either[Result, List[Out]] = {
+                                in: Enumerator[In]): Either[Result, List[Out]] = {
         await(webSocket.f(FakeRequest())).right.map { f =>
           val consumed = Promise[List[Out]]()
           @volatile var chunks = List.empty[Out]
@@ -129,33 +121,28 @@ object ScalaWebSockets extends PlaySpecification {
           import scala.concurrent.duration._
           f(in.onDoneEnumerating {
             // Yeah, ugly, but it makes a race condition unlikely.
-            play.api.libs.concurrent.Promise
-              .timeout((), 100.milliseconds)
-              .onSuccess {
-                case _ => consumed.trySuccess(chunks)
-              }
+            play.api.libs.concurrent.Promise.timeout((), 100.milliseconds).onSuccess {
+              case _ => consumed.trySuccess(chunks)
+            }
           }, getChunks)
           await(consumed.future)
         }
       }
 
       "iteratee1" in new WithApplication() {
-        runWebSocket(Samples.Controller6.socket, Enumerator.eof) must beRight.which {
-          out =>
-            out must_== List("Hello!")
+        runWebSocket(Samples.Controller6.socket, Enumerator.eof) must beRight.which { out =>
+          out must_== List("Hello!")
         }
       }
 
       "iteratee2" in new WithApplication() {
-        runWebSocket(Samples.Controller7.socket, Enumerator.empty) must beRight.which {
-          out =>
-            out must_== List("Hello!")
+        runWebSocket(Samples.Controller7.socket, Enumerator.empty) must beRight.which { out =>
+          out must_== List("Hello!")
         }
       }
 
       "iteratee3" in new WithApplication() {
-        runWebSocket(Samples.Controller8.socket,
-                     Enumerator("foo") >>> Enumerator.eof) must beRight.which {
+        runWebSocket(Samples.Controller8.socket, Enumerator("foo") >>> Enumerator.eof) must beRight.which {
           out =>
             out must_== List("I received your message: foo")
         }
@@ -233,10 +220,9 @@ object Samples {
     import play.api.libs.json._
     import play.api.Play.current
 
-    def socket =
-      WebSocket.acceptWithActor[JsValue, JsValue] { request => out =>
-        MyWebSocketActor.props(out)
-      }
+    def socket = WebSocket.acceptWithActor[JsValue, JsValue] { request => out =>
+      MyWebSocketActor.props(out)
+    }
     //#actor-json
   }
 
@@ -275,10 +261,9 @@ object Samples {
     import play.api.mvc._
     import play.api.Play.current
 
-    def socket =
-      WebSocket.acceptWithActor[InEvent, OutEvent] { request => out =>
-        MyWebSocketActor.props(out)
-      }
+    def socket = WebSocket.acceptWithActor[InEvent, OutEvent] { request => out =>
+      MyWebSocketActor.props(out)
+    }
     //#actor-json-in-out
   }
 

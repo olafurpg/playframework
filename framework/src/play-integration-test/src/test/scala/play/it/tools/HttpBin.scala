@@ -25,7 +25,7 @@ import scala.util.matching.Regex
 object HttpBinApplication {
   private def route(verb: String, path: Regex)(
       handler: String => EssentialAction
-      ): PartialFunction[(String, String), Handler] = {
+  ): PartialFunction[(String, String), Handler] = {
     case (v, path(p)) if v == verb => handler(p)
   }
 
@@ -57,8 +57,7 @@ object HttpBinApplication {
               Json.obj("json" -> e)
             // X-WWW-Form-Encoded
             case f: Map [String, Seq [String]] @unchecked =>
-              Json.obj("form" -> JsObject(
-                      f.mapValues(x => JsString(x.mkString(", "))).toSeq))
+              Json.obj("form" -> JsObject(f.mapValues(x => JsString(x.mkString(", "))).toSeq))
             // Anything else
             case b =>
               Json.obj("data" -> JsString(b.toString))
@@ -118,8 +117,8 @@ object HttpBinApplication {
   val gzip = Seq("GET", "PATCH", "POST", "PUT", "DELETE").map { method =>
     route("GET", "/gzip") {
       gzipFilter(Action { request =>
-        Ok(requestHeaderWriter.writes(request).as[JsObject] ++ Json.obj(
-                "gzipped" -> true, "method" -> method))
+        Ok(requestHeaderWriter.writes(request).as[JsObject] ++ Json.obj("gzipped" -> true,
+                                                                        "method" -> method))
       })
     }
   }.reduceLeft((a, b) => a.orElse(b))
@@ -133,8 +132,7 @@ object HttpBinApplication {
 
   val responseHeaders = route("GET", "/response-header") {
     Action { request =>
-      Ok("")
-        .withHeaders(request.queryString.mapValues(_.mkString(",")).toSeq:_*)
+      Ok("").withHeaders(request.queryString.mapValues(_.mkString(",")).toSeq:_*)
     }
   }
 
@@ -163,15 +161,14 @@ object HttpBinApplication {
 
   val cookies = route("GET", "/cookies") {
     Action { request =>
-      Ok(Json.obj("cookies" -> JsObject(request.cookies.toSeq
-                    .map(x => x.name -> JsString(x.value)))))
+      Ok(Json.obj(
+              "cookies" -> JsObject(request.cookies.toSeq.map(x => x.name -> JsString(x.value)))))
     }
   }
 
   val cookiesSet = route("GET", "/cookies/set") {
     Action { request =>
-      Redirect("/cookies")
-        .withCookies(request.queryString.mapValues(_.head).toSeq.map {
+      Redirect("/cookies").withCookies(request.queryString.mapValues(_.head).toSeq.map {
         case (k, v) => Cookie(k, v)
       }:_*)
     }
@@ -179,8 +176,8 @@ object HttpBinApplication {
 
   val cookiesDelete = route("GET", "/cookies/delete") {
     Action { request =>
-      Redirect("/cookies").discardingCookies(
-          request.queryString.keys.toSeq.map(DiscardingCookie(_)):_*)
+      Redirect("/cookies")
+        .discardingCookies(request.queryString.keys.toSeq.map(DiscardingCookie(_)):_*)
     }
   }
 
@@ -196,8 +193,9 @@ object HttpBinApplication {
             .drop(1)
             .headOption
             .filter { encoded =>
-              new String(org.apache.commons.codec.binary.Base64
-                    .decodeBase64(encoded.getBytes)).split(":").toList match {
+              new String(org.apache.commons.codec.binary.Base64.decodeBase64(encoded.getBytes))
+                .split(":")
+                .toList match {
                 case u :: p :: Nil if u == username && password == p => true
                 case _ => false
               }
@@ -205,8 +203,7 @@ object HttpBinApplication {
             .map(_ => Ok(Json.obj("authenticated" -> true)))
         }
         .getOrElse {
-          Unauthorized.withHeaders(
-              "WWW-Authenticate" -> """Basic realm="Secured"""")
+          Unauthorized.withHeaders("WWW-Authenticate" -> """Basic realm="Secured"""")
         }
     }
   }

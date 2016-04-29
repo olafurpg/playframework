@@ -26,19 +26,13 @@ object JsonPerformanceTest extends App {
   println("Deserialization run 2: " + testDeserialization() + "ms")
   println("Deserialization run 3: " + testDeserialization() + "ms")
 
-  println("Large Array Deserialization run 1: " +
-      testLargeArrayDeserialization() + "ms")
-  println("Large Array Deserialization run 2: " +
-      testLargeArrayDeserialization() + "ms")
-  println("Large Array Deserialization run 3: " +
-      testLargeArrayDeserialization() + "ms")
+  println("Large Array Deserialization run 1: " + testLargeArrayDeserialization() + "ms")
+  println("Large Array Deserialization run 2: " + testLargeArrayDeserialization() + "ms")
+  println("Large Array Deserialization run 3: " + testLargeArrayDeserialization() + "ms")
 
-  println("Large Object Deserialization run 1: " +
-      testLargeObjectDeserialization() + "ms")
-  println("Large Object Deserialization run 2: " +
-      testLargeObjectDeserialization() + "ms")
-  println("Large Object Deserialization run 3: " +
-      testLargeObjectDeserialization() + "ms")
+  println("Large Object Deserialization run 1: " + testLargeObjectDeserialization() + "ms")
+  println("Large Object Deserialization run 2: " + testLargeObjectDeserialization() + "ms")
+  println("Large Object Deserialization run 3: " + testLargeObjectDeserialization() + "ms")
 
   lazy val jsvalue = Json.obj(
       "f1" -> Json.obj(
@@ -76,8 +70,7 @@ object JsonPerformanceTest extends App {
 
   lazy val largeArrayJson = Json.stringify(largeArrayJsValue)
 
-  lazy val largeObjectJsValue =
-    (1 to 8192).map(i => Json.obj("f" + i -> "obj")).reduce(_ ++ _)
+  lazy val largeObjectJsValue = (1 to 8192).map(i => Json.obj("f" + i -> "obj")).reduce(_ ++ _)
 
   lazy val largeObjectJson = Json.stringify(largeObjectJsValue)
 
@@ -93,15 +86,13 @@ object JsonPerformanceTest extends App {
     }
   }
 
-  def testLargeArrayDeserialization(
-      times: Int = 100, threads: Int = 10): Long = {
+  def testLargeArrayDeserialization(times: Int = 100, threads: Int = 10): Long = {
     runTest(times, threads) {
       Json.parse(largeArrayJson)
     }
   }
 
-  def testLargeObjectDeserialization(
-      times: Int = 100, threads: Int = 100): Long = {
+  def testLargeObjectDeserialization(times: Int = 100, threads: Int = 100): Long = {
     runTest(times, threads) {
       Json.parse(largeObjectJson)
     }

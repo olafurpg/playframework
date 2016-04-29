@@ -15,13 +15,9 @@ object FormUrlEncodedParser {
     * @param encoding The character encoding of data
     * @return A ListMap of keys to the sequence of values for that key
     */
-  def parseNotPreservingOrder(
-      data: String, encoding: String = "utf-8"): Map[String, Seq[String]] = {
+  def parseNotPreservingOrder(data: String, encoding: String = "utf-8"): Map[String, Seq[String]] = {
     // Generate the pairs of values from the string.
-    parseToPairs(data, encoding)
-      .groupBy(_._1)
-      .map(param => param._1 -> param._2.map(_._2))
-      .toMap
+    parseToPairs(data, encoding).groupBy(_._1).map(param => param._1 -> param._2.map(_._2)).toMap
   }
 
   /**
@@ -32,8 +28,7 @@ object FormUrlEncodedParser {
     * @param encoding The character encoding of data
     * @return A ListMap of keys to the sequence of values for that key
     */
-  def parse(
-      data: String, encoding: String = "utf-8"): Map[String, Seq[String]] = {
+  def parse(data: String, encoding: String = "utf-8"): Map[String, Seq[String]] = {
 
     // Generate the pairs of values from the string.
     val pairs: Seq[(String, String)] = parseToPairs(data, encoding)
@@ -48,9 +43,7 @@ object FormUrlEncodedParser {
     * @param encoding
     * @return
     */
-  def parseAsJava(
-      data: String,
-      encoding: String): java.util.Map[String, java.util.List[String]] = {
+  def parseAsJava(data: String, encoding: String): java.util.Map[String, java.util.List[String]] = {
     import scala.collection.JavaConverters._
     parse(data, encoding).map {
       case (key, values) =>
@@ -64,8 +57,7 @@ object FormUrlEncodedParser {
     * @param encoding The encoding to use for interpreting the data
     * @return The sequence of key/value pairs
     */
-  private def parseToPairs(
-      data: String, encoding: String): Seq[(String, String)] = {
+  private def parseToPairs(data: String, encoding: String): Seq[(String, String)] = {
 
     import java.net._
 
@@ -76,8 +68,7 @@ object FormUrlEncodedParser {
         if (param.contains("=") && !param.startsWith("=")) {
           val parts = param.split("=")
           val key = URLDecoder.decode(parts.head, encoding)
-          val value =
-            URLDecoder.decode(parts.tail.headOption.getOrElse(""), encoding)
+          val value = URLDecoder.decode(parts.tail.headOption.getOrElse(""), encoding)
           Seq(key -> value)
         } else {
           Nil

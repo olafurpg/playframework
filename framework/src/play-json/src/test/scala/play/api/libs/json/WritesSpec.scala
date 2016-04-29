@@ -15,13 +15,11 @@ object WritesSpec extends org.specs2.mutable.Specification {
     @inline def dateTime(input: String) =
       LocalDateTime.parse(input, DateTimeFormatter.ISO_DATE_TIME)
 
-    val CustomWrites1 =
-      Writes.temporalWrites[LocalDateTime, String]("dd/MM/yyyy, HH:mm:ss")
+    val CustomWrites1 = Writes.temporalWrites[LocalDateTime, String]("dd/MM/yyyy, HH:mm:ss")
 
     "be written as number" in {
       Writes.LocalDateTimeNumberWrites
-        .writes(LocalDateTime.ofInstant(Instant.ofEpochMilli(1234567890L),
-                                        testZone))
+        .writes(LocalDateTime.ofInstant(Instant.ofEpochMilli(1234567890L), testZone))
         .aka("written date") must_== JsNumber(BigDecimal valueOf 1234567000L)
     }
 
@@ -45,18 +43,14 @@ object WritesSpec extends org.specs2.mutable.Specification {
         ZonedDateTime.parse(input, DateTimeFormatter.ISO_DATE_TIME)
       } catch {
         case _: Throwable =>
-          LocalDateTime
-            .parse(input, DateTimeFormatter.ISO_DATE_TIME)
-            .atZone(testZone)
+          LocalDateTime.parse(input, DateTimeFormatter.ISO_DATE_TIME).atZone(testZone)
       }
 
-    val CustomWrites1 =
-      Writes.temporalWrites[ZonedDateTime, String]("dd/MM/yyyy, HH:mm:ss")
+    val CustomWrites1 = Writes.temporalWrites[ZonedDateTime, String]("dd/MM/yyyy, HH:mm:ss")
 
     "be written as number" in {
       Writes.ZonedDateTimeNumberWrites
-        .writes(ZonedDateTime.ofInstant(Instant.ofEpochMilli(1234567890L),
-                                        testZone))
+        .writes(ZonedDateTime.ofInstant(Instant.ofEpochMilli(1234567890L), testZone))
         .aka("written date") must_== JsNumber(BigDecimal valueOf 1234567890L)
     }
 
@@ -75,8 +69,7 @@ object WritesSpec extends org.specs2.mutable.Specification {
     val DefaultWrites = implicitly[Writes[LocalDate]]
     import DefaultWrites.writes
 
-    @inline def date(input: String) =
-      LocalDate.parse(input, DateTimeFormatter.ISO_DATE)
+    @inline def date(input: String) = LocalDate.parse(input, DateTimeFormatter.ISO_DATE)
 
     val CustomWrites1 = Writes.temporalWrites[LocalDate, String]("dd/MM/yyyy")
 
@@ -86,13 +79,11 @@ object WritesSpec extends org.specs2.mutable.Specification {
     }
 
     "be written with default implicit as '2011-12-03T10:15:30'" in {
-      writes(date("2011-12-03")) aka "written date" must_==
-        JsString("2011-12-03")
+      writes(date("2011-12-03")) aka "written date" must_== JsString("2011-12-03")
     }
 
     "be written with custom pattern as '03/12/2011'" in {
-      CustomWrites1.writes(date("2011-12-03")).aka("written date") must_==
-        JsString("03/12/2011")
+      CustomWrites1.writes(date("2011-12-03")).aka("written date") must_== JsString("03/12/2011")
     }
   }
 
@@ -111,15 +102,13 @@ object WritesSpec extends org.specs2.mutable.Specification {
     val CustomWrites1 = Writes.temporalWrites[Instant, String](customPattern1)
 
     "be written as number" in {
-      Writes.InstantNumberWrites
-        .writes(Instant ofEpochMilli 1234567890L)
-        .aka("written date") must_== JsNumber(BigDecimal valueOf 1234567890L)
+      Writes.InstantNumberWrites.writes(Instant ofEpochMilli 1234567890L).aka("written date") must_==
+        JsNumber(BigDecimal valueOf 1234567890L)
     }
 
     "be written with default implicit as '2011-12-03T10:15:30'" in {
 
-      writes(instant) aka "written date" must_==
-        JsString(format("yyyy-MM-dd'T'HH:mm:ss", instant))
+      writes(instant) aka "written date" must_== JsString(format("yyyy-MM-dd'T'HH:mm:ss", instant))
     }
 
     "be written with custom pattern as '03/12/2011, 10:15:30'" in {

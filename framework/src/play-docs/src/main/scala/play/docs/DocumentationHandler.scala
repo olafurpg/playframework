@@ -17,8 +17,7 @@ import org.apache.commons.io.IOUtils
   * Documentation is located in the given repository - either a JAR file or directly from
   * the filesystem.
   */
-class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository)
-    extends BuildDocHandler {
+class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository) extends BuildDocHandler {
 
   def this(repo: FileRepository) = this(repo, repo)
 
@@ -34,11 +33,8 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository)
                 "Next")
   }
 
-  val locator: String => String = new Memoise(name =>
-        repo
-          .findFileWithName(name)
-          .orElse(apiRepo.findFileWithName(name))
-          .getOrElse(name))
+  val locator: String => String = new Memoise(
+      name => repo.findFileWithName(name).orElse(apiRepo.findFileWithName(name)).getOrElse(name))
 
   // Method without Scala types. Required by BuildDocHandler to allow communication
   // between code compiled by different versions of Scala
@@ -56,16 +52,14 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository)
       import play.api.libs.concurrent.Execution.Implicits.defaultContext
       repo.handleFile(path) { handle =>
         Result(
-            ResponseHeader(
-                Status.OK,
-                Map(
-                    HeaderNames.CONTENT_LENGTH -> handle.size.toString,
-                    HeaderNames.CONTENT_TYPE -> play.api.libs.MimeTypes
-                      .forFileName(handle.name)
-                      .getOrElse(play.api.http.ContentTypes.BINARY)
-                  )),
-            Enumerator.fromStream(handle.is) &> Enumeratee.onIterateeDone(
-                handle.close)
+            ResponseHeader(Status.OK,
+                           Map(
+                               HeaderNames.CONTENT_LENGTH -> handle.size.toString,
+                               HeaderNames.CONTENT_TYPE -> play.api.libs.MimeTypes
+                                 .forFileName(handle.name)
+                                 .getOrElse(play.api.http.ContentTypes.BINARY)
+                             )),
+            Enumerator.fromStream(handle.is) &> Enumeratee.onIterateeDone(handle.close)
         )
       }
     }
@@ -82,8 +76,8 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository)
       case documentation() => Some(Redirect("/@documentation/Home"))
       case apiDoc(page) =>
         Some(
-            sendFileInline(apiRepo, "api/" + page).getOrElse(
-                NotFound(views.html.play20.manual(page, None, None, locator)))
+            sendFileInline(apiRepo, "api/" + page)
+              .getOrElse(NotFound(views.html.play20.manual(page, None, None, locator)))
         )
       case wikiResource(path) =>
         Some(
@@ -97,11 +91,9 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository)
               case None =>
                 NotFound(views.html.play20.manual(page, None, None, locator))
               case Some(RenderedPage(mainPage, None, _)) =>
-                Ok(views.html.play20
-                      .manual(page, Some(mainPage), None, locator))
+                Ok(views.html.play20.manual(page, Some(mainPage), None, locator))
               case Some(RenderedPage(mainPage, Some(sidebar), _)) =>
-                Ok(views.html.play20
-                      .manual(page, Some(mainPage), Some(sidebar), locator))
+                Ok(views.html.play20.manual(page, Some(mainPage), Some(sidebar), locator))
             }
         )
       case _ => None

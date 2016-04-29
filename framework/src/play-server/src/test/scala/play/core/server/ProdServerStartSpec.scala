@@ -29,23 +29,19 @@ object ProdServerStartSpec extends Specification {
     }
   }
 
-  case class ExitException(
-      message: String, cause: Option[Throwable] = None, returnCode: Int = -1)
+  case class ExitException(message: String, cause: Option[Throwable] = None, returnCode: Int = -1)
       extends Exception(s"Exit with $message, $returnCode", cause.orNull)
 
-  def exitResult[A](f: => A): Either[(String, Option[String]), A] =
-    try Right(f) catch {
-      case ExitException(message, cause, _) =>
-        val causeMessage: Option[String] =
-          cause.flatMap(c => Option(c.getMessage))
-        Left((message, causeMessage))
-    }
+  def exitResult[A](f: => A): Either[(String, Option[String]), A] = try Right(f) catch {
+    case ExitException(message, cause, _) =>
+      val causeMessage: Option[String] = cause.flatMap(c => Option(c.getMessage))
+      Left((message, causeMessage))
+  }
 
   /** A mocked ServerProcess */
   class FakeServerProcess(val args: Seq[String] = Seq(),
                           propertyMap: Map[String, String] = Map(),
-                          val pid: Option[String] = None)
-      extends ServerProcess {
+                          val pid: Option[String] = None) extends ServerProcess {
 
     val classLoader: ClassLoader = getClass.getClassLoader
 
@@ -60,17 +56,14 @@ object ProdServerStartSpec extends Specification {
       for (h <- hooks) h.apply()
     }
 
-    def exit(message: String,
-             cause: Option[Throwable] = None,
-             returnCode: Int = -1): Nothing = {
+    def exit(message: String, cause: Option[Throwable] = None, returnCode: Int = -1): Nothing = {
       throw new ExitException(message, cause, returnCode)
     }
   }
 
   // A family of fake servers for us to test
 
-  class FakeServer(context: ServerProvider.Context)
-      extends Server with ServerWithStop {
+  class FakeServer(context: ServerProvider.Context) extends Server with ServerWithStop {
     def config = context.config
     def applicationProvider = context.appProvider
     def mode = config.mode
@@ -85,8 +78,7 @@ object ProdServerStartSpec extends Specification {
   }
 
   class FakeServerProvider extends ServerProvider {
-    override def createServer(context: ServerProvider.Context) =
-      new FakeServer(context)
+    override def createServer(context: ServerProvider.Context) = new FakeServer(context)
   }
 
   "ProdServerStartSpec.start" should {
@@ -95,8 +87,7 @@ object ProdServerStartSpec extends Specification {
       tempDir =>
         val process = new FakeServerProcess(
             args = Seq(tempDir.getAbsolutePath),
-            propertyMap = Map("play.server.provider" -> classOf[
-                      FakeServerProvider].getName),
+            propertyMap = Map("play.server.provider" -> classOf[FakeServerProvider].getName),
             pid = Some("999")
         )
         val pidFile = new File(tempDir, "RUNNING_PID")

@@ -38,11 +38,9 @@ private[server] trait WebSocketHandler {
   private val MaxInFlight = 3
 
   def newWebSocketInHandler[A](
-      frameFormatter: FrameFormatter[A],
-      bufferLimit: Long): (Enumerator[A], ChannelHandler) = {
+      frameFormatter: FrameFormatter[A], bufferLimit: Long): (Enumerator[A], ChannelHandler) = {
 
-    val basicFrameFormatter = frameFormatter
-      .asInstanceOf[BasicFrameFormatter[A]]
+    val basicFrameFormatter = frameFormatter.asInstanceOf[BasicFrameFormatter[A]]
 
     def fromNettyFrame(nettyFrame: WebSocketFrame): A = nettyFrame match {
       case nettyTextFrame: TextWebSocketFrame =>
@@ -53,14 +51,13 @@ private[server] trait WebSocketHandler {
         val basicFrame = BinaryFrame(bytes)
         basicFrameFormatter.fromFrame(basicFrame)
     }
-    def definedForNettyFrame(nettyFrame: WebSocketFrame): Boolean =
-      nettyFrame match {
-        case _: TextWebSocketFrame =>
-          basicFrameFormatter.fromFrameDefined(classOf[TextFrame])
-        case _: BinaryWebSocketFrame =>
-          basicFrameFormatter.fromFrameDefined(classOf[BinaryFrame])
-        case _ => false
-      }
+    def definedForNettyFrame(nettyFrame: WebSocketFrame): Boolean = nettyFrame match {
+      case _: TextWebSocketFrame =>
+        basicFrameFormatter.fromFrameDefined(classOf[TextFrame])
+      case _: BinaryWebSocketFrame =>
+        basicFrameFormatter.fromFrameDefined(classOf[BinaryFrame])
+      case _ => false
+    }
 
     val enumerator = new WebSocketEnumerator[A]
 
@@ -68,28 +65,22 @@ private[server] trait WebSocketHandler {
 
       type FrameCreator = ChannelBuffer => WebSocketFrame
 
-      private var continuationBuffer: Option[(FrameCreator, ChannelBuffer)] =
-        None
+      private var continuationBuffer: Option[(FrameCreator, ChannelBuffer)] = None
 
-      override def messageReceived(
-          ctx: ChannelHandlerContext, e: MessageEvent) {
+      override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
 
         // Note, protocol violations like mixed up fragmentation are already handled upstream by the netty decoder
         (e.getMessage, continuationBuffer) match {
 
           // message too long
           case (frame: ContinuationWebSocketFrame, Some((_, buffer)))
-              if frame.getBinaryData.readableBytes() +
-              buffer.readableBytes() > bufferLimit =>
-            closeWebSocket(
-                ctx,
-                WebSocketMessageTooLong,
-                "Fragmented message too long, configured limit is " +
-                bufferLimit)
+              if frame.getBinaryData.readableBytes() + buffer.readableBytes() > bufferLimit =>
+            closeWebSocket(ctx,
+                           WebSocketMessageTooLong,
+                           "Fragmented message too long, configured limit is " + bufferLimit)
 
           // non final continuation
-          case (frame: ContinuationWebSocketFrame, Some((_, buffer)))
-              if !frame.isFinalFragment =>
+          case (frame: ContinuationWebSocketFrame, Some((_, buffer))) if !frame.isFinalFragment =>
             buffer.writeBytes(frame.getBinaryData)
 
           // final continuation
@@ -104,23 +95,19 @@ private[server] trait WebSocketHandler {
           case (frame: TextWebSocketFrame, None)
               if !frame.isFinalFragment && definedForNettyFrame(frame) =>
             val buffer = ChannelBuffers.dynamicBuffer(
-                Math.min(frame.getBinaryData.readableBytes() * 2,
-                         bufferLimit.asInstanceOf[Int]))
+                Math.min(frame.getBinaryData.readableBytes() * 2, bufferLimit.asInstanceOf[Int]))
             buffer.writeBytes(frame.getBinaryData)
             continuationBuffer = Some(
-                (b => new TextWebSocketFrame(true, frame.getRsv, buffer),
-                 buffer))
+                (b => new TextWebSocketFrame(true, frame.getRsv, buffer), buffer))
 
           // fragmented binary
           case (frame: BinaryWebSocketFrame, None)
               if !frame.isFinalFragment && definedForNettyFrame(frame) =>
             val buffer = ChannelBuffers.dynamicBuffer(
-                Math.min(frame.getBinaryData.readableBytes() * 2,
-                         bufferLimit.asInstanceOf[Int]))
+                Math.min(frame.getBinaryData.readableBytes() * 2, bufferLimit.asInstanceOf[Int]))
             buffer.writeBytes(frame.getBinaryData)
             continuationBuffer = Some(
-                (b => new BinaryWebSocketFrame(true, frame.getRsv, buffer),
-                 buffer))
+                (b => new BinaryWebSocketFrame(true, frame.getRsv, buffer), buffer))
 
           // full handleable frame
           case (frame: WebSocketFrame, None) if definedForNettyFrame(frame) =>
@@ -139,37 +126,31 @@ private[server] trait WebSocketHandler {
 
           // unacceptable frame
           case (frame: WebSocketFrame, _) =>
-            closeWebSocket(
-                ctx,
-                WebSocketUnacceptable,
-                "This WebSocket does not handle frames of that type")
+            closeWebSocket(ctx,
+                           WebSocketUnacceptable,
+                           "This WebSocket does not handle frames of that type")
 
           case _ => //
         }
       }
 
-      override def exceptionCaught(
-          ctx: ChannelHandlerContext, e: ExceptionEvent) {
+      override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
         e.getCause.printStackTrace()
         e.getChannel.close()
       }
 
-      override def channelDisconnected(
-          ctx: ChannelHandlerContext, e: ChannelStateEvent) {
+      override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
         enumerator.frameReceived(ctx, EOF)
         logger.trace("disconnected socket")
       }
 
-      private def closeWebSocket(
-          ctx: ChannelHandlerContext, status: Int, reason: String): Unit = {
+      private def closeWebSocket(ctx: ChannelHandlerContext, status: Int, reason: String): Unit = {
         if (!reason.isEmpty) {
           logger.trace("Closing WebSocket because " + reason)
         }
         if (ctx.getChannel.isOpen) {
           for {
-            _ <- ctx.getChannel
-              .write(new CloseWebSocketFrame(status, reason))
-              .toScala
+            _ <- ctx.getChannel.write(new CloseWebSocketFrame(status, reason)).toScala
             _ <- ctx.getChannel.close().toScala
           } yield {
             enumerator.frameReceived(ctx, EOF)
@@ -183,11 +164,9 @@ private[server] trait WebSocketHandler {
 
     val eventuallyIteratee = Promise[Iteratee[A, Any]]()
 
-    val iterateeRef =
-      Ref[Iteratee[A, Any]](Iteratee.flatten(eventuallyIteratee.future))
+    val iterateeRef = Ref[Iteratee[A, Any]](Iteratee.flatten(eventuallyIteratee.future))
 
-    private val promise: scala.concurrent.Promise[Iteratee[A, Any]] =
-      Promise[Iteratee[A, Any]]()
+    private val promise: scala.concurrent.Promise[Iteratee[A, Any]] = Promise[Iteratee[A, Any]]()
 
     /**
       * The number of in flight messages.  Incremented every time we receive a message, decremented every time a
@@ -214,8 +193,7 @@ private[server] trait WebSocketHandler {
       }
 
       val eventuallyNext = Promise[Iteratee[A, Any]]()
-      val current =
-        iterateeRef.single.swap(Iteratee.flatten(eventuallyNext.future))
+      val current = iterateeRef.single.swap(Iteratee.flatten(eventuallyNext.future))
       val next = current.flatFold(
           (a, e) =>
             {
@@ -233,10 +211,7 @@ private[server] trait WebSocketHandler {
                   promise.success(next)
                   if (channel.isOpen) {
                     for {
-                      _ <- channel
-                        .write(
-                            new CloseWebSocketFrame(WebSocketNormalClose, ""))
-                        .toScala
+                      _ <- channel.write(new CloseWebSocketFrame(WebSocketNormalClose, "")).toScala
                       _ <- channel.close().toScala
                     } yield next
                   } else {
@@ -272,14 +247,13 @@ private[server] trait WebSocketHandler {
     }
   }
 
-  def websocketHandshake[A](ctx: ChannelHandlerContext,
-                            req: HttpRequest,
-                            e: MessageEvent,
-                            bufferLimit: Long)(
-      frameFormatter: FrameFormatter[A]): Enumerator[A] = {
+  def websocketHandshake[A](
+      ctx: ChannelHandlerContext,
+      req: HttpRequest,
+      e: MessageEvent,
+      bufferLimit: Long)(frameFormatter: FrameFormatter[A]): Enumerator[A] = {
 
-    val (enumerator, handler) = newWebSocketInHandler(
-        frameFormatter, bufferLimit)
+    val (enumerator, handler) = newWebSocketInHandler(frameFormatter, bufferLimit)
     val p: ChannelPipeline = ctx.getChannel.getPipeline
     p.replace("handler", "handler", handler)
 
@@ -289,8 +263,7 @@ private[server] trait WebSocketHandler {
 
   def websocketable(req: HttpRequest) = new server.WebSocketable {
     def check =
-      HttpHeaders.Values.WEBSOCKET
-        .equalsIgnoreCase(req.headers().get(HttpHeaders.Names.UPGRADE))
+      HttpHeaders.Values.WEBSOCKET.equalsIgnoreCase(req.headers().get(HttpHeaders.Names.UPGRADE))
     def getHeader(header: String) = req.headers().get(header)
   }
 }

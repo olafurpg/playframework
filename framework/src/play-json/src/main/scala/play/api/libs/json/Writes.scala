@@ -64,8 +64,7 @@ object OWrites extends PathWrites with ConstraintWrites {
   implicit val contravariantfunctorOWrites: ContravariantFunctor[OWrites] =
     new ContravariantFunctor[OWrites] {
 
-      def contramap[A, B](wa: OWrites[A], f: B => A): OWrites[B] =
-        OWrites[B](b => wa.writes(f(b)))
+      def contramap[A, B](wa: OWrites[A], f: B => A): OWrites[B] = OWrites[B](b => wa.writes(f(b)))
     }
 
   def apply[A](f: A => JsObject): OWrites[A] = new OWrites[A] {
@@ -172,10 +171,10 @@ trait DefaultWrites {
   /**
     * Serializer for Array[T] types.
     */
-  implicit def arrayWrites[T : ClassTag](
-      implicit fmt: Writes[T]): Writes[Array[T]] = new Writes[Array[T]] {
-    def writes(ts: Array[T]) = JsArray((ts.map(t => toJson(t)(fmt))).toList)
-  }
+  implicit def arrayWrites[T : ClassTag](implicit fmt: Writes[T]): Writes[Array[T]] =
+    new Writes[Array[T]] {
+      def writes(ts: Array[T]) = JsArray((ts.map(t => toJson(t)(fmt))).toList)
+    }
 
   /**
     * Serializer for Map[String,V] types.
@@ -215,11 +214,10 @@ trait DefaultWrites {
     * Serializer for java.util.Date
     * @param pattern the pattern used by SimpleDateFormat
     */
-  def dateWrites(pattern: String): Writes[java.util.Date] =
-    new Writes[java.util.Date] {
-      def writes(d: java.util.Date): JsValue =
-        JsString(new java.text.SimpleDateFormat(pattern).format(d))
-    }
+  def dateWrites(pattern: String): Writes[java.util.Date] = new Writes[java.util.Date] {
+    def writes(d: java.util.Date): JsValue =
+      JsString(new java.text.SimpleDateFormat(pattern).format(d))
+  }
 
   /**
     * Default Serializer java.util.Date -> JsNumber(d.getTime (nb of ms))
@@ -238,12 +236,10 @@ trait DefaultWrites {
     implicit def DefaultLocalDateTimeFormatter(
         formatter: DateTimeFormatter): TemporalFormatter[LocalDateTime] =
       new TemporalFormatter[LocalDateTime] {
-        def format(temporal: LocalDateTime): String =
-          formatter.format(temporal)
+        def format(temporal: LocalDateTime): String = formatter.format(temporal)
       }
 
-    implicit def PatternLocalDateTimeFormatter(
-        pattern: String): TemporalFormatter[LocalDateTime] =
+    implicit def PatternLocalDateTimeFormatter(pattern: String): TemporalFormatter[LocalDateTime] =
       new TemporalFormatter[LocalDateTime] {
         def format(temporal: LocalDateTime): String =
           DateTimeFormatter.ofPattern(pattern).format(temporal)
@@ -252,25 +248,21 @@ trait DefaultWrites {
     implicit def DefaultZonedDateTimeFormatter(
         formatter: DateTimeFormatter): TemporalFormatter[ZonedDateTime] =
       new TemporalFormatter[ZonedDateTime] {
-        def format(temporal: ZonedDateTime): String =
-          formatter.format(temporal)
+        def format(temporal: ZonedDateTime): String = formatter.format(temporal)
       }
 
-    implicit def PatternZonedDateTimeFormatter(
-        pattern: String): TemporalFormatter[ZonedDateTime] =
+    implicit def PatternZonedDateTimeFormatter(pattern: String): TemporalFormatter[ZonedDateTime] =
       new TemporalFormatter[ZonedDateTime] {
         def format(temporal: ZonedDateTime): String =
           DateTimeFormatter.ofPattern(pattern).format(temporal)
       }
 
-    implicit def DefaultDateFormatter(
-        formatter: DateTimeFormatter): TemporalFormatter[LocalDate] =
+    implicit def DefaultDateFormatter(formatter: DateTimeFormatter): TemporalFormatter[LocalDate] =
       new TemporalFormatter[LocalDate] {
         def format(temporal: LocalDate): String = formatter.format(temporal)
       }
 
-    implicit def PatternDateFormatter(
-        pattern: String): TemporalFormatter[LocalDate] =
+    implicit def PatternDateFormatter(pattern: String): TemporalFormatter[LocalDate] =
       new TemporalFormatter[LocalDate] {
         def format(temporal: LocalDate): String =
           DateTimeFormatter.ofPattern(pattern).format(temporal)
@@ -280,12 +272,10 @@ trait DefaultWrites {
         formatter: DateTimeFormatter): TemporalFormatter[Instant] =
       new TemporalFormatter[Instant] {
         def format(temporal: Instant): String =
-          formatter format LocalDateTime.ofInstant(
-              temporal, ZoneId.systemDefault)
+          formatter format LocalDateTime.ofInstant(temporal, ZoneId.systemDefault)
       }
 
-    implicit def PatternInstantFormatter(
-        pattern: String): TemporalFormatter[Instant] =
+    implicit def PatternInstantFormatter(pattern: String): TemporalFormatter[Instant] =
       new TemporalFormatter[Instant] {
         def format(temporal: Instant): String =
           DateTimeFormatter
@@ -321,32 +311,28 @@ trait DefaultWrites {
     * using '2011-12-03T10:15:30' format, and default time zone.
     */
   implicit val DefaultLocalDateTimeWrites =
-    temporalWrites[LocalDateTime, DateTimeFormatter](
-        DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+    temporalWrites[LocalDateTime, DateTimeFormatter](DateTimeFormatter.ISO_LOCAL_DATE_TIME)
 
   /**
     * The default typeclass to write a `java.time.ZonedDateTime`,
     * using '2011-12-03T10:15:30' format, and default time zone.
     */
   implicit val DefaultZonedDateTimeWrites =
-    temporalWrites[ZonedDateTime, DateTimeFormatter](
-        DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+    temporalWrites[ZonedDateTime, DateTimeFormatter](DateTimeFormatter.ISO_LOCAL_DATE_TIME)
 
   /**
     * The default typeclass to write a `java.time.LocalDate`,
     * using '2011-12-03' format, and default time zone.
     */
   implicit val DefaultLocalDateWrites =
-    temporalWrites[LocalDate, DateTimeFormatter](
-        DateTimeFormatter.ISO_LOCAL_DATE)
+    temporalWrites[LocalDate, DateTimeFormatter](DateTimeFormatter.ISO_LOCAL_DATE)
 
   /**
     * The default typeclass to write a `java.time.Instant`,
     * using '2011-12-03T10:15:30' format, and default time zone.
     */
   implicit val DefaultInstantWrites =
-    temporalWrites[Instant, DateTimeFormatter](
-        DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+    temporalWrites[Instant, DateTimeFormatter](DateTimeFormatter.ISO_LOCAL_DATE_TIME)
 
   /**
     * Serializer for `java.time.LocalDateTime` as JSON number.
@@ -359,15 +345,12 @@ trait DefaultWrites {
     * implicit val Writes = LocalDateTimeNumberWrites[LocalDateTime]
     * }}}
     */
-  val LocalDateTimeNumberWrites: Writes[LocalDateTime] =
-    new Writes[LocalDateTime] {
-      lazy val formatter =
-        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+  val LocalDateTimeNumberWrites: Writes[LocalDateTime] = new Writes[LocalDateTime] {
+    lazy val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
 
-      def writes(t: LocalDateTime): JsValue =
-        JsNumber(
-            BigDecimal.valueOf(Instant.parse(formatter format t).toEpochMilli))
-    }
+    def writes(t: LocalDateTime): JsValue =
+      JsNumber(BigDecimal.valueOf(Instant.parse(formatter format t).toEpochMilli))
+  }
 
   /**
     * Serializer for `java.time.ZonedDateTime` as JSON number.
@@ -380,11 +363,9 @@ trait DefaultWrites {
     * implicit val Writes = ZonedDateTimeNumberWrites[ZonedDateTime]
     * }}}
     */
-  val ZonedDateTimeNumberWrites: Writes[ZonedDateTime] =
-    new Writes[ZonedDateTime] {
-      def writes(t: ZonedDateTime): JsValue =
-        JsNumber(BigDecimal valueOf t.toInstant.toEpochMilli)
-    }
+  val ZonedDateTimeNumberWrites: Writes[ZonedDateTime] = new Writes[ZonedDateTime] {
+    def writes(t: ZonedDateTime): JsValue = JsNumber(BigDecimal valueOf t.toInstant.toEpochMilli)
+  }
 
   /**
     * Serializer for `java.time.LocalDate` as JSON number.
@@ -398,12 +379,10 @@ trait DefaultWrites {
     * }}}
     */
   val LocalDateNumberWrites: Writes[LocalDate] = new Writes[LocalDate] {
-    lazy val formatter =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'00:00:00'Z'")
+    lazy val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'00:00:00'Z'")
 
     def writes(t: LocalDate): JsValue =
-      JsNumber(
-          BigDecimal.valueOf(Instant.parse(formatter format t).toEpochMilli))
+      JsNumber(BigDecimal.valueOf(Instant.parse(formatter format t).toEpochMilli))
   }
 
   /**
@@ -418,8 +397,7 @@ trait DefaultWrites {
     * }}}
     */
   val InstantNumberWrites: Writes[Instant] = new Writes[Instant] {
-    def writes(t: Instant): JsValue =
-      JsNumber(BigDecimal valueOf t.toEpochMilli)
+    def writes(t: Instant): JsValue = JsNumber(BigDecimal valueOf t.toEpochMilli)
   }
 
   /**
@@ -435,8 +413,7 @@ trait DefaultWrites {
   /**
     * Default Serializer org.joda.time.DateTime -> JsNumber(d.getMillis (nb of ms))
     */
-  implicit object DefaultJodaDateWrites
-      extends Writes[org.joda.time.DateTime] {
+  implicit object DefaultJodaDateWrites extends Writes[org.joda.time.DateTime] {
     def writes(d: org.joda.time.DateTime): JsValue = JsNumber(d.getMillis)
   }
 
@@ -447,15 +424,13 @@ trait DefaultWrites {
   def jodaLocalDateWrites(pattern: String): Writes[org.joda.time.LocalDate] =
     new Writes[org.joda.time.LocalDate] {
       val df = org.joda.time.format.DateTimeFormat.forPattern(pattern)
-      def writes(d: org.joda.time.LocalDate): JsValue =
-        JsString(d.toString(df))
+      def writes(d: org.joda.time.LocalDate): JsValue = JsString(d.toString(df))
     }
 
   /**
     * Default Serializer org.joda.time.LocalDate -> JsString(ISO8601 format (yyyy-MM-dd))
     */
-  implicit object DefaultJodaLocalDateWrites
-      extends Writes[org.joda.time.LocalDate] {
+  implicit object DefaultJodaLocalDateWrites extends Writes[org.joda.time.LocalDate] {
     def writes(d: org.joda.time.LocalDate): JsValue = JsString(d.toString)
   }
 
@@ -465,15 +440,13 @@ trait DefaultWrites {
     */
   def jodaLocalTimeWrites(pattern: String): Writes[org.joda.time.LocalTime] =
     new Writes[org.joda.time.LocalTime] {
-      def writes(d: org.joda.time.LocalTime): JsValue =
-        JsString(d.toString(pattern))
+      def writes(d: org.joda.time.LocalTime): JsValue = JsString(d.toString(pattern))
     }
 
   /**
     * Default Serializer org.joda.time.LocalDate -> JsString(ISO8601 format (HH:mm:ss.SSS))
     */
-  implicit object DefaultJodaLocalTimeWrites
-      extends Writes[org.joda.time.LocalTime] {
+  implicit object DefaultJodaLocalTimeWrites extends Writes[org.joda.time.LocalTime] {
     def writes(d: org.joda.time.LocalTime): JsValue = JsString(d.toString)
   }
 
@@ -481,11 +454,10 @@ trait DefaultWrites {
     * Serializer for java.sql.Date
     * @param pattern the pattern used by SimpleDateFormat
     */
-  def sqlDateWrites(pattern: String): Writes[java.sql.Date] =
-    new Writes[java.sql.Date] {
-      def writes(d: java.sql.Date): JsValue =
-        JsString(new java.text.SimpleDateFormat(pattern).format(d))
-    }
+  def sqlDateWrites(pattern: String): Writes[java.sql.Date] = new Writes[java.sql.Date] {
+    def writes(d: java.sql.Date): JsValue =
+      JsString(new java.text.SimpleDateFormat(pattern).format(d))
+  }
 
   /**
     * Serializer for java.util.UUID
@@ -497,10 +469,9 @@ trait DefaultWrites {
   /**
     * Serializer for scala.Enumeration by name.
     */
-  implicit def enumNameWrites[E <: Enumeration]: Writes[E#Value] =
-    new Writes[E#Value] {
-      def writes(value: E#Value): JsValue = JsString(value.toString)
-    }
+  implicit def enumNameWrites[E <: Enumeration]: Writes[E#Value] = new Writes[E#Value] {
+    def writes(value: E#Value): JsValue = JsString(value.toString)
+  }
 
   /**
     * Serializer for Any, used for the args of ValidationErrors.

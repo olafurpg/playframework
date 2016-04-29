@@ -24,8 +24,7 @@ import play.core.websocket.BasicFrameFormatter
   * @param f the socket messages generator
   */
 case class WebSocket[In, Out](
-    f: RequestHeader => Future[
-        Either[Result, (Enumerator[In], Iteratee[Out, Unit]) => Unit]])(
+    f: RequestHeader => Future[Either[Result, (Enumerator[In], Iteratee[Out, Unit]) => Unit]])(
     implicit val inFormatter: WebSocket.FrameFormatter[In],
     val outFormatter: WebSocket.FrameFormatter[Out]) extends Handler {
 
@@ -64,14 +63,12 @@ object WebSocket {
     /**
       * String WebSocket frames.
       */
-    implicit val stringFrame: FrameFormatter[String] =
-      BasicFrameFormatter.textFrame
+    implicit val stringFrame: FrameFormatter[String] = BasicFrameFormatter.textFrame
 
     /**
       * Array[Byte] WebSocket frames.
       */
-    implicit val byteArrayFrame: FrameFormatter[Array[Byte]] =
-      BasicFrameFormatter.binaryFrame
+    implicit val byteArrayFrame: FrameFormatter[Array[Byte]] = BasicFrameFormatter.binaryFrame
 
     /**
       * Either String or Array[Byte] WebSocket frames.
@@ -95,8 +92,7 @@ object WebSocket {
             Json
               .fromJson[A](in)
               .fold(
-                  error =>
-                    throw new RuntimeException("Error parsing JSON: " + error),
+                  error => throw new RuntimeException("Error parsing JSON: " + error),
                   a => a
             )
         )
@@ -115,16 +111,14 @@ object WebSocket {
     */
   def adapter[A](f: RequestHeader => Enumeratee[A, A])(
       implicit frameFormatter: FrameFormatter[A]): WebSocket[A, A] = {
-    WebSocket[A, A](
-        h => Future.successful(Right((in, out) => { in &> f(h) |>> out })))
+    WebSocket[A, A](h => Future.successful(Right((in, out) => { in &> f(h) |>> out })))
   }
 
   /**
     * Creates an action that will either reject the websocket with the given result, or will be handled by the given
     * inbound and outbound channels, asynchronously
     */
-  def tryAccept[A](f: RequestHeader => Future[Either[
-                           Result, (Iteratee[A, _], Enumerator[A])]])(
+  def tryAccept[A](f: RequestHeader => Future[Either[Result, (Iteratee[A, _], Enumerator[A])]])(
       implicit frameFormatter: FrameFormatter[A]): WebSocket[A, A] = {
     WebSocket[A, A](f.andThen(_.map { resultOrSocket =>
       resultOrSocket.right.map {
@@ -186,8 +180,7 @@ object WebSocket {
     *   }
     * }}}
     */
-  def tryAcceptWithActor[In, Out](
-      f: RequestHeader => Future[Either[Result, HandlerProps]])(
+  def tryAcceptWithActor[In, Out](f: RequestHeader => Future[Either[Result, HandlerProps]])(
       implicit in: FrameFormatter[In],
       out: FrameFormatter[Out],
       app: Application,
@@ -195,8 +188,10 @@ object WebSocket {
     WebSocket[In, Out] { request =>
       f(request).map { resultOrProps =>
         resultOrProps.right.map { props => (enumerator, iteratee) =>
-          WebSocketsExtension(Akka.system).actor ! WebSocketsActor.Connect(
-              request.id, enumerator, iteratee, props)
+          WebSocketsExtension(Akka.system).actor ! WebSocketsActor.Connect(request.id,
+                                                                           enumerator,
+                                                                           iteratee,
+                                                                           props)
         }
       }
     }

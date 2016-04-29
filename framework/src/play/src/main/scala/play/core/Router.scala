@@ -4,8 +4,7 @@
 package play.core
 
 @deprecated(
-    "Most of the user facing API from this object has been moved to play.api.routing",
-    "2.4.0")
+    "Most of the user facing API from this object has been moved to play.api.routing", "2.4.0")
 object Router {
 
   @deprecated("Use play.api.routing.Router instead", "2.4.0")

@@ -31,10 +31,8 @@ class ExampleSpec extends PlaySpec with OneServerPerTest {
       // The test payment gateway requires a callback to this server before it returns a result...
       val callbackURL = s"http://$myPublicAddress/callback"
       // await is from play.api.test.FutureAwaits
-      val response = await(WS
-            .url(testPaymentGatewayURL)
-            .withQueryString("callbackURL" -> callbackURL)
-            .get())
+      val response =
+        await(WS.url(testPaymentGatewayURL).withQueryString("callbackURL" -> callbackURL).get())
 
       response.status mustBe (OK)
     }

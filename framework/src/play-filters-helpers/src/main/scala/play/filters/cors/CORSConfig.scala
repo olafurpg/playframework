@@ -75,8 +75,7 @@ object CORSConfig {
     fromUnprefixedConfiguration(config)
   }
 
-  private[cors] def fromUnprefixedConfiguration(
-      config: PlayConfig): CORSConfig = {
+  private[cors] def fromUnprefixedConfiguration(config: PlayConfig): CORSConfig = {
     val origins = config.getOptional[Seq[String]]("allowedOrigins")
     CORSConfig(
         anyOriginAllowed = origins.isEmpty,

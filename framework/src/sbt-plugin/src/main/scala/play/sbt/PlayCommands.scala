@@ -53,8 +53,7 @@ object PlayCommands {
 
       commonClassLoader = new java.net.URLClassLoader(
           classpath.map(_.data).collect(commonJars).toArray, parent) {
-        override def toString =
-          "Common ClassLoader: " + getURLs.map(_.toString).mkString(",")
+        override def toString = "Common ClassLoader: " + getURLs.map(_.toString).mkString(",")
       }
     }
 
@@ -63,8 +62,7 @@ object PlayCommands {
 
   val playCompileEverythingTask = Def.taskDyn {
     // Run playAssetsWithCompilation, or, if it doesn't exist (because it's not a Play project), just the compile task
-    val compileTask =
-      Def.taskDyn(playAssetsWithCompilation ?? (compile in Compile).value)
+    val compileTask = Def.taskDyn(playAssetsWithCompilation ?? (compile in Compile).value)
 
     compileTask.all(
         ScopeFilter(
@@ -75,13 +73,9 @@ object PlayCommands {
 
   val h2Command = Command.command("h2-browser") { state: State =>
     try {
-      val commonLoader =
-        Project.runTask(playCommonClassloader, state).get._2.toEither.right.get
-      val h2ServerClass =
-        commonLoader.loadClass(classOf[org.h2.tools.Server].getName)
-      h2ServerClass
-        .getMethod("main", classOf[Array[String]])
-        .invoke(null, Array.empty[String])
+      val commonLoader = Project.runTask(playCommonClassloader, state).get._2.toEither.right.get
+      val h2ServerClass = commonLoader.loadClass(classOf[org.h2.tools.Server].getName)
+      h2ServerClass.getMethod("main", classOf[Array[String]]).invoke(null, Array.empty[String])
     } catch {
       case e: Exception => e.printStackTrace
     }
@@ -107,14 +101,13 @@ object PlayCommands {
 
       // Filter out directories that are sub paths of each other, by sorting them lexicographically, then folding, excluding
       // entries if the previous entry is a sub path of the current
-      val distinctDirectories = existingDirectories
-        .map(_.getCanonicalFile.toPath)
-        .sorted
-        .foldLeft(List.empty[Path]) { (result, next) =>
-          result.headOption match {
-            case Some(previous) if next.startsWith(previous) => result
-            case _ => next :: result
-          }
+      val distinctDirectories =
+        existingDirectories.map(_.getCanonicalFile.toPath).sorted.foldLeft(List.empty[Path]) {
+          (result, next) =>
+            result.headOption match {
+              case Some(previous) if next.startsWith(previous) => result
+              case _ => next :: result
+            }
         }
 
       distinctDirectories.map(_.toFile)

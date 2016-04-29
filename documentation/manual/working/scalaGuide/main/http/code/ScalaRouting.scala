@@ -119,8 +119,7 @@ object ScalaRoutingSpec extends Specification {
     }
     "support default values for parameters" in {
       contentOf(FakeRequest("GET", "/clients"), classOf[defaultvalue.Routes]) must_== "clients page 1"
-      contentOf(FakeRequest("GET", "/clients?page=2"),
-                classOf[defaultvalue.Routes]) must_== "clients page 2"
+      contentOf(FakeRequest("GET", "/clients?page=2"), classOf[defaultvalue.Routes]) must_== "clients page 2"
     }
     "support optional values for parameters" in {
       contentOf(FakeRequest("GET", "/api/list-all")) must_== "version None"
@@ -140,8 +139,7 @@ object ScalaRoutingSpec extends Specification {
     }
   }
 
-  def contentOf(
-      rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
+  def contentOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
     val app = FakeApplication()
     running(app) {
       contentAsString(app.injector.instanceOf(router).routes(rh) match {

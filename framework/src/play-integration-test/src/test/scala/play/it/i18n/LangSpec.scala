@@ -9,8 +9,8 @@ import play.api.test._
 class LangSpec extends PlaySpecification {
   "lang spec" should {
     "allow selecting preferred language" in {
-      implicit val app = FakeApplication(additionalConfiguration = Map(
-                "play.i18n.langs" -> Seq("en-US", "es-ES", "de")))
+      implicit val app = FakeApplication(
+          additionalConfiguration = Map("play.i18n.langs" -> Seq("en-US", "es-ES", "de")))
       val esEs = Lang("es", "ES")
       val es = Lang("es")
       val deDe = Lang("de", "DE")
@@ -77,8 +77,8 @@ class LangSpec extends PlaySpecification {
       }
 
       "preferred language" in {
-        implicit val app = FakeApplication(additionalConfiguration = Map(
-                  "application.langs" -> "crh-UA,ber,ast-ES"))
+        implicit val app = FakeApplication(
+            additionalConfiguration = Map("application.langs" -> "crh-UA,ber,ast-ES"))
 
         val crhUA = Lang("crh", "UA")
         val crh = Lang("crh")

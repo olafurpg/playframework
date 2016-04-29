@@ -12,30 +12,29 @@ import play.utils.PlayIO
 
 object MultipartFormDataParserSpec extends PlaySpecification {
 
-  val body =
-    """
-      |--aabbccddee
-      |Content-Disposition: form-data; name="text1"
-      |
-      |the first text field
-      |--aabbccddee
-      |Content-Disposition: form-data; name="text2:colon"
-      |
-      |the second text field
-      |--aabbccddee
-      |Content-Disposition: form-data; name="file1"; filename="file1.txt"
-      |Content-Type: text/plain
-      |
-      |the first file
-      |
-      |--aabbccddee
-      |Content-Disposition: form-data; name="file2"; filename="file2.txt"
-      |Content-Type: text/plain
-      |
-      |the second file
-      |
-      |--aabbccddee--
-      |""".stripMargin.lines.mkString("\r\n")
+  val body = """
+               |--aabbccddee
+               |Content-Disposition: form-data; name="text1"
+               |
+               |the first text field
+               |--aabbccddee
+               |Content-Disposition: form-data; name="text2:colon"
+               |
+               |the second text field
+               |--aabbccddee
+               |Content-Disposition: form-data; name="file1"; filename="file1.txt"
+               |Content-Type: text/plain
+               |
+               |the first file
+               |
+               |--aabbccddee
+               |Content-Disposition: form-data; name="file2"; filename="file2.txt"
+               |Content-Type: text/plain
+               |
+               |the second file
+               |
+               |--aabbccddee--
+               |""".stripMargin.lines.mkString("\r\n")
 
   val parse = new BodyParsers() {}.parse
 
@@ -71,10 +70,8 @@ object MultipartFormDataParserSpec extends PlaySpecification {
       checkResult(result)
     }
 
-    "validate the full length of the body" in new WithApplication(
-        FakeApplication(
-            additionalConfiguration = Map(
-                  "play.http.parser.maxDiskBuffer" -> "100")
+    "validate the full length of the body" in new WithApplication(FakeApplication(
+            additionalConfiguration = Map("play.http.parser.maxDiskBuffer" -> "100")
         )) {
       val parser = parse.multipartFormData.apply(FakeRequest().withHeaders(
               CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
@@ -87,10 +84,8 @@ object MultipartFormDataParserSpec extends PlaySpecification {
       }
     }
 
-    "not parse more than the max data length" in new WithApplication(
-        FakeApplication(
-            additionalConfiguration = Map(
-                  "play.http.parser.maxMemoryBuffer" -> "30")
+    "not parse more than the max data length" in new WithApplication(FakeApplication(
+            additionalConfiguration = Map("play.http.parser.maxMemoryBuffer" -> "30")
         )) {
       val parser = parse.multipartFormData.apply(FakeRequest().withHeaders(
               CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
@@ -118,8 +113,7 @@ object MultipartFormDataParserSpec extends PlaySpecification {
           Map("content-disposition" -> """form-data; name="document"; filename="semicolon;inside.jpg"""",
               "content-type" -> "image/jpeg"))
       result must not beEmpty;
-      result.get must equalTo(
-          ("document", "semicolon;inside.jpg", Option("image/jpeg")));
+      result.get must equalTo(("document", "semicolon;inside.jpg", Option("image/jpeg")));
     }
 
     "parse headers with escaped quote inside quotes" in {
@@ -127,8 +121,7 @@ object MultipartFormDataParserSpec extends PlaySpecification {
           Map("content-disposition" -> """form-data; name="document"; filename="quotes\"\".jpg"""",
               "content-type" -> "image/jpeg"))
       result must not beEmpty;
-      result.get must equalTo(
-          ("document", """quotes"".jpg""", Option("image/jpeg")));
+      result.get must equalTo(("document", """quotes"".jpg""", Option("image/jpeg")));
     }
   }
 }

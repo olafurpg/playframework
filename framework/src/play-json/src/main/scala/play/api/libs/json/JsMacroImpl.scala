@@ -23,15 +23,13 @@ object JsMacroImpl {
                          mapLikeMethod: String,
                          reads: Boolean,
                          writes: Boolean)(
-      implicit atag: c.WeakTypeTag[A],
-      matag: c.WeakTypeTag[M[A]]): c.Expr[M[A]] = {
+      implicit atag: c.WeakTypeTag[A], matag: c.WeakTypeTag[M[A]]): c.Expr[M[A]] = {
 
     val nullableMethodName = s"${methodName}Nullable"
     val lazyMethodName = s"lazy${methodName.capitalize}"
 
     def conditionalList[T](ifReads: T, ifWrites: T): List[T] =
-      (if (reads) List(ifReads) else Nil) :::
-      (if (writes) List(ifWrites) else Nil)
+      (if (reads) List(ifReads) else Nil) ::: (if (writes) List(ifWrites) else Nil)
 
     import c.universe._
     import c.universe.Flag._
@@ -41,8 +39,7 @@ object JsMacroImpl {
     val companionType = companionSymbol.typeSignature
 
     val libsPkg = Select(
-        Select(Ident(newTermName("play")), newTermName("api")),
-        newTermName("libs"))
+        Select(Ident(newTermName("play")), newTermName("api")), newTermName("libs"))
     val jsonPkg = Select(libsPkg, newTermName("json"))
     val functionalSyntaxPkg = Select(
         Select(libsPkg, newTermName("functional")), newTermName("syntax"))
@@ -58,37 +55,32 @@ object JsMacroImpl {
     val unapplySeq = companionType.declaration(stringToTermName("unapplySeq"))
     val hasVarArgs = unapplySeq != NoSymbol
 
-    val effectiveUnapply =
-      Seq(unapply, unapplySeq).filter(_ != NoSymbol).headOption match {
-        case None =>
-          c.abort(
-              c.enclosingPosition, "No unapply or unapplySeq function found")
-        case Some(s) => s.asMethod
-      }
+    val effectiveUnapply = Seq(unapply, unapplySeq).filter(_ != NoSymbol).headOption match {
+      case None =>
+        c.abort(c.enclosingPosition, "No unapply or unapplySeq function found")
+      case Some(s) => s.asMethod
+    }
 
-    val unapplyReturnTypes: Option[List[Type]] =
-      effectiveUnapply.returnType match {
-        case TypeRef(_, _, Nil) => {
-            c.abort(
-                c.enclosingPosition,
-                s"Unapply of ${companionSymbol} has no parameters. Are you using an empty case class?")
-            None
-          }
-        case TypeRef(_, _, args) =>
-          args.head match {
-            case t@TypeRef(_, _, Nil) => Some(List(t))
-            case t@TypeRef(_, _, args) => {
-                import c.universe.definitions.TupleClass
-                if (!TupleClass.seq.exists(
-                        tupleSym => t.baseType(tupleSym) ne NoType))
-                  Some(List(t))
-                else if (t <:< typeOf[Product]) Some(args)
-                else None
-              }
-            case _ => None
-          }
-        case _ => None
-      }
+    val unapplyReturnTypes: Option[List[Type]] = effectiveUnapply.returnType match {
+      case TypeRef(_, _, Nil) => {
+          c.abort(
+              c.enclosingPosition,
+              s"Unapply of ${companionSymbol} has no parameters. Are you using an empty case class?")
+          None
+        }
+      case TypeRef(_, _, args) =>
+        args.head match {
+          case t@TypeRef(_, _, Nil) => Some(List(t))
+          case t@TypeRef(_, _, args) => {
+              import c.universe.definitions.TupleClass
+              if (!TupleClass.seq.exists(tupleSym => t.baseType(tupleSym) ne NoType)) Some(List(t))
+              else if (t <:< typeOf[Product]) Some(args)
+              else None
+            }
+          case _ => None
+        }
+      case _ => None
+    }
 
     //println("Unapply return type:" + unapplyReturnTypes)
 
@@ -100,8 +92,7 @@ object JsMacroImpl {
     // searches apply method corresponding to unapply
     val apply = applies.collectFirst {
       case (apply: MethodSymbol) if hasVarArgs && {
-            val someApplyTypes =
-              apply.paramss.headOption.map(_.map(_.asTerm.typeSignature))
+            val someApplyTypes = apply.paramss.headOption.map(_.map(_.asTerm.typeSignature))
             val someInitApply = someApplyTypes.map(_.init)
             val someApplyLast = someApplyTypes.map(_.last)
             val someInitUnapply = unapplyReturnTypes.map(_.init)
@@ -115,8 +106,7 @@ object JsMacroImpl {
           } =>
         apply
       case (apply: MethodSymbol)
-          if
-          (apply.paramss.headOption.map(_.map(_.asTerm.typeSignature)) == unapplyReturnTypes) =>
+          if (apply.paramss.headOption.map(_.map(_.asTerm.typeSignature)) == unapplyReturnTypes) =>
         apply
     }
 
@@ -124,8 +114,7 @@ object JsMacroImpl {
       case Some(apply) =>
         apply.paramss.head //verify there is a single parameter group
       case None =>
-        c.abort(c.enclosingPosition,
-                "No apply function found matching unapply parameters")
+        c.abort(c.enclosingPosition, "No apply function found matching unapply parameters")
     }
 
     //println("apply found:" + apply)
@@ -142,16 +131,15 @@ object JsMacroImpl {
           val isRec = args.exists(_.typeSymbol == companioned)
           // Option[_] needs special treatment because we need to use XXXOpt
           val tp =
-            if (implType.typeConstructor <:< typeOf[Option[_]].typeConstructor)
-              args.head else implType
+            if (implType.typeConstructor <:< typeOf[Option[_]].typeConstructor) args.head
+            else implType
           (isRec, tp)
         case TypeRef(_, t, _) =>
           (false, implType)
       }
 
       // builds M implicit from expected type
-      val neededImplicitType = appliedType(
-          matag.tpe.typeConstructor, tpe :: Nil)
+      val neededImplicitType = appliedType(matag.tpe.typeConstructor, tpe :: Nil)
       // infers implicit
       val neededImplicit = c.inferImplicitValue(neededImplicitType)
       Implicit(name, implType, neededImplicit, isRecursive, tpe)
@@ -172,16 +160,14 @@ object JsMacroImpl {
       case Implicit(_, t, impl, rec, _) if (impl == EmptyTree && !rec) => t
     }
     if (missingImplicits.nonEmpty)
-      c.abort(
-          c.enclosingPosition,
-          s"No implicit format for ${missingImplicits.mkString(", ")} available.")
+      c.abort(c.enclosingPosition,
+              s"No implicit format for ${missingImplicits.mkString(", ")} available.")
 
     val helperMember = Select(This(tpnme.EMPTY), newTermName("lazyStuff"))
     def callHelper(target: Tree, methodName: String): Tree =
       Apply(Select(target, newTermName(methodName)), List(helperMember))
     def readsWritesHelper(methodName: String): List[Tree] =
-      conditionalList(readsSelect, writesSelect)
-        .map(s => callHelper(s, methodName))
+      conditionalList(readsSelect, writesSelect).map(s => callHelper(s, methodName))
 
     var hasRec = false
 
@@ -190,15 +176,14 @@ object JsMacroImpl {
       case Implicit(name, t, impl, rec, tpe) =>
         // inception of (__ \ name).read(impl)
         val jspathTree = Apply(
-            Select(jsPathSelect,
-                   newTermName(scala.reflect.NameTransformer.encode("\\"))),
+            Select(jsPathSelect, newTermName(scala.reflect.NameTransformer.encode("\\"))),
             List(Literal(Constant(name.decoded)))
         )
 
         if (!rec) {
           val callMethod =
-            if (t.typeConstructor <:< typeOf[Option[_]].typeConstructor)
-              nullableMethodName else methodName
+            if (t.typeConstructor <:< typeOf[Option[_]].typeConstructor) nullableMethodName
+            else methodName
           Apply(
               Select(jspathTree, newTermName(callMethod)),
               List(impl)
@@ -236,8 +221,7 @@ object JsMacroImpl {
     //val applyMethod = Ident( companionSymbol )
 
     val applyBody = {
-      val body = params.foldLeft(List[Tree]())(
-          (l, e) => l :+ Ident(newTermName(e.name.encoded)))
+      val body = params.foldLeft(List[Tree]())((l, e) => l :+ Ident(newTermName(e.name.encoded)))
       if (hasVarArgs) body.init :+ Typed(body.last, Ident(tpnme.WILDCARD_STAR))
       else body
     }
@@ -282,8 +266,7 @@ object JsMacroImpl {
       val helperVal = ValDef(
           Modifiers(),
           helper,
-          Ident(
-              weakTypeOf[play.api.libs.json.util.LazyHelper[M, A]].typeSymbol),
+          Ident(weakTypeOf[play.api.libs.json.util.LazyHelper[M, A]].typeSymbol),
           Apply(Ident(newTermName("LazyHelper")), List(finalTree))
       )
 
@@ -316,8 +299,7 @@ object JsMacroImpl {
                                   Block(
                                       List(
                                           Apply(
-                                              Select(Super(This(tpnme.EMPTY),
-                                                           tpnme.EMPTY),
+                                              Select(Super(This(tpnme.EMPTY), tpnme.EMPTY),
                                                      nme.CONSTRUCTOR),
                                               List()
                                           )
@@ -336,8 +318,7 @@ object JsMacroImpl {
                       )
                   )
               ),
-              Apply(Select(New(Ident(newTypeName("$anon"))), nme.CONSTRUCTOR),
-                    List())
+              Apply(Select(New(Ident(newTypeName("$anon"))), nme.CONSTRUCTOR), List())
           ),
           newTermName("lazyStuff")
       )

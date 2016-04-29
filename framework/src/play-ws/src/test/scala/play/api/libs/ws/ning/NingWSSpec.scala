@@ -25,8 +25,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
   "Ning WS" should {
 
     object PairMagnet {
-      implicit def fromPair(
-          pair: Pair[WSClient, java.net.URL]): WSRequestMagnet =
+      implicit def fromPair(pair: Pair[WSClient, java.net.URL]): WSRequestMagnet =
         new WSRequestMagnet {
           def apply(): WSRequest = {
             val (client, netUrl) = pair
@@ -46,8 +45,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
     "support direct client instantiation" in new WithApplication {
       val sslBuilder = new com.ning.http.client.AsyncHttpClientConfig.Builder()
-      implicit val sslClient =
-        new play.api.libs.ws.ning.NingWSClient(sslBuilder.build())
+      implicit val sslClient = new play.api.libs.ws.ning.NingWSClient(sslBuilder.build())
       WS.clientUrl("http://example.com/feed") must beAnInstanceOf[WSRequest]
     }
 
@@ -251,8 +249,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
     "support patch method" in new WithServer(patchFakeApp) {
       // NOTE: if you are using a client proxy like Privoxy or Polipo, your proxy may not support PATCH & return 400.
-      val futureResponse =
-        WS.url("http://localhost:" + port + "/").patch("body")
+      val futureResponse = WS.url("http://localhost:" + port + "/").patch("body")
 
       // This test experiences CI timeouts. Give it more time.
       val reallyLongTimeout = Timeout(defaultAwaitTimeout.duration * 3)
@@ -301,18 +298,17 @@ object NingWSSpec extends PlaySpecification with Mockito {
     "get cookies from an AHC response" in {
 
       val ahcResponse: AHCResponse = mock[AHCResponse]
-      val (name, value, domain, path, expires, maxAge, secure, httpOnly) =
-        ("someName",
-         "someValue",
-         "example.com",
-         "/",
-         2000L,
-         1000,
-         false,
-         false)
+      val (name, value, domain, path, expires, maxAge, secure, httpOnly) = ("someName",
+                                                                            "someValue",
+                                                                            "example.com",
+                                                                            "/",
+                                                                            2000L,
+                                                                            1000,
+                                                                            false,
+                                                                            false)
 
-      val ahcCookie: AHCCookie = new AHCCookie(
-          name, value, value, domain, path, expires, maxAge, secure, httpOnly)
+      val ahcCookie: AHCCookie =
+        new AHCCookie(name, value, value, domain, path, expires, maxAge, secure, httpOnly)
       ahcResponse.getCookies returns util.Arrays.asList(ahcCookie)
 
       val response = NingWSResponse(ahcResponse)
@@ -331,18 +327,17 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
     "get a single cookie from an AHC response" in {
       val ahcResponse: AHCResponse = mock[AHCResponse]
-      val (name, value, domain, path, expires, maxAge, secure, httpOnly) =
-        ("someName",
-         "someValue",
-         "example.com",
-         "/",
-         2000L,
-         1000,
-         false,
-         false)
+      val (name, value, domain, path, expires, maxAge, secure, httpOnly) = ("someName",
+                                                                            "someValue",
+                                                                            "example.com",
+                                                                            "/",
+                                                                            2000L,
+                                                                            1000,
+                                                                            false,
+                                                                            false)
 
-      val ahcCookie: AHCCookie = new AHCCookie(
-          name, value, value, domain, path, expires, maxAge, secure, httpOnly)
+      val ahcCookie: AHCCookie =
+        new AHCCookie(name, value, value, domain, path, expires, maxAge, secure, httpOnly)
       ahcResponse.getCookies returns util.Arrays.asList(ahcCookie)
 
       val response = NingWSResponse(ahcResponse)
@@ -414,8 +409,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
       ahcResponse.getHeaders returns ahcHeaders
       val response = NingWSResponse(ahcResponse)
       val headers = response.allHeaders
-      headers must beEqualTo(
-          Map("Foo" -> Seq("bar", "baz"), "Bar" -> Seq("baz")))
+      headers must beEqualTo(Map("Foo" -> Seq("bar", "baz"), "Bar" -> Seq("baz")))
       headers.contains("foo") must beTrue
       headers.contains("Foo") must beTrue
       headers.contains("BAR") must beTrue
@@ -425,10 +419,9 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
   "Ning WS Config" should {
     "support overriding secure default values" in {
-      val ahcConfig = new NingAsyncHttpClientConfigBuilder().modifyUnderlying {
-        builder =>
-          builder.setCompressionEnforced(false)
-          builder.setFollowRedirect(false)
+      val ahcConfig = new NingAsyncHttpClientConfigBuilder().modifyUnderlying { builder =>
+        builder.setCompressionEnforced(false)
+        builder.setFollowRedirect(false)
       }.build()
       ahcConfig.isCompressionEnforced must beFalse
       ahcConfig.isFollowRedirect must beFalse

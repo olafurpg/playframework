@@ -13,54 +13,44 @@ import scala.beans.BeanProperty
 
 object HelpersSpec extends Specification {
   import FieldConstructor.defaultField
-  val messagesApi = new DefaultMessagesApi(
-      Environment.simple(),
-      Configuration.reference,
-      new DefaultLangs(Configuration.reference))
+  val messagesApi = new DefaultMessagesApi(Environment.simple(),
+                                           Configuration.reference,
+                                           new DefaultLangs(Configuration.reference))
   implicit val messages = messagesApi.preferred(Seq.empty)
 
   "@inputText" should {
 
     "allow setting a custom id" in {
 
-      val body = inputText
-        .apply(Form(single("foo" -> Forms.text))("foo"), 'id -> "someid")
-        .body
+      val body = inputText.apply(Form(single("foo" -> Forms.text))("foo"), 'id -> "someid").body
 
       val idAttr = "id=\"someid\""
       body must contain(idAttr)
 
       // Make sure it doesn't have it twice, issue #478
-      body.substring(body.indexOf(idAttr) + idAttr.length) must not contain
-      (idAttr)
+      body.substring(body.indexOf(idAttr) + idAttr.length) must not contain (idAttr)
     }
 
     "default to a type of text" in {
-      inputText.apply(Form(single("foo" -> Forms.text))("foo")).body must contain(
-          "type=\"text\"")
+      inputText.apply(Form(single("foo" -> Forms.text))("foo")).body must contain("type=\"text\"")
     }
 
     "allow setting a custom type" in {
-      val body = inputText
-        .apply(Form(single("foo" -> Forms.text))("foo"), 'type -> "email")
-        .body
+      val body = inputText.apply(Form(single("foo" -> Forms.text))("foo"), 'type -> "email").body
 
       val typeAttr = "type=\"email\""
       body must contain(typeAttr)
 
       // Make sure it doesn't contain it twice
-      body.substring(body.indexOf(typeAttr) + typeAttr.length) must not contain
-      (typeAttr)
+      body.substring(body.indexOf(typeAttr) + typeAttr.length) must not contain (typeAttr)
     }
   }
 
   "@checkboxGroup" should {
     "allow to check more than one checkbox" in {
-      val form =
-        Form(single("hobbies" -> Forms.list(Forms.text))).fill(List("S", "B"))
-      val body = inputCheckboxGroup
-        .apply(form("hobbies"), Seq(("S", "Surfing"), ("B", "Biking")))
-        .body
+      val form = Form(single("hobbies" -> Forms.list(Forms.text))).fill(List("S", "B"))
+      val body =
+        inputCheckboxGroup.apply(form("hobbies"), Seq(("S", "Surfing"), ("B", "Biking"))).body
 
       // Append [] to the name for the form binding
       body must contain("name=\"hobbies[]\"")
@@ -86,8 +76,7 @@ object HelpersSpec extends Specification {
       body must contain(idAttr)
 
       // Make sure it doesn't have it twice, issue #478
-      body.substring(body.indexOf(idAttr) + idAttr.length) must not contain
-      (idAttr)
+      body.substring(body.indexOf(idAttr) + idAttr.length) must not contain (idAttr)
     }
 
     "allow setting custom data attributes" in {
@@ -109,8 +98,7 @@ object HelpersSpec extends Specification {
 
     "Work as a simple select" in {
       val form = Form(single("foo" -> Forms.text)).fill("0")
-      val body =
-        select.apply(form("foo"), Seq(("0", "test"), ("1", "test"))).body
+      val body = select.apply(form("foo"), Seq(("0", "test"), ("1", "test"))).body
 
       body must contain("name=\"foo\"")
 
@@ -119,12 +107,9 @@ object HelpersSpec extends Specification {
     }
 
     "Work as a multiple select" in {
-      val form =
-        Form(single("foo" -> Forms.list(Forms.text))).fill(List("0", "1"))
-      val body = select
-        .apply(
-            form("foo"), Seq(("0", "test"), ("1", "test")), 'multiple -> None)
-        .body
+      val form = Form(single("foo" -> Forms.list(Forms.text))).fill(List("0", "1"))
+      val body =
+        select.apply(form("foo"), Seq(("0", "test"), ("1", "test")), 'multiple -> None).body
 
       // Append [] to the name for the form binding
       body must contain("name=\"foo[]\"")
@@ -153,8 +138,7 @@ object HelpersSpec extends Specification {
         .apply(form("foo"), min) { f =>
           val a = f("a")
           val b = f("b")
-          Html(
-              s"${a.name}=${a.value.getOrElse("")},${b.name}=${b.value.getOrElse("")}")
+          Html(s"${a.name}=${a.value.getOrElse("")},${b.name}=${b.value.getOrElse("")}")
         }
         .map(_.toString)
 
@@ -165,8 +149,7 @@ object HelpersSpec extends Specification {
     }
 
     "render a sequence of fields in an unfilled form" in {
-      renderFoo(form, 4) must exactly(
-          "foo[0]:", "foo[1]:", "foo[2]:", "foo[3]:").inOrder
+      renderFoo(form, 4) must exactly("foo[0]:", "foo[1]:", "foo[2]:", "foo[3]:").inOrder
     }
 
     "fill the fields out if less than the min" in {

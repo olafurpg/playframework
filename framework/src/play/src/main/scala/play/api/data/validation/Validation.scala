@@ -13,8 +13,7 @@ import play.api.data._
   * @param args the message arguments, to format the constraint name
   * @param f the validation function
   */
-case class Constraint[-T](name: Option[String], args: Seq[Any])(
-    f: (T => ValidationResult)) {
+case class Constraint[-T](name: Option[String], args: Seq[Any])(f: (T => ValidationResult)) {
 
   /**
     * Run the constraint validation.
@@ -54,8 +53,7 @@ object Constraint {
     * @param f the validation function
     * @return a constraint
     */
-  def apply[T](name: String, args: Any*)(
-      f: (T => ValidationResult)): Constraint[T] =
+  def apply[T](name: String, args: Any*)(f: (T => ValidationResult)): Constraint[T] =
     apply(Some(name), args.toSeq)(f)
 }
 
@@ -77,16 +75,15 @@ trait Constraints {
     */
   private val emailRegex =
     """^[a-zA-Z0-9\.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$""".r
-  def emailAddress: Constraint[String] =
-    Constraint[String]("constraint.email") { e =>
-      if (e == null) Invalid(ValidationError("error.email"))
-      else if (e.trim.isEmpty) Invalid(ValidationError("error.email"))
-      else
-        emailRegex
-          .findFirstMatchIn(e)
-          .map(_ => Valid)
-          .getOrElse(Invalid(ValidationError("error.email")))
-    }
+  def emailAddress: Constraint[String] = Constraint[String]("constraint.email") { e =>
+    if (e == null) Invalid(ValidationError("error.email"))
+    else if (e.trim.isEmpty) Invalid(ValidationError("error.email"))
+    else
+      emailRegex
+        .findFirstMatchIn(e)
+        .map(_ => Valid)
+        .getOrElse(Invalid(ValidationError("error.email")))
+  }
 
   /**
     * Defines a ‘required’ constraint for `String` values, i.e. one in which empty strings are invalid.
@@ -94,12 +91,11 @@ trait Constraints {
     * '''name'''[constraint.required]
     * '''error'''[error.required]
     */
-  def nonEmpty: Constraint[String] =
-    Constraint[String]("constraint.required") { o =>
-      if (o == null) Invalid(ValidationError("error.required"))
-      else if (o.trim.isEmpty) Invalid(ValidationError("error.required"))
-      else Valid
-    }
+  def nonEmpty: Constraint[String] = Constraint[String]("constraint.required") { o =>
+    if (o == null) Invalid(ValidationError("error.required"))
+    else if (o.trim.isEmpty) Invalid(ValidationError("error.required"))
+    else Valid
+  }
 
   /**
     * Defines a minimum value for `Ordered` values, by default the value must be greater than or equal to the constraint parameter
@@ -178,11 +174,7 @@ trait Constraints {
       require(error != null, "error must not be null")
 
       if (o == null) Invalid(ValidationError(error, regex))
-      else
-        regex
-          .unapplySeq(o)
-          .map(_ => Valid)
-          .getOrElse(Invalid(ValidationError(error, regex)))
+      else regex.unapplySeq(o).map(_ => Valid).getOrElse(Invalid(ValidationError(error, regex)))
     }
 }
 
@@ -232,13 +224,11 @@ object Invalid {
     * @param args the validation error message arguments
     * @return an `Invalid` value
     */
-  def apply(error: String, args: Any*): Invalid =
-    Invalid(Seq(ValidationError(error, args:_*)))
+  def apply(error: String, args: Any*): Invalid = Invalid(Seq(ValidationError(error, args:_*)))
 }
 
 object ParameterValidator {
-  def apply[T](
-      constraints: Iterable[Constraint[T]], optionalParam: Option[T]*) =
+  def apply[T](constraints: Iterable[Constraint[T]], optionalParam: Option[T]*) =
     optionalParam.flatMap {
       _.map { param =>
         constraints.flatMap {

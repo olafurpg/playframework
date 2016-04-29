@@ -79,8 +79,7 @@ object Json {
     * @param json the JsValue to convert
     * @return a String with the json representation with all non-ascii characters escaped.
     */
-  def asciiStringify(json: JsValue): String =
-    JacksonJson.generateFromJsValue(json, true)
+  def asciiStringify(json: JsValue): String = JacksonJson.generateFromJsValue(json, true)
 
   /**
     * Convert a JsValue to its pretty string representation using default Jackson
@@ -122,8 +121,7 @@ object Json {
     *
     * @param json Json value to transform as an instance of T.
     */
-  def fromJson[T](json: JsValue)(implicit fjs: Reads[T]): JsResult[T] =
-    fjs.reads(json)
+  def fromJson[T](json: JsValue)(implicit fjs: Reads[T]): JsResult[T] = fjs.reads(json)
 
   /**
     * Next is the trait that allows Simplified Json syntax :
@@ -151,13 +149,11 @@ object Json {
 
   import scala.language.implicitConversions
 
-  implicit def toJsFieldJsValueWrapper[T](field: T)(
-      implicit w: Writes[T]): JsValueWrapper =
+  implicit def toJsFieldJsValueWrapper[T](field: T)(implicit w: Writes[T]): JsValueWrapper =
     JsValueWrapperImpl(w.writes(field))
 
   def obj(fields: (String, JsValueWrapper)*): JsObject =
-    JsObject(
-        fields.map(f => (f._1, f._2.asInstanceOf[JsValueWrapperImpl].field)))
+    JsObject(fields.map(f => (f._1, f._2.asInstanceOf[JsValueWrapperImpl].field)))
   def arr(fields: JsValueWrapper*): JsArray =
     JsArray(fields.map(_.asInstanceOf[JsValueWrapperImpl].field))
 
@@ -170,8 +166,7 @@ object Json {
     *   val jsonStream: Enumerator[JsValue] = fooStream &> Json.toJson
     * }}}
     */
-  def toJson[A : Writes]: Enumeratee[A, JsValue] =
-    Enumeratee.map[A](Json.toJson(_))
+  def toJson[A : Writes]: Enumeratee[A, JsValue] = Enumeratee.map[A](Json.toJson(_))
 
   /**
     * Transform a stream of JsValue to a stream of A, keeping only successful results

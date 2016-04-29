@@ -43,8 +43,7 @@ import scala.language.experimental.macros
   *  }
   * }}}
   */
-package object sird
-    extends RequestMethodExtractors with PathBindableExtractors {
+package object sird extends RequestMethodExtractors with PathBindableExtractors {
 
   implicit class UrlContext(sc: StringContext) {
 

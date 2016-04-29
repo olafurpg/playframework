@@ -62,8 +62,7 @@ abstract class WithServer(val app: Application = FakeApplication(),
   implicit def implicitPort: Port = port
 
   override def around[T : AsResult](t: => T): Result =
-    Helpers.running(TestServer(
-            port = port, application = app, serverProvider = serverProvider))(
+    Helpers.running(TestServer(port = port, application = app, serverProvider = serverProvider))(
         AsResult.effectively(t))
 }
 
@@ -85,8 +84,7 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
   implicit def implicitApp: Application = app
   implicit def implicitPort: Port = port
 
-  lazy val browser: TestBrowser = TestBrowser(
-      webDriver, Some("http://localhost:" + port))
+  lazy val browser: TestBrowser = TestBrowser(webDriver, Some("http://localhost:" + port))
 
   override def around[T : AsResult](t: => T): Result = {
     try {

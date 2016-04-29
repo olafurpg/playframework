@@ -13,8 +13,7 @@ import scala.concurrent.duration.{FiniteDuration, SECONDS, MILLISECONDS}
   * the right order and at the right time.
   */
 class EventRecorder(nextTimeout: FiniteDuration = FiniteDuration(20, SECONDS),
-                    isEmptyDelay: FiniteDuration = FiniteDuration(
-                          200, MILLISECONDS)) {
+                    isEmptyDelay: FiniteDuration = FiniteDuration(200, MILLISECONDS)) {
 
   private val events = new LinkedBlockingQueue[Any]
 

@@ -11,8 +11,7 @@ import play.api.test.Helpers
 import play.libs.F
 import java.lang.reflect.Method
 
-abstract class MockJavaAction
-    extends Controller with Action[Http.RequestBody] { self =>
+abstract class MockJavaAction extends Controller with Action[Http.RequestBody] { self =>
 
   private lazy val action = new JavaAction(new JavaHandlerComponents(
           play.api.Play.current.injector,
@@ -39,10 +38,9 @@ abstract class MockJavaAction
 object MockJavaActionHelper {
   import Helpers.defaultAwaitTimeout
 
-  def call(action: Action[Http.RequestBody],
-           requestBuilder: play.mvc.Http.RequestBuilder): Result = {
-    val result =
-      Helpers.await(action.apply(requestBuilder.build()._underlyingRequest))
+  def call(
+      action: Action[Http.RequestBody], requestBuilder: play.mvc.Http.RequestBuilder): Result = {
+    val result = Helpers.await(action.apply(requestBuilder.build()._underlyingRequest))
     new Result {
       def toScala = result
     }
@@ -51,16 +49,15 @@ object MockJavaActionHelper {
   def callWithStringBody(action: Action[Http.RequestBody],
                          requestBuilder: play.mvc.Http.RequestBuilder,
                          body: String): Result = {
-    val result = Helpers.await(
-        Helpers.call(action, requestBuilder.build()._underlyingRequest, body))
+    val result =
+      Helpers.await(Helpers.call(action, requestBuilder.build()._underlyingRequest, body))
     new Result {
       def toScala = result
     }
   }
 
   def setContext(request: play.mvc.Http.RequestBuilder): Unit = {
-    Http.Context.current
-      .set(JavaHelpers.createJavaContext(request.build()._underlyingRequest))
+    Http.Context.current.set(JavaHelpers.createJavaContext(request.build()._underlyingRequest))
   }
 
   def removeContext: Unit = Http.Context.current.remove()
@@ -80,8 +77,7 @@ object MockJavaActionJavaMocker {
   def findActionMethod(obj: AnyRef): Method = {
     val maybeMethod = obj.getClass.getDeclaredMethods.find(!_.isSynthetic)
     val theMethod = maybeMethod.getOrElse(
-        throw new RuntimeException(
-            "MockJavaAction must declare at least one non synthetic method")
+        throw new RuntimeException("MockJavaAction must declare at least one non synthetic method")
     )
     theMethod.setAccessible(true)
     theMethod

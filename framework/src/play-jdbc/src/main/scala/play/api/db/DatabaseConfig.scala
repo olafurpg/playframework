@@ -25,14 +25,12 @@ object DatabaseConfig {
   def fromConfig(config: PlayConfig, environment: Environment) = {
 
     val driver = config.getOptional[String]("driver")
-    val (url, userPass) = ConnectionPool.extractUrl(
-        config.getOptional[String]("url"), environment.mode)
-    val username = config
-      .getOptionalDeprecated[String]("username", "user")
-      .orElse(userPass.map(_._1))
-    val password = config
-      .getOptionalDeprecated[String]("password", "pass")
-      .orElse(userPass.map(_._2))
+    val (url, userPass) =
+      ConnectionPool.extractUrl(config.getOptional[String]("url"), environment.mode)
+    val username =
+      config.getOptionalDeprecated[String]("username", "user").orElse(userPass.map(_._1))
+    val password =
+      config.getOptionalDeprecated[String]("password", "pass").orElse(userPass.map(_._2))
     val jndiName = config.getOptional[String]("jndiName")
 
     DatabaseConfig(driver, url, username, password, jndiName)

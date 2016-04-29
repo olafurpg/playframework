@@ -9,15 +9,14 @@ import scala.util.Try
 
 object Release {
 
-  val branchVersion = SettingKey[String](
-      "branch-version", "The version to use if Play is on a branch.")
+  val branchVersion =
+    SettingKey[String]("branch-version", "The version to use if Play is on a branch.")
 
   def settings: Seq[Setting[_]] =
     Seq(
         version in ThisBuild := {
           // First see if we're on a tag
-          val currentTag =
-            Try("git describe --exact-match HEAD".!!(DevNullLogger).trim)
+          val currentTag = Try("git describe --exact-match HEAD".!!(DevNullLogger).trim)
           // Make sure the tag looks like a version number - one example of where it won't is on jenkins, it will be
           // jenkins-play-master-PRS-1234
           currentTag
@@ -54,19 +53,18 @@ object Release {
     *   release publish
     * }}}
     */
-  val releaseCommand: Command = Command(
-      "release", Help.more("release", "Release Play"))(_ => releaseParser) {
-    (state, options) =>
-      val stage = options.stage.getOrElse(VerifyRelease)
+  val releaseCommand: Command =
+    Command("release", Help.more("release", "Release Play"))(_ => releaseParser) {
+      (state, options) =>
+        val stage = options.stage.getOrElse(VerifyRelease)
 
-      val nextCommands = stage.execute(state, options)
+        val nextCommands = stage.execute(state, options)
 
-      val nextStage =
-        orderedStages.dropWhile(_.name != stage.name).drop(1).headOption
-      val nextStageCommand = options.copy(stage = nextStage).toReleaseCommand
+        val nextStage = orderedStages.dropWhile(_.name != stage.name).drop(1).headOption
+        val nextStageCommand = options.copy(stage = nextStage).toReleaseCommand
 
-      nextCommands ::: nextStageCommand.toList ::: state
-  }
+        nextCommands ::: nextStageCommand.toList ::: state
+    }
 
   val releaseParser: Parser[ReleaseOptions] = {
     import Parsers._
@@ -79,13 +77,11 @@ object Release {
     case object DryRunOption extends ReleaseOption
     case object SkipTestsOption extends ReleaseOption
 
-    val nextVersionParser =
-      literal("-next") ~> Space ~> NotSpace.map(NextVersion)
+    val nextVersionParser = literal("-next") ~> Space ~> NotSpace.map(NextVersion)
     val dryRunParser = literal("-dry-run").map(_ => DryRunOption)
     val skipTestsParser = literal("-skip-tests").map(_ => SkipTestsOption)
-    val releaseStageParser = allStages
-      .map(stage => literal(stage.name).map(_ => StageOption(stage)))
-      .reduce(_ | _)
+    val releaseStageParser =
+      allStages.map(stage => literal(stage.name).map(_ => StageOption(stage))).reduce(_ | _)
     val versionParser = NotSpace.map(Version)
 
     Space ~> repsep(
@@ -98,14 +94,12 @@ object Release {
       val skipTests = options.contains(SkipTestsOption)
 
       def verify(name: String, seq: Seq[_]): Option[Parser[ReleaseOptions]] = {
-        if (seq.size > 1)
-          Some(failure(s"Multiple $name specified: ${seq.mkString(" ,")}"))
+        if (seq.size > 1) Some(failure(s"Multiple $name specified: ${seq.mkString(" ,")}"))
         else None
       }
 
-      verify("stages", stages.view.map(_.name)) orElse verify(
-          "versions",
-          versions) orElse verify("next versions", nextVersions) getOrElse {
+      verify("stages", stages.view.map(_.name)) orElse verify("versions", versions) orElse verify(
+          "next versions", nextVersions) getOrElse {
         success(ReleaseOptions(stages.headOption,
                                versions.headOption,
                                nextVersions.headOption,
@@ -149,14 +143,12 @@ object Release {
     def execute(state: State, options: ReleaseOptions) = {
       val version = options.version match {
         case Some(v) =>
-          val nextVersion =
-            options.nextVersion.getOrElse(workOutNextVersion(v))
+          val nextVersion = options.nextVersion.getOrElse(workOutNextVersion(v))
           if (options.dryRun) {
-            state.log.info(
-                s"Dry run of release for Play $v and setting next version to $nextVersion")
+            state.log
+              .info(s"Dry run of release for Play $v and setting next version to $nextVersion")
           } else {
-            state.log.info(
-                s"Releasing Play $v and setting next version to $nextVersion")
+            state.log.info(s"Releasing Play $v and setting next version to $nextVersion")
           }
           v
         case None =>
@@ -175,8 +167,7 @@ object Release {
 
       if (s"git config branch.$currentBranch.merge".! > 0 ||
           s"git config branch.$currentBranch.remote".! > 0) {
-        error(
-            state, s"No remote tracking branch configured for $currentBranch")
+        error(state, s"No remote tracking branch configured for $currentBranch")
       }
 
       if (s"git tag -l $version".!!.trim.nonEmpty) {
@@ -230,8 +221,7 @@ object Release {
     def execute(state: State, options: ReleaseOptions) = {
       val extracted = Project.extract(state)
       val nextVersion = options.nextVersion.getOrElse {
-        val version =
-          options.version.getOrElse(extracted.get(Keys.version in ThisBuild))
+        val version = options.version.getOrElse(extracted.get(Keys.version in ThisBuild))
         workOutNextVersion(version)
       }
       val oldBranchVersion = extracted.get(branchVersion in ThisBuild)
@@ -243,9 +233,8 @@ object Release {
         val baseDir = extracted.get(baseDirectory in ThisBuild)
         val versionFile = baseDir / "version.sbt"
 
-        IO.write(
-            versionFile,
-            "Release.branchVersion in ThisBuild := \"" + nextVersion + "\"\n")
+        IO.write(versionFile,
+                 "Release.branchVersion in ThisBuild := \"" + nextVersion + "\"\n")
 
         if ("git diff HEAD --quiet".! > 0) {
           "git add --all".!!

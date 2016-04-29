@@ -11,20 +11,17 @@ import play.api.inject.Module
 /**
   * Provider for CORSConfig.
   */
-class CORSConfigProvider @Inject()(configuration: Configuration)
-    extends Provider[CORSConfig] {
+class CORSConfigProvider @Inject()(configuration: Configuration) extends Provider[CORSConfig] {
   lazy val get = CORSConfig.fromConfiguration(configuration)
 }
 
 /**
   * Provider for CORSFilter.
   */
-class CORSFilterProvider @Inject()(
-    configuration: Configuration, corsConfig: CORSConfig)
+class CORSFilterProvider @Inject()(configuration: Configuration, corsConfig: CORSConfig)
     extends Provider[CORSFilter] {
   lazy val get = {
-    val pathPrefixes = PlayConfig(configuration)
-      .get[Seq[String]]("play.filters.cors.pathPrefixes")
+    val pathPrefixes = PlayConfig(configuration).get[Seq[String]]("play.filters.cors.pathPrefixes")
     new CORSFilter(corsConfig, pathPrefixes)
   }
 }
@@ -47,8 +44,7 @@ trait CORSComponents {
   def configuration: Configuration
 
   lazy val corsConfig: CORSConfig = CORSConfig.fromConfiguration(configuration)
-  lazy val corsFilter: CORSFilter = new CORSFilter(
-      corsConfig, corsPathPrefixes)
-  lazy val corsPathPrefixes: Seq[String] = PlayConfig(configuration)
-    .get[Seq[String]]("play.filters.cors.pathPrefixes")
+  lazy val corsFilter: CORSFilter = new CORSFilter(corsConfig, corsPathPrefixes)
+  lazy val corsPathPrefixes: Seq[String] =
+    PlayConfig(configuration).get[Seq[String]]("play.filters.cors.pathPrefixes")
 }

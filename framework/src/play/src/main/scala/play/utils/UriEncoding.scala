@@ -100,8 +100,7 @@ object UriEncoding {
       if (b == '%') {
         // Read high digit
         if (inPos >= in.length)
-          throw new InvalidUriEncodingException(
-              s"Cannot decode $s: % at end of string")
+          throw new InvalidUriEncodingException(s"Cannot decode $s: % at end of string")
         val high = fromHex(next())
         if (high == -1)
           throw new InvalidUriEncodingException(
@@ -161,8 +160,8 @@ object UriEncoding {
   private def pchar: Seq[Char] = {
     // RFC 3986, 2.3. Unreserved Characters
     // unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"
-    val alphaDigit = for ((min, max) <- Seq(
-        ('a', 'z'), ('A', 'Z'), ('0', '9')); c <- min to max) yield c
+    val alphaDigit = for ((min, max) <- Seq(('a', 'z'), ('A', 'Z'), ('0', '9')); c <- min to max) yield
+      c
     val unreserved = alphaDigit ++ Seq('-', '.', '_', '~')
 
     // RFC 3986, 2.2. Reserved Characters

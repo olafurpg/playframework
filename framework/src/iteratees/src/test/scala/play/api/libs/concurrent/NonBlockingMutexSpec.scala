@@ -30,8 +30,7 @@ object NonBlockingMutexSpec extends Specification {
     def run(body: => Unit) = body
   }
 
-  def countOrderingErrors(runs: Int, tester: Tester)(
-      implicit ec: ExecutionContext): Future[Int] = {
+  def countOrderingErrors(runs: Int, tester: Tester)(implicit ec: ExecutionContext): Future[Int] = {
     val result = Promise[Int]()
     val runCount = new AtomicInteger(0)
     val orderingErrors = new AtomicInteger(0)
@@ -75,8 +74,7 @@ object NonBlockingMutexSpec extends Specification {
     "run code in order" in {
       import ExecutionContext.Implicits.global
 
-      def percentageOfRunsWithOrderingErrors(runSize: Int,
-                                             tester: Tester): Int = {
+      def percentageOfRunsWithOrderingErrors(runSize: Int, tester: Tester): Int = {
         val results: Seq[Future[Int]] = for (i <- 0 until 9) yield {
           countOrderingErrors(runSize, tester)
         }
@@ -89,13 +87,11 @@ object NonBlockingMutexSpec extends Specification {
       // is too small then the MutexTester probably isn't doing anything. We use
       // dynamic run sizing because the actual size that produces errors will vary
       // depending on the environment in which this test is run.
-      var runSize =
-        8 // This usually reaches 8192 on my dev machine with 10 simultaneous queues
+      var runSize = 8 // This usually reaches 8192 on my dev machine with 10 simultaneous queues
       var errorPercentage = 0
       while (errorPercentage < 90 && runSize < 1000000) {
         runSize = runSize << 1
-        errorPercentage = percentageOfRunsWithOrderingErrors(runSize,
-                                                             new NaiveTester())
+        errorPercentage = percentageOfRunsWithOrderingErrors(runSize, new NaiveTester())
       }
       //println(s"Got $errorPercentage% ordering errors on run size of $runSize")
 

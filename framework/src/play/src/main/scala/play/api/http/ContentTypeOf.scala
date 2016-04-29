@@ -50,8 +50,7 @@ trait DefaultContentTypeOfs {
   /**
     * Default content type for `JsValue` values (`application/json`).
     */
-  implicit def contentTypeOf_JsValue(
-      implicit codec: Codec): ContentTypeOf[JsValue] = {
+  implicit def contentTypeOf_JsValue(implicit codec: Codec): ContentTypeOf[JsValue] = {
     ContentTypeOf[JsValue](Some(ContentTypes.JSON))
   }
 
@@ -65,15 +64,13 @@ trait DefaultContentTypeOfs {
   /**
     * Default content type for `JavaScript` values.
     */
-  implicit def contentTypeOf_JavaScript(
-      implicit codec: Codec): ContentTypeOf[JavaScript] =
+  implicit def contentTypeOf_JavaScript(implicit codec: Codec): ContentTypeOf[JavaScript] =
     ContentTypeOf[JavaScript](Some(ContentTypes.JAVASCRIPT))
 
   /**
     * Default content type for `String` values (`text/plain`).
     */
-  implicit def contentTypeOf_String(
-      implicit codec: Codec): ContentTypeOf[String] = {
+  implicit def contentTypeOf_String(implicit codec: Codec): ContentTypeOf[String] = {
     ContentTypeOf[String](Some(ContentTypes.TEXT))
   }
 

@@ -33,15 +33,13 @@ object DriverRegistrationSpec extends Specification {
       dbApi.connect()
 
       (DriverManager.getDriver(jdbcUrl) aka "Acolyte driver" must not(beNull))
-        .and(DriverManager.getDriver("jdbc:h2:mem:").aka("H2 driver") must not(
-              beNull))
+        .and(DriverManager.getDriver("jdbc:h2:mem:").aka("H2 driver") must not(beNull))
     }
 
     "be deregistered for Acolyte but still there for H2 after databases stop" in {
       dbApi.shutdown()
 
-      (DriverManager.getDriver("jdbc:h2:mem:") aka "H2 driver" must not(
-              beNull))
+      (DriverManager.getDriver("jdbc:h2:mem:") aka "H2 driver" must not(beNull))
         .and(DriverManager.getDriver(jdbcUrl) aka "Acolyte driver" must {
         throwA[SQLException](message = "No suitable driver")
       })
@@ -52,8 +50,7 @@ object DriverRegistrationSpec extends Specification {
 
   lazy val dbApi: DefaultDBApi = {
     // Fake driver
-    acolyte.jdbc.Driver.register(
-        "DriverRegistrationSpec", acolyte.jdbc.CompositeHandler.empty())
+    acolyte.jdbc.Driver.register("DriverRegistrationSpec", acolyte.jdbc.CompositeHandler.empty())
 
     new DefaultDBApi(Map("default" -> Configuration
               .from(Map(
@@ -61,7 +58,6 @@ object DriverRegistrationSpec extends Specification {
                       "url" -> jdbcUrl
                   ))
               .underlying
-              .withFallback(ConfigFactory.defaultReference
-                    .getConfig("play.db.prototype"))))
+              .withFallback(ConfigFactory.defaultReference.getConfig("play.db.prototype"))))
   }
 }

@@ -73,8 +73,8 @@ package scalaguide.cache {
       }
 
       "bind multiple" in {
-        val app = FakeApplication(additionalConfiguration = Map(
-                  "play.cache.bindCaches" -> Seq("session-cache")))
+        val app = FakeApplication(
+            additionalConfiguration = Map("play.cache.bindCaches" -> Seq("session-cache")))
         running(app) {
           app.injector.instanceOf[qualified.Application]
           ok
@@ -94,8 +94,7 @@ package scalaguide.cache {
         val app = FakeApplication()
         running(app) {
           val cachedApp = app.injector.instanceOf[cachedaction.Application1]
-          testAction(action = cachedApp.userProfile,
-                     expectedResponse = UNAUTHORIZED)
+          testAction(action = cachedApp.userProfile, expectedResponse = UNAUTHORIZED)
         }
       }
 
@@ -105,8 +104,7 @@ package scalaguide.cache {
           val cachedApp = app.injector.instanceOf[cachedaction.Application1]
           val result0 = cachedApp.get(1)(FakeRequest("GET", "/resource/1")).run
           status(result0) must_== 200
-          val result1 =
-            cachedApp.get(-1)(FakeRequest("GET", "/resource/-1")).run
+          val result1 = cachedApp.get(-1)(FakeRequest("GET", "/resource/-1")).run
           status(result1) must_== 404
         }
       }
@@ -217,8 +215,7 @@ package scalaguide.cache {
     class Application2 @Inject()(cached: Cached) extends Controller {
       //#cached-action-control-404
       def get(index: Int) = {
-        val caching =
-          cached.status(_ => "/resource/" + index, 200).includeStatus(404, 600)
+        val caching = cached.status(_ => "/resource/" + index, 200).includeStatus(404, 600)
 
         caching {
           Action {

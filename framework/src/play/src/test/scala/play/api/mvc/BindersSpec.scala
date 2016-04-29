@@ -32,8 +32,7 @@ object BindersSpec extends Specification {
       subject.unbind("key", uuid) must be_==("key=" + uuid.toString)
     }
     "Bind parameter to UUID" in {
-      subject.bind("key", Map("key" -> Seq(uuid.toString))) must be_==(
-          Some(Right(uuid)))
+      subject.bind("key", Map("key" -> Seq(uuid.toString))) must be_==(Some(Right(uuid)))
     }
     "Fail on unparseable UUID" in {
       subject.bind("key", Map("key" -> Seq("bad-uuid"))) must be_==(

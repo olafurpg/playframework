@@ -38,27 +38,22 @@ object NettyResultStreamer {
                  result: Result,
                  httpVersion: HttpVersion,
                  startSequence: Int)(
-      implicit ctx: ChannelHandlerContext,
-      oue: OrderedUpstreamMessageEvent): Future[_] = {
+      implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent): Future[_] = {
     import play.api.libs.iteratee.Execution.Implicits.trampoline
 
     // Break out sending logic because when the first result is invalid we may
     // need to call send again with an error result.
     def send(result: Result): Future[ChannelStatus] = {
       // Result of this iteratee is a completion status
-      val resultStreaming =
-        ServerResultUtils.determineResultStreaming(requestHeader, result)
+      val resultStreaming = ServerResultUtils.determineResultStreaming(requestHeader, result)
       resultStreaming.flatMap {
-        case Left(
-            ServerResultUtils.InvalidResult(reason, alternativeResult)) =>
-          logger.warn(
-              s"Cannot send result, sending error result instead: $reason")
+        case Left(ServerResultUtils.InvalidResult(reason, alternativeResult)) =>
+          logger.warn(s"Cannot send result, sending error result instead: $reason")
           send(alternativeResult)
         case Right((streaming, connectionHeader)) =>
           // Create our base response. It may be modified, depending on the
           // streaming strategy.
-          val nettyResponse =
-            createNettyResponse(result.header, connectionHeader, httpVersion)
+          val nettyResponse = createNettyResponse(result.header, connectionHeader, httpVersion)
 
           // Streams whatever content that has been added to the nettyResponse, or
           // no content if none was added
@@ -66,15 +61,13 @@ object NettyResultStreamer {
             val future = sendDownstream(startSequence,
                                         !connectionHeader.willClose,
                                         nettyResponse).toScala
-            val channelStatus =
-              new ChannelStatus(connectionHeader.willClose, startSequence)
+            val channelStatus = new ChannelStatus(connectionHeader.willClose, startSequence)
             future.map(_ => channelStatus).recover { case _ => channelStatus }
           }
 
           // Streams the value of an enumerator into the nettyResponse
           def streamEnum(enum: Enumerator[Array[Byte]]) = {
-            enum |>>> nettyStreamIteratee(
-                nettyResponse, startSequence, connectionHeader.willClose)
+            enum |>>> nettyStreamIteratee(nettyResponse, startSequence, connectionHeader.willClose)
           }
 
           // Interpret the streaming strategy for Netty
@@ -97,8 +90,7 @@ object NettyResultStreamer {
               sendContent()
             case ServerResultUtils.UseExistingTransferEncoding(enum) =>
               streamEnum(enum)
-            case ServerResultUtils
-                  .PerformChunkedTransferEncoding(transferEncodedEnum) =>
+            case ServerResultUtils.PerformChunkedTransferEncoding(transferEncodedEnum) =>
               nettyResponse.headers().set(TRANSFER_ENCODING, CHUNKED)
               streamEnum(transferEncodedEnum &> Results.chunk)
           }
@@ -112,13 +104,12 @@ object NettyResultStreamer {
         if (cs.closeConnection) {
           // Close in an orderely fashion.
           val channel = oue.getChannel;
-          val closeEvent =
-            new DownstreamChannelStateEvent(channel,
-                                            channel.getCloseFuture,
-                                            ChannelState.OPEN,
-                                            java.lang.Boolean.FALSE);
-          val ode = new OrderedDownstreamChannelEvent(
-              oue, cs.lastSubsequence + 1, true, closeEvent)
+          val closeEvent = new DownstreamChannelStateEvent(channel,
+                                                           channel.getCloseFuture,
+                                                           ChannelState.OPEN,
+                                                           java.lang.Boolean.FALSE);
+          val ode =
+            new OrderedDownstreamChannelEvent(oue, cs.lastSubsequence + 1, true, closeEvent)
           ctx.sendDownstream(ode)
         }
       case Failure(ex) =>
@@ -135,8 +126,7 @@ object NettyResultStreamer {
       implicit ctx: ChannelHandlerContext,
       e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], ChannelStatus] = {
 
-    def step(subsequence: Int)(
-        in: Input[Array[Byte]]): Iteratee[Array[Byte], ChannelStatus] =
+    def step(subsequence: Int)(in: Input[Array[Byte]]): Iteratee[Array[Byte], ChannelStatus] =
       in match {
         case Input.El(x) =>
           val b = ChannelBuffers.wrappedBuffer(x)
@@ -146,8 +136,7 @@ object NettyResultStreamer {
         case Input.Empty =>
           Cont(step(subsequence))
         case Input.EOF =>
-          sendDownstream(
-              subsequence, !closeConnection, ChannelBuffers.EMPTY_BUFFER)
+          sendDownstream(subsequence, !closeConnection, ChannelBuffers.EMPTY_BUFFER)
           Done(new ChannelStatus(closeConnection, subsequence))
       }
     nextWhenComplete(sendDownstream(startSequence, false, nettyResponse),
@@ -187,23 +176,20 @@ object NettyResultStreamer {
         nettyResponse.headers().clear()
     }
 
-    connectionHeader.header.foreach(
-        headerValue => nettyResponse.headers().set(CONNECTION, headerValue))
+    connectionHeader.header
+      .foreach(headerValue => nettyResponse.headers().set(CONNECTION, headerValue))
 
     nettyResponse
   }
 
   def sendDownstream(subSequence: Int, last: Boolean, message: Object)(
-      implicit ctx: ChannelHandlerContext,
-      oue: OrderedUpstreamMessageEvent) = {
-    val ode = new OrderedDownstreamChannelEvent(
-        oue, subSequence, last, message)
+      implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent) = {
+    val ode = new OrderedDownstreamChannelEvent(oue, subSequence, last, message)
     ctx.sendDownstream(ode)
     ode.getFuture
   }
 
-  def nextWhenComplete[E, A](
-      future: ChannelFuture, step: (Input[E]) => Iteratee[E, A], done: A)(
+  def nextWhenComplete[E, A](future: ChannelFuture, step: (Input[E]) => Iteratee[E, A], done: A)(
       implicit ctx: ChannelHandlerContext): Iteratee[E, A] = {
     // If the channel isn't currently connected, then this future will never be redeemed.  This is racey, and impossible
     // to 100% detect, but it's better to fail fast if possible than to sit there waiting forever

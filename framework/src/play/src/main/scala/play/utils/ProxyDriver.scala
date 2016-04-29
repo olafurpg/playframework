@@ -9,8 +9,7 @@ import java.util.logging.Logger
 class ProxyDriver(proxied: Driver) extends Driver {
 
   def acceptsURL(url: String) = proxied.acceptsURL(url)
-  def connect(user: String, properties: java.util.Properties) =
-    proxied.connect(user, properties)
+  def connect(user: String, properties: java.util.Properties) = proxied.connect(user, properties)
   def getMajorVersion() = proxied.getMajorVersion
   def getMinorVersion() = proxied.getMinorVersion
   def getPropertyInfo(user: String, properties: java.util.Properties) =

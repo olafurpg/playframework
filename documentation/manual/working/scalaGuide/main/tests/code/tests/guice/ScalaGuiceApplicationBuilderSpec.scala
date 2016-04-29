@@ -75,9 +75,8 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
 
     "override configuration" in {
       // #override-configuration
-      val application = new GuiceApplicationBuilder()
-        .loadConfig(env => Configuration.load(env))
-        .build
+      val application =
+        new GuiceApplicationBuilder().loadConfig(env => Configuration.load(env)).build
       // #override-configuration
 
       application.configuration.keys must not be empty
@@ -91,8 +90,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
         .build
       // #add-bindings
 
-      application.injector.instanceOf[Component] must beAnInstanceOf[
-          DefaultComponent]
+      application.injector.instanceOf[Component] must beAnInstanceOf[DefaultComponent]
     }
 
     "override bindings" in {
@@ -120,8 +118,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
         .build
       // #load-modules
 
-      application.injector.instanceOf[Component] must beAnInstanceOf[
-          DefaultComponent]
+      application.injector.instanceOf[Component] must beAnInstanceOf[DefaultComponent]
     }
 
     "disable modules" in {

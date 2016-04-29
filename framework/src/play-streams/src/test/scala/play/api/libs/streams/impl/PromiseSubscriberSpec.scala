@@ -15,9 +15,7 @@ class PromiseSubscriberSpec extends Specification {
   import PublisherEvents._
   case class OnComplete(result: Try[Any])
 
-  class TestEnv[T]
-      extends EventRecorder(ScalaFiniteDuration(2, SECONDS))
-      with PublisherEvents[T] {
+  class TestEnv[T] extends EventRecorder(ScalaFiniteDuration(2, SECONDS)) with PublisherEvents[T] {
 
     val prom = Promise[T]()
     val subr = new PromiseSubscriber(prom)

@@ -40,37 +40,34 @@ object ServerResultUtils {
     * also be used for some HTTP 1.1 responses, if chunked encoding isn't
     * desired for some reason, e.g. see the `Results.feed` method.
     */
-  final case class StreamWithClose(enum: Enumerator[Array[Byte]])
-      extends ResultStreaming
+  final case class StreamWithClose(enum: Enumerator[Array[Byte]]) extends ResultStreaming
 
   /**
     * A stream with a known length where the Content-Length header can be
     * set.
     */
-  final case class StreamWithKnownLength(enum: Enumerator[Array[Byte]])
-      extends ResultStreaming
+  final case class StreamWithKnownLength(enum: Enumerator[Array[Byte]]) extends ResultStreaming
 
   /**
     * A stream with bytes that are already entirely known. The Content-Length
     * can be sent and an efficient streaming strategy can be used by the server.
     */
-  final case class StreamWithStrictBody(body: Array[Byte])
-      extends ResultStreaming
+  final case class StreamWithStrictBody(body: Array[Byte]) extends ResultStreaming
 
   /**
     * A stream where the response has already been encoded by the user, e.g. using
     * `Results.chunked`. The server may be able to feed this encoded data directly -
     * or it may need to reverse the encoding before resending it. :(
     */
-  final case class UseExistingTransferEncoding(
-      transferEncodedEnum: Enumerator[Array[Byte]]) extends ResultStreaming
+  final case class UseExistingTransferEncoding(transferEncodedEnum: Enumerator[Array[Byte]])
+      extends ResultStreaming
 
   /**
     * A stream where the response should be chunk encoded. This is usually used for
     * an HTTP 1.1 connection where the response has unknown size.
     */
-  final case class PerformChunkedTransferEncoding(
-      enum: Enumerator[Array[Byte]]) extends ResultStreaming
+  final case class PerformChunkedTransferEncoding(enum: Enumerator[Array[Byte]])
+      extends ResultStreaming
 
   /**
     * The connection header logic to use for the result.
@@ -135,9 +132,9 @@ object ServerResultUtils {
     * The ConnectionHeader returned for a successful result will indicate how the
     * header should be set in the response header.
     */
-  def determineResultStreaming(requestHeader: RequestHeader,
-                               result: Result
-  ): Future[Either[InvalidResult, (ResultStreaming, ConnectionHeader)]] = {
+  def determineResultStreaming(
+      requestHeader: RequestHeader,
+      result: Result): Future[Either[InvalidResult, (ResultStreaming, ConnectionHeader)]] = {
 
     // The protocol version will affect how we stream the result and
     // the value of the Connection header that we set
@@ -149,8 +146,7 @@ object ServerResultUtils {
       val forceClose: Boolean = result.connection == HttpConnection.Close
       // Did the request we receive indicate whether the connection should be closed?
       def defaultClose: Boolean = {
-        val requestConnectionHeader: Option[String] =
-          requestHeader.headers.get(CONNECTION)
+        val requestConnectionHeader: Option[String] = requestHeader.headers.get(CONNECTION)
         def requestConnectionHeaderMatches(value: String): Boolean =
           requestConnectionHeader.exists(_.equalsIgnoreCase(value))
         (isHttp10 && !requestConnectionHeaderMatches(KEEP_ALIVE)) ||
@@ -170,9 +166,7 @@ object ServerResultUtils {
     }
 
     // Helpers for creating return values for this method
-    def invalid(
-        reason: String,
-        alternativeResult: Result): Future[Left[InvalidResult, Nothing]] = {
+    def invalid(reason: String, alternativeResult: Result): Future[Left[InvalidResult, Nothing]] = {
       Future.successful(Left(InvalidResult(reason, alternativeResult)))
     }
     def valid(streaming: ResultStreaming,
@@ -247,8 +241,7 @@ object ServerResultUtils {
     *   enumerator is an Enumerator that contains *all* the input. Any
     *   already-read elements will still be included in this Enumerator.
     */
-  def readAheadOne[A](
-      enum: Enumerator[A]): Future[Either[Option[A], Enumerator[A]]] = {
+  def readAheadOne[A](enum: Enumerator[A]): Future[Either[Option[A], Enumerator[A]]] = {
     import Execution.Implicits.trampoline
     val result = Promise[Either[Option[A], Enumerator[A]]]()
     val it: Iteratee[A, Unit] = for {
@@ -275,10 +268,10 @@ object ServerResultUtils {
     * in the incoming request.
     */
   def cleanFlashCookie(requestHeader: RequestHeader, result: Result): Result = {
-    val optResultFlashCookies: Option[_] =
-      result.header.headers.get(SET_COOKIE).flatMap { setCookieValue: String =>
+    val optResultFlashCookies: Option[_] = result.header.headers.get(SET_COOKIE).flatMap {
+      setCookieValue: String =>
         Cookies.decode(setCookieValue).find(_.name == Flash.COOKIE_NAME)
-      }
+    }
 
     if (optResultFlashCookies.isDefined) {
       // We're already setting a flash cookie in the result, just pass that
@@ -292,8 +285,7 @@ object ServerResultUtils {
       } else {
         // We got incoming flash cookies, but there are no outgoing flash cookies,
         // so we need to clear the cookies for the next request
-        result.withHeaders(
-            SET_COOKIE -> Cookies.encode(Seq(Flash.discard.toCookie)))
+        result.withHeaders(SET_COOKIE -> Cookies.encode(Seq(Flash.discard.toCookie)))
       }
     }
   }
@@ -306,8 +298,7 @@ object ServerResultUtils {
     * handle combined headers. (Also RFC6265 says multiple headers shouldn't
     * be folded together, which Play's API unfortunately  does.)
     */
-  def splitSetCookieHeaders(
-      headers: Map[String, String]): Iterable[(String, String)] = {
+  def splitSetCookieHeaders(headers: Map[String, String]): Iterable[(String, String)] = {
     if (headers.contains(SET_COOKIE)) {
       // Rewrite the headers with Set-Cookie split into separate headers
       headers.to[Seq].flatMap {

@@ -12,8 +12,7 @@ class HikariCPConfigSpec extends Specification {
   "When reading configuration" should {
 
     "set dataSourceClassName when present" in new Configs {
-      val config = from(
-          "hikaricp.dataSourceClassName" -> "org.postgresql.ds.PGPoolingDataSource")
+      val config = from("hikaricp.dataSourceClassName" -> "org.postgresql.ds.PGPoolingDataSource")
       new HikariCPConfig(DatabaseConfig(None, None, None, None, None), config).toHikariConfig.getDataSourceClassName must beEqualTo(
           "org.postgresql.ds.PGPoolingDataSource")
     }
@@ -23,13 +22,10 @@ class HikariCPConfigSpec extends Specification {
           "hikaricp.dataSource.user" -> "user",
           "hikaricp.dataSource.password" -> "password"
       )
-      val hikariConfig: HikariConfig =
-        new HikariCPConfig(dbConfig, config).toHikariConfig
+      val hikariConfig: HikariConfig = new HikariCPConfig(dbConfig, config).toHikariConfig
 
-      hikariConfig.getDataSourceProperties.getProperty("user") must beEqualTo(
-          "user")
-      hikariConfig.getDataSourceProperties.getProperty("password") must beEqualTo(
-          "password")
+      hikariConfig.getDataSourceProperties.getProperty("user") must beEqualTo("user")
+      hikariConfig.getDataSourceProperties.getProperty("password") must beEqualTo("password")
     }
 
     "set database url" in new Configs {
@@ -63,8 +59,7 @@ class HikariCPConfigSpec extends Specification {
       }
 
       "minimumIdle to 10" in new Configs {
-        new HikariCPConfig(dbConfig, reference).toHikariConfig.getMinimumIdle must beEqualTo(
-            10)
+        new HikariCPConfig(dbConfig, reference).toHikariConfig.getMinimumIdle must beEqualTo(10)
       }
 
       "maximumPoolSize to 10" in new Configs {
@@ -133,14 +128,12 @@ class HikariCPConfigSpec extends Specification {
             "hikaricp.minimumIdle" -> "20",
             "hikaricp.maximumPoolSize" -> "40"
         )
-        new HikariCPConfig(dbConfig, config).toHikariConfig.getMinimumIdle must beEqualTo(
-            20)
+        new HikariCPConfig(dbConfig, config).toHikariConfig.getMinimumIdle must beEqualTo(20)
       }
 
       "maximumPoolSize" in new Configs {
         val config = from("hikaricp.maximumPoolSize" -> "20")
-        new HikariCPConfig(dbConfig, config).toHikariConfig.getMaximumPoolSize must beEqualTo(
-            20)
+        new HikariCPConfig(dbConfig, config).toHikariConfig.getMaximumPoolSize must beEqualTo(20)
       }
 
       "initializationFailFast" in new Configs {
@@ -173,11 +166,8 @@ class HikariCPConfigSpec extends Specification {
 }
 
 trait Configs extends Scope {
-  val dbConfig = DatabaseConfig(
-      Some("org.h2.Driver"), Some("jdbc:h2:mem:"), None, None, None)
-  val reference =
-    PlayConfig(Configuration.reference).get[PlayConfig]("play.db.prototype")
+  val dbConfig = DatabaseConfig(Some("org.h2.Driver"), Some("jdbc:h2:mem:"), None, None, None)
+  val reference = PlayConfig(Configuration.reference).get[PlayConfig]("play.db.prototype")
   def from(props: (String, String)*) =
-    PlayConfig(
-        Configuration(reference.underlying) ++ Configuration.from(props.toMap))
+    PlayConfig(Configuration(reference.underlying) ++ Configuration.from(props.toMap))
 }

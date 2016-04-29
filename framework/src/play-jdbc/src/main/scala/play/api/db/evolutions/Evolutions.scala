@@ -86,14 +86,12 @@ object Evolutions {
   /**
     * Default evolution file location.
     */
-  def fileName(db: String, revision: Int): String =
-    s"${directoryName(db)}/${revision}.sql"
+  def fileName(db: String, revision: Int): String = s"${directoryName(db)}/${revision}.sql"
 
   /**
     * Default evolution resource name.
     */
-  def resourceName(db: String, revision: Int): String =
-    s"evolutions/${db}/${revision}.sql"
+  def resourceName(db: String, revision: Int): String = s"evolutions/${db}/${revision}.sql"
 
   /**
     * Apply pending evolutions for the given DB.
@@ -102,9 +100,8 @@ object Evolutions {
                path: java.io.File = new java.io.File("."),
                autocommit: Boolean = true): Unit = {
     val evolutions = Play.current.injector.instanceOf[EvolutionsApi]
-    val scripts = evolutions.scripts(
-        dbName,
-        new EnvironmentEvolutionsReader(Environment.simple(path = path)))
+    val scripts =
+      evolutions.scripts(dbName, new EnvironmentEvolutionsReader(Environment.simple(path = path)))
     evolutions.evolve(dbName, scripts, autocommit)
   }
 
@@ -143,11 +140,9 @@ object Evolutions {
   def toHumanReadableScript(scripts: Seq[Script]): String = {
     val txt = scripts.map {
       case UpScript(ev) =>
-        "# --- Rev:" + ev.revision + ",Ups - " + ev.hash.take(7) + "\n" +
-        ev.sql_up + "\n"
+        "# --- Rev:" + ev.revision + ",Ups - " + ev.hash.take(7) + "\n" + ev.sql_up + "\n"
       case DownScript(ev) =>
-        "# --- Rev:" + ev.revision + ",Downs - " + ev.hash.take(7) + "\n" +
-        ev.sql_down + "\n"
+        "# --- Rev:" + ev.revision + ",Downs - " + ev.hash.take(7) + "\n" + ev.sql_down + "\n"
     }.mkString("\n")
 
     val hasDownWarning =
@@ -165,8 +160,7 @@ object Evolutions {
     * @param ups the seq of ups
     * @return the downs and ups to run to have the db synced to the current stage
     */
-  def conflictings(downs: Seq[Evolution],
-                   ups: Seq[Evolution]): (Seq[Evolution], Seq[Evolution]) =
+  def conflictings(downs: Seq[Evolution], ups: Seq[Evolution]): (Seq[Evolution], Seq[Evolution]) =
     downs
       .zip(ups)
       .reverse
@@ -183,10 +177,9 @@ object Evolutions {
     * @param evolutionsReader The reader to read the evolutions.
     * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false.
     */
-  def applyEvolutions(
-      database: Database,
-      evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
-      autocommit: Boolean = true): Unit = {
+  def applyEvolutions(database: Database,
+                      evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
+                      autocommit: Boolean = true): Unit = {
     val dbEvolutions = new DatabaseEvolutions(database)
     val evolutions = dbEvolutions.scripts(evolutionsReader)
     dbEvolutions.evolve(evolutions, autocommit)
@@ -215,10 +208,9 @@ object Evolutions {
     * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false.
     * @param block The block to execute
     */
-  def withEvolutions[T](
-      database: Database,
-      evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
-      autocommit: Boolean = true)(block: => T): T = {
+  def withEvolutions[T](database: Database,
+                        evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
+                        autocommit: Boolean = true)(block: => T): T = {
     applyEvolutions(database, evolutionsReader, autocommit)
     try {
       block
@@ -240,11 +232,9 @@ object OfflineEvolutions {
 
   private val logger = Logger(this.getClass)
 
-  private def isTest: Boolean =
-    Play.maybeApplication.exists(_.mode == Mode.Test)
+  private def isTest: Boolean = Play.maybeApplication.exists(_.mode == Mode.Test)
 
-  private def getEvolutions(
-      appPath: File, classloader: ClassLoader): EvolutionsComponents = {
+  private def getEvolutions(appPath: File, classloader: ClassLoader): EvolutionsComponents = {
     new EvolutionsComponents with DBComponents with BoneCPComponents {
       lazy val environment = Environment(appPath, classloader, Mode.Dev)
       lazy val configuration = Configuration.load(appPath)
@@ -266,11 +256,10 @@ object OfflineEvolutions {
                   dbName: String,
                   autocommit: Boolean = true): Unit = {
     val evolutions = getEvolutions(appPath, classloader)
-    val scripts =
-      evolutions.evolutionsApi.scripts(dbName, evolutions.evolutionsReader)
+    val scripts = evolutions.evolutionsApi.scripts(dbName, evolutions.evolutionsReader)
     if (!isTest) {
-      logger.warn("Applying evolution scripts for database '" + dbName +
-          "':\n\n" + Evolutions.toHumanReadableScript(scripts))
+      logger.warn("Applying evolution scripts for database '" + dbName + "':\n\n" +
+          Evolutions.toHumanReadableScript(scripts))
     }
     evolutions.evolutionsApi.evolve(dbName, scripts, autocommit)
   }
@@ -289,8 +278,7 @@ object OfflineEvolutions {
               revision: Int): Unit = {
     val evolutions = getEvolutions(appPath, classloader)
     if (!isTest) {
-      logger.warn("Resolving evolution [" + revision + "] for database '" +
-          dbName + "'")
+      logger.warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
     }
     evolutions.evolutionsApi.resolve(dbName, revision)
   }

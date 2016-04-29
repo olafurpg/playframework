@@ -34,8 +34,7 @@ object Logger {
   val NewLine = sys.props("line.separator")
 
   def apply(level: Level): Logger = new Logger(level)
-  def apply(level: String): Logger =
-    new Logger(Level(level).getOrElse(Level.Info))
+  def apply(level: String): Logger = new Logger(Level(level).getOrElse(Level.Info))
 }
 
 class Logger(out: PrintStream, logLevel: Logger.Level) extends LoggerProxy {
@@ -67,8 +66,7 @@ class Logger(out: PrintStream, logLevel: Logger.Level) extends LoggerProxy {
     for (logLevel <- Logger.Level(level)) log(logLevel, message)
   }
 
-  def printLog(
-      label: String, message: String, separator: String = NewLine): Unit =
+  def printLog(label: String, message: String, separator: String = NewLine): Unit =
     out.synchronized {
       for (line <- message.split(separator)) {
         out.print(label)

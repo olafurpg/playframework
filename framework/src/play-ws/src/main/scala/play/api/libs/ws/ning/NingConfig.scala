@@ -36,19 +36,18 @@ import scala.concurrent.duration._
   * @param maxRequestRetry The maximum number of times to retry a request if it fails.
   * @param disableUrlEncoding Whether the raw URL should be used.
   */
-case class NingWSClientConfig(
-    wsClientConfig: WSClientConfig = WSClientConfig(),
-    allowPoolingConnection: Boolean = true,
-    allowSslConnectionPool: Boolean = true,
-    ioThreadMultiplier: Int = 2,
-    maxConnectionsPerHost: Int = -1,
-    maxConnectionsTotal: Int = -1,
-    maxConnectionLifetime: Duration = Duration.Inf,
-    idleConnectionInPoolTimeout: Duration = 1.minute,
-    webSocketIdleTimeout: Duration = 15.minutes,
-    maxNumberOfRedirects: Int = 5,
-    maxRequestRetry: Int = 5,
-    disableUrlEncoding: Boolean = false)
+case class NingWSClientConfig(wsClientConfig: WSClientConfig = WSClientConfig(),
+                              allowPoolingConnection: Boolean = true,
+                              allowSslConnectionPool: Boolean = true,
+                              ioThreadMultiplier: Int = 2,
+                              maxConnectionsPerHost: Int = -1,
+                              maxConnectionsTotal: Int = -1,
+                              maxConnectionLifetime: Duration = Duration.Inf,
+                              idleConnectionInPoolTimeout: Duration = 1.minute,
+                              webSocketIdleTimeout: Duration = 15.minutes,
+                              maxNumberOfRedirects: Int = 5,
+                              maxRequestRetry: Int = 5,
+                              disableUrlEncoding: Boolean = false)
 
 /**
   * Factory for creating NingWSClientConfig, for use from Java.
@@ -79,8 +78,7 @@ class NingWSClientConfigParser @Inject()(wsClientConfig: WSClientConfig,
     val maximumConnectionsPerHost = config.get[Int]("maxConnectionsPerHost")
     val maximumConnectionsTotal = config.get[Int]("maxConnectionsTotal")
     val maxConnectionLifetime = config.get[Duration]("maxConnectionLifetime")
-    val idleConnectionInPoolTimeout =
-      config.get[Duration]("idleConnectionInPoolTimeout")
+    val idleConnectionInPoolTimeout = config.get[Duration]("idleConnectionInPoolTimeout")
     val webSocketIdleTimeout = config.get[Duration]("webSocketIdleTimeout")
     val maximumNumberOfRedirects = config.get[Int]("maxNumberOfRedirects")
     val maxRequestRetry = config.get[Int]("maxRequestRetry")
@@ -108,16 +106,13 @@ class NingWSClientConfigParser @Inject()(wsClientConfig: WSClientConfig,
   *
   * @param ningConfig the ning client configuration.
   */
-class NingAsyncHttpClientConfigBuilder(
-    ningConfig: NingWSClientConfig = NingWSClientConfig()) {
+class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSClientConfig()) {
 
   /**
     * Constructor for backwards compatibility with <= 2.3.X
     */
-  @deprecated(
-      "Use NingAsyncHttpClientConfigBuilder(NingWSClientConfig)", "2.4")
-  def this(config: WSClientConfig) = this(
-      NingWSClientConfig(wsClientConfig = config))
+  @deprecated("Use NingAsyncHttpClientConfigBuilder(NingWSClientConfig)", "2.4")
+  def this(config: WSClientConfig) = this(NingWSClientConfig(wsClientConfig = config))
 
   protected val addCustomSettings: AsyncHttpClientConfig.Builder => AsyncHttpClientConfig.Builder =
     identity
@@ -125,8 +120,7 @@ class NingAsyncHttpClientConfigBuilder(
   /**
     * The underlying `AsyncHttpClientConfig.Builder` used by this instance.
     */
-  val builder: AsyncHttpClientConfig.Builder =
-    new AsyncHttpClientConfig.Builder()
+  val builder: AsyncHttpClientConfig.Builder = new AsyncHttpClientConfig.Builder()
 
   private[ning] val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -161,7 +155,7 @@ class NingAsyncHttpClientConfigBuilder(
     */
   def modifyUnderlying(
       modify: AsyncHttpClientConfig.Builder => AsyncHttpClientConfig.Builder
-      ): NingAsyncHttpClientConfigBuilder = {
+  ): NingAsyncHttpClientConfigBuilder = {
     new NingAsyncHttpClientConfigBuilder(ningConfig) {
       override val addCustomSettings =
         modify compose NingAsyncHttpClientConfigBuilder. this.addCustomSettings
@@ -196,13 +190,11 @@ class NingAsyncHttpClientConfigBuilder(
     builder.setMaxConnectionsPerHost(ningConfig.maxConnectionsPerHost)
     builder.setMaxConnections(ningConfig.maxConnectionsTotal)
     builder.setConnectionTTL(toMillis(ningConfig.maxConnectionLifetime))
-    builder.setPooledConnectionIdleTimeout(
-        toMillis(ningConfig.idleConnectionInPoolTimeout))
+    builder.setPooledConnectionIdleTimeout(toMillis(ningConfig.idleConnectionInPoolTimeout))
     builder.setWebSocketTimeout(toMillis(ningConfig.webSocketIdleTimeout))
     builder.setMaxRedirects(ningConfig.maxNumberOfRedirects)
     builder.setMaxRequestRetry(ningConfig.maxRequestRetry)
-    builder.setDisableUrlEncodingForBoundedRequests(
-        ningConfig.disableUrlEncoding)
+    builder.setDisableUrlEncodingForBoundedRequests(ningConfig.disableUrlEncoding)
   }
 
   /**
@@ -213,8 +205,7 @@ class NingAsyncHttpClientConfigBuilder(
   def configureWS(config: WSClientConfig): Unit =
     configureWS(NingWSClientConfig(wsClientConfig = config))
 
-  def configureProtocols(existingProtocols: Array[String],
-                         sslConfig: SSLConfig): Array[String] = {
+  def configureProtocols(existingProtocols: Array[String], sslConfig: SSLConfig): Array[String] = {
     val definedProtocols = sslConfig.enabledProtocols match {
       case Some(configuredProtocols) =>
         // If we are given a specific list of protocols, then return it in exactly that order,
@@ -223,9 +214,7 @@ class NingAsyncHttpClientConfigBuilder(
 
       case None =>
         // Otherwise, we return the default protocols in the given list.
-        Protocols.recommendedProtocols
-          .filter(existingProtocols.contains)
-          .toArray
+        Protocols.recommendedProtocols.filter(existingProtocols.contains).toArray
     }
 
     if (!sslConfig.loose.allowWeakProtocols) {
@@ -240,8 +229,7 @@ class NingAsyncHttpClientConfigBuilder(
     definedProtocols
   }
 
-  def configureCipherSuites(
-      existingCiphers: Array[String], sslConfig: SSLConfig): Array[String] = {
+  def configureCipherSuites(existingCiphers: Array[String], sslConfig: SSLConfig): Array[String] = {
     val definedCiphers = sslConfig.enabledCipherSuites match {
       case Some(configuredCiphers) =>
         // If we are given a specific list of ciphers, return it in that order.
@@ -271,16 +259,14 @@ class NingAsyncHttpClientConfigBuilder(
     // context!
     val sslContext =
       if (sslConfig.default) {
-        logger.info(
-            "buildSSLContext: ws.ssl.default is true, using default SSLContext")
+        logger.info("buildSSLContext: ws.ssl.default is true, using default SSLContext")
         validateDefaultTrustManager(sslConfig)
         SSLContext.getDefault
       } else {
         // break out the static methods as much as we can...
         val keyManagerFactory = buildKeyManagerFactory(sslConfig)
         val trustManagerFactory = buildTrustManagerFactory(sslConfig)
-        new ConfigSSLContextBuilder(
-            sslConfig, keyManagerFactory, trustManagerFactory).build()
+        new ConfigSSLContextBuilder(sslConfig, keyManagerFactory, trustManagerFactory).build()
       }
 
     // protocols!
@@ -320,15 +306,13 @@ class NingAsyncHttpClientConfigBuilder(
   }
 
   def buildHostnameVerifier(sslConfig: SSLConfig): HostnameVerifier = {
-    logger.debug(
-        "buildHostnameVerifier: enabling hostname verification using {}",
-        sslConfig.hostnameVerifierClass)
+    logger.debug("buildHostnameVerifier: enabling hostname verification using {}",
+                 sslConfig.hostnameVerifierClass)
     try {
       sslConfig.hostnameVerifierClass.newInstance()
     } catch {
       case e: Exception =>
-        throw new IllegalStateException(
-            "Cannot configure hostname verifier", e)
+        throw new IllegalStateException("Cannot configure hostname verifier", e)
     }
   }
 
@@ -345,17 +329,12 @@ class NingAsyncHttpClientConfigBuilder(
     //
     // http://grepcode.com/file/repository.grepcode.com/java/root/jdk/openjdk/7-b147/sun/security/ssl/SSLContextImpl.java#79
 
-    val tmf =
-      TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
+    val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
     tmf.init(null.asInstanceOf[KeyStore])
-    val trustManager: X509TrustManager =
-      tmf.getTrustManagers()(0).asInstanceOf[X509TrustManager]
+    val trustManager: X509TrustManager = tmf.getTrustManagers()(0).asInstanceOf[X509TrustManager]
 
     val constraints = sslConfig.disabledKeyAlgorithms
-      .map(a =>
-            AlgorithmConstraintsParser
-              .parseAll(AlgorithmConstraintsParser.expression, a)
-              .get)
+      .map(a => AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.expression, a).get)
       .toSet
     val algorithmChecker = new AlgorithmChecker(
         keyConstraints = constraints, signatureConstraints = Set())

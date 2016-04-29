@@ -35,8 +35,7 @@ case class JsLookup(result: JsLookupResult) extends AnyVal {
       obj.value
         .get(fieldName)
         .map(JsDefined.apply)
-        .getOrElse(JsUndefined(
-                "'" + fieldName + "' is undefined on object: " + obj))
+        .getOrElse(JsUndefined("'" + fieldName + "' is undefined on object: " + obj))
     case JsDefined(o) =>
       JsUndefined(o + " is not an object")
     case undef => undef
@@ -84,8 +83,7 @@ sealed trait JsLookupResult extends Any with JsReadable {
 }
 object JsLookupResult {
   import scala.language.implicitConversions
-  implicit def jsLookupResultToJsLookup(value: JsLookupResult): JsLookup =
-    JsLookup(value)
+  implicit def jsLookupResultToJsLookup(value: JsLookupResult): JsLookup = JsLookup(value)
 }
 
 /**

@@ -21,8 +21,7 @@ import javax.naming.InvalidNameException
   * through the CompositeTrustManager.
   */
 class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint],
-                       val keyConstraints: Set[AlgorithmConstraint])
-    extends PKIXCertPathChecker {
+                       val keyConstraints: Set[AlgorithmConstraint]) extends PKIXCertPathChecker {
 
   private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
@@ -40,8 +39,7 @@ class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint],
 
   def isForwardCheckingSupported: Boolean = false
 
-  def getSupportedExtensions: java.util.Set[String] =
-    java.util.Collections.emptySet()
+  def getSupportedExtensions: java.util.Set[String] = java.util.Collections.emptySet()
 
   def init(forward: Boolean) {
     logger.debug(s"init: forward = $forward")
@@ -117,8 +115,7 @@ class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint],
     * Checks the algorithms in the given certificate.  Note that this implementation skips signature checking in a
     * root certificate, as a trusted root cert by definition is in the trust store and doesn't need to be signed.
     */
-  def check(
-      cert: Certificate, unresolvedCritExts: java.util.Collection[String]) {
+  def check(cert: Certificate, unresolvedCritExts: java.util.Collection[String]) {
     cert match {
       case x509Cert: X509Certificate =>
         val commonName = getCommonName(x509Cert)
@@ -130,8 +127,7 @@ class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint],
         checkSignatureAlgorithms(x509Cert)
         checkKeyAlgorithms(x509Cert)
       case _ =>
-        throw new UnsupportedOperationException(
-            "check only works with x509 certificates!")
+        throw new UnsupportedOperationException("check only works with x509 certificates!")
     }
   }
 

@@ -22,24 +22,22 @@ object SSLConfigParserSpec extends Specification {
     def parseThis(input: String)(implicit app: play.api.Application) = {
       val config = ConfigFactory
         .parseString(input)
-        .withFallback(
-            ConfigFactory.defaultReference().getConfig("play.ws.ssl"))
+        .withFallback(ConfigFactory.defaultReference().getConfig("play.ws.ssl"))
       val parser = new SSLConfigParser(PlayConfig(config), app.classloader)
       parser.parse()
     }
 
     "parse ws.ssl base section" in new WithApplication() {
-      val actual =
-        parseThis("""
-                    |default = true
-                    |protocol = TLSv1.1
-                    |checkRevocation = true
-                    |revocationLists = [ "http://example.com" ]
-                    |hostnameVerifierClass = "com.ning.http.util.DefaultHostnameVerifier"
-                    |enabledCipherSuites = [ TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA ]
-                    |enabledProtocols = [ TLSv1.2, TLSv1.1, SSLv3 ]
-                    |disabledSignatureAlgorithms = [md2, md3]
-                    |disabledKeyAlgorithms = ["RSA keySize < 1024"]
+      val actual = parseThis("""
+                               |default = true
+                               |protocol = TLSv1.1
+                               |checkRevocation = true
+                               |revocationLists = [ "http://example.com" ]
+                               |hostnameVerifierClass = "com.ning.http.util.DefaultHostnameVerifier"
+                               |enabledCipherSuites = [ TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA ]
+                               |enabledProtocols = [ TLSv1.2, TLSv1.1, SSLv3 ]
+                               |disabledSignatureAlgorithms = [md2, md3]
+                               |disabledKeyAlgorithms = ["RSA keySize < 1024"]
                               """.stripMargin)
 
       actual.default must beTrue
@@ -48,17 +46,13 @@ object SSLConfigParserSpec extends Specification {
       actual.revocationLists must beSome.which {
         _ must beEqualTo(Seq(new java.net.URL("http://example.com")))
       }
-      actual.hostnameVerifierClass must_==
-        classOf[com.ning.http.util.DefaultHostnameVerifier]
+      actual.hostnameVerifierClass must_== classOf[com.ning.http.util.DefaultHostnameVerifier]
       actual.enabledCipherSuites must beSome.which(
-          _ must containTheSameElementsAs(
-              Seq("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA")))
+          _ must containTheSameElementsAs(Seq("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA")))
       actual.enabledProtocols must beSome.which(
           _ must containTheSameElementsAs(Seq("TLSv1.2", "TLSv1.1", "SSLv3")))
-      actual.disabledSignatureAlgorithms must containTheSameElementsAs(
-          Seq("md2", "md3"))
-      actual.disabledKeyAlgorithms must containTheSameElementsAs(
-          Seq("RSA keySize < 1024"))
+      actual.disabledSignatureAlgorithms must containTheSameElementsAs(Seq("md2", "md3"))
+      actual.disabledKeyAlgorithms must containTheSameElementsAs(Seq("RSA keySize < 1024"))
       actual.secureRandom must beNone
     }
 
@@ -176,20 +170,19 @@ object SSLConfigParserSpec extends Specification {
     }
 
     "parse ws.ssl.keyManager section" in new WithApplication() {
-      val info =
-        parseThis("""
-                    |keyManager = {
-                    |  password = "changeit"
-                    |  algorithm = "keyStore"
-                    |  stores = [
-                    |    {
-                    |      type: "storeType",
-                    |      path: "cacerts",
-                    |      password: "password1"
-                    |    },
-                    |    { type: "PEM", data = "data",  password: "changeit" }
-                    |  ]
-                    |}
+      val info = parseThis("""
+                             |keyManager = {
+                             |  password = "changeit"
+                             |  algorithm = "keyStore"
+                             |  stores = [
+                             |    {
+                             |      type: "storeType",
+                             |      path: "cacerts",
+                             |      password: "password1"
+                             |    },
+                             |    { type: "PEM", data = "data",  password: "changeit" }
+                             |  ]
+                             |}
                             """.stripMargin)
 
       val kmc = info.keyManagerConfig

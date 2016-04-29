@@ -20,10 +20,8 @@ object AkkaStreamsConversion {
     Streams.publisherToEnumerator(pubr)
   }
   def enumeratorToSource[Out](
-      enum: Enumerator[Out],
-      emptyElement: Option[Out] = None): Source[Out, Unit] = {
-    val pubr: Publisher[Out] =
-      Streams.enumeratorToPublisher(enum, emptyElement)
+      enum: Enumerator[Out], emptyElement: Option[Out] = None): Source[Out, Unit] = {
+    val pubr: Publisher[Out] = Streams.enumeratorToPublisher(enum, emptyElement)
     Source(pubr)
   }
 }

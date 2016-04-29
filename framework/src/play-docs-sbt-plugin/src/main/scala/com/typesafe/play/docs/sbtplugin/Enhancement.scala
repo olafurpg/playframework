@@ -19,9 +19,8 @@ object Enhancement {
      classDirectory in Test,
      compileInputs in compile in Test,
      streams) map { (sourceDirs, deps, analysis, classes, inputs, s) =>
-      val classpath =
-        (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath)
-          .mkString(java.io.File.pathSeparator)
+      val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath)
+        .mkString(java.io.File.pathSeparator)
 
       val timestampFile = s.cacheDirectory / "play_instrumentation"
       val lastEnhanced =
@@ -48,26 +47,24 @@ object Enhancement {
           * This way any stamp incremental compiler chooses to use to mark class files will
           * be supported.
           */
-        def updateStampForClassFile(classFile: File, stamp: Stamp): Stamp =
-          stamp match {
-            case _: Exists => Stamp.exists(classFile)
-            case _: LastModified => Stamp.lastModified(classFile)
-            case _: Hash => Stamp.hash(classFile)
-          }
+        def updateStampForClassFile(classFile: File, stamp: Stamp): Stamp = stamp match {
+          case _: Exists => Stamp.exists(classFile)
+          case _: LastModified => Stamp.lastModified(classFile)
+          case _: Hash => Stamp.hash(classFile)
+        }
         // Since we may have modified some of the products of the incremental compiler, that is, the compiled template
         // classes and compiled Java sources, we need to update their timestamps in the incremental compiler, otherwise
         // the incremental compiler will see that they've changed since it last compiled them, and recompile them.
-        val updatedAnalysis = analysis.copy(stamps = javaClasses
-                .foldLeft(analysis.stamps) { (stamps, classFile) =>
-            val existingStamp = stamps.product(classFile)
-            if (existingStamp == Stamp.notPresent) {
-              throw new java.io.IOException(
-                  "Tried to update a stamp for class file that is not recorded as " +
-                  s"product of incremental compiler: $classFile")
-            }
-            stamps.markProduct(
-                classFile, updateStampForClassFile(classFile, existingStamp))
-          })
+        val updatedAnalysis =
+          analysis.copy(stamps = javaClasses.foldLeft(analysis.stamps) { (stamps, classFile) =>
+              val existingStamp = stamps.product(classFile)
+              if (existingStamp == Stamp.notPresent) {
+                throw new java.io.IOException(
+                    "Tried to update a stamp for class file that is not recorded as " +
+                    s"product of incremental compiler: $classFile")
+              }
+              stamps.markProduct(classFile, updateStampForClassFile(classFile, existingStamp))
+            })
 
         // Need to persist the updated analysis.
         val agg = new AggressiveCompile(inputs.incSetup.cacheFile)

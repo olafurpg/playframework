@@ -62,8 +62,7 @@ object ThreadPoolsSpec extends PlaySpecification {
           Akka.system.dispatchers.lookup("my-context")
       }
       //#my-context-usage
-      await(Future(Thread.currentThread().getName)(
-              Contexts.myExecutionContext)) must startWith(
+      await(Future(Thread.currentThread().getName)(Contexts.myExecutionContext)) must startWith(
           "application-my-context")
 
       //#my-context-explicit
@@ -92,8 +91,7 @@ object ThreadPoolsSpec extends PlaySpecification {
     }
 
     "allow changing the default thread pool" in {
-      val config =
-        ConfigFactory.parseString("""#highly-synchronous
+      val config = ConfigFactory.parseString("""#highly-synchronous
       akka {
         akka.loggers = ["akka.event.slf4j.Slf4jLogger"]
         loglevel = WARNING
@@ -162,8 +160,7 @@ object ThreadPoolsSpec extends PlaySpecification {
     }
   }
 
-  def runningWithConfig[T : AsResult](config: String)(
-      block: Application => T) = {
+  def runningWithConfig[T : AsResult](config: String)(block: Application => T) = {
     val parsed = ConfigFactory.parseString(config)
     val app = FakeApplication(withGlobal = Some(new GlobalSettings {
         override def onLoadConfig(config: Configuration,

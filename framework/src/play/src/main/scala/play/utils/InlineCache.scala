@@ -37,8 +37,7 @@ import java.lang.ref.WeakReference
   * Reference equality is used to compare inputs, for speed and
   * to be conservative.
   */
-private[play] final class InlineCache[A <: AnyRef, B](f: A => B)
-    extends (A => B) {
+private[play] final class InlineCache[A <: AnyRef, B](f: A => B) extends (A => B) {
 
   /**
     * For performance, don't synchronize this value. Instead, let

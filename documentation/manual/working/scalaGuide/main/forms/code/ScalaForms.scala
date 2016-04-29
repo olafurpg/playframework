@@ -29,8 +29,7 @@ package scalaguide.forms.scalaforms {
 
     val conf = Configuration.reference
     implicit val messages: Messages = new DefaultMessagesApi(
-        Environment.simple(), conf, new DefaultLangs(conf))
-      .preferred(Seq.empty)
+        Environment.simple(), conf, new DefaultLangs(conf)).preferred(Seq.empty)
 
     "A scala forms" should {
 
@@ -74,8 +73,8 @@ package scalaguide.forms.scalaforms {
 
         controllers.Application.userFormNestedCity === "Shanghai"
 
-        controllers.Application.userFormRepeatedEmails === List(
-            "benewu@gmail.com", "bob@gmail.com")
+        controllers.Application.userFormRepeatedEmails === List("benewu@gmail.com",
+                                                                "bob@gmail.com")
 
         controllers.Application.userFormOptionalEmail === None
 
@@ -87,8 +86,7 @@ package scalaguide.forms.scalaforms {
       "handling binding failure" in {
         val userForm = controllers.Application.userFormConstraints
 
-        implicit val request =
-          FakeRequest().withFormUrlEncodedBody("name" -> "", "age" -> "25")
+        implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "", "age" -> "25")
 
         val boundForm = userForm.bindFromRequest
         boundForm.hasErrors must beTrue
@@ -97,8 +95,8 @@ package scalaguide.forms.scalaforms {
       "display global errors user template" in {
         val userForm = controllers.Application.userFormConstraintsAdHoc
 
-        implicit val request = FakeRequest()
-          .withFormUrlEncodedBody("name" -> "Johnny Utah", "age" -> "25")
+        implicit val request =
+          FakeRequest().withFormUrlEncodedBody("name" -> "Johnny Utah", "age" -> "25")
 
         val boundForm = userForm.bindFromRequest
         boundForm.hasGlobalErrors must beTrue
@@ -220,12 +218,11 @@ package scalaguide.forms.scalaforms {
       val userPostWithErrors =
         Action(parse.form(userForm,
                           onErrors = (formWithErrors: Form[UserData]) =>
-                              BadRequest(views.html.user(formWithErrors)))) {
-          implicit request =>
-            val userData = request.body
-            val newUser = models.User(userData.name, userData.age)
-            val id = models.User.create(newUser)
-            Redirect(routes.Application.home(id))
+                              BadRequest(views.html.user(formWithErrors)))) { implicit request =>
+          val userData = request.body
+          val newUser = models.User(userData.name, userData.age)
+          val id = models.User.create(newUser)
+          Redirect(routes.Application.home(id))
         }
       // #form-bodyparser-errors
 
@@ -427,9 +424,8 @@ package scalaguide.forms.scalaforms {
                       "label" -> nonEmptyText,
                       "email" -> optional(email),
                       "phones" -> list(
-                          text verifying pattern(
-                              """[0-9.+]+""".r,
-                              error = "A valid phone number is required")
+                          text verifying pattern("""[0-9.+]+""".r,
+                                                 error = "A valid phone number is required")
                       )
                   )(ContactInformation.apply)(ContactInformation.unapply)
               )

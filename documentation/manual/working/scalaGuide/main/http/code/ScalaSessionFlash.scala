@@ -30,8 +30,7 @@ package scalaguide.http.scalasessionflash {
         }
         //#index-retrieve-incoming-session
 
-        assertAction(
-            index, OK, FakeRequest().withSession("connected" -> "player"))(
+        assertAction(index, OK, FakeRequest().withSession("connected" -> "player"))(
             res => contentAsString(res) must contain("player"))
       }
 
@@ -49,8 +48,7 @@ package scalaguide.http.scalasessionflash {
       "add data in the Session" in {
         def addSession = Action { implicit request =>
           //#add-session
-          Ok("Hello World!")
-            .withSession(request.session + ("saidHello" -> "yes"))
+          Ok("Hello World!").withSession(request.session + ("saidHello" -> "yes"))
           //#add-session
         }
 
@@ -65,8 +63,7 @@ package scalaguide.http.scalasessionflash {
           //#remove-session
         }
 
-        assertAction(
-            removeSession, OK, FakeRequest().withSession("theme" -> "blue"))(
+        assertAction(removeSession, OK, FakeRequest().withSession("theme" -> "blue"))(
             res => testSession(res, "theme", None))
       }
 
@@ -76,10 +73,10 @@ package scalaguide.http.scalasessionflash {
           Ok("Bye").withNewSession
           //#discarding-session
         }
-        assertAction(discardingSession,
-                     OK,
-                     FakeRequest().withSession("theme" -> "blue"))(
-            res => testSession(res, "theme", None))
+        assertAction(
+            discardingSession,
+            OK,
+            FakeRequest().withSession("theme" -> "blue"))(res => testSession(res, "theme", None))
       }
 
       "get from flash" in {
@@ -94,12 +91,10 @@ package scalaguide.http.scalasessionflash {
           Redirect("/home").flashing("success" -> "The item has been created")
         }
         //#using-flash
-        assertAction(index,
-                     OK,
-                     FakeRequest().withFlash("success" -> "success!"))(
+        assertAction(index, OK, FakeRequest().withFlash("success" -> "success!"))(
             res => contentAsString(res) must contain("success!"))
-        assertAction(save, SEE_OTHER, FakeRequest())(res =>
-              testFlash(res, "success", Some("The item has been created")))
+        assertAction(save, SEE_OTHER, FakeRequest())(
+            res => testFlash(res, "success", Some("The item has been created")))
       }
 
       "access flash in template" in {
@@ -111,21 +106,17 @@ package scalaguide.http.scalasessionflash {
 
         assertAction(index, OK, FakeRequest())(
             result => contentAsString(result) must contain("Welcome!"))
-        assertAction(index,
-                     OK,
-                     FakeRequest().withFlash("success" -> "Flashed!"))(
+        assertAction(index, OK, FakeRequest().withFlash("success" -> "Flashed!"))(
             result => contentAsString(result) must contain("Flashed!"))
       }
     }
 
-    def testFlash(
-        results: Future[Result], key: String, value: Option[String]) = {
+    def testFlash(results: Future[Result], key: String, value: Option[String]) = {
       val flash = Helpers.flash(results)
       flash.get(key) === value
     }
 
-    def testSession(
-        results: Future[Result], key: String, value: Option[String]) = {
+    def testSession(results: Future[Result], key: String, value: Option[String]) = {
       val session = Helpers.session(results)
       session.get(key) === value
     }

@@ -30,8 +30,7 @@ object GzipSpec extends Specification {
       val valuesBytes = values.map(_.getBytes("utf-8"))
 
       val result: Array[Byte] = Await.result(
-          Enumerator.enumerate(valuesBytes) &> Gzip.gzip() |>>> Iteratee
-            .consume[Array[Byte]](),
+          Enumerator.enumerate(valuesBytes) &> Gzip.gzip() |>>> Iteratee.consume[Array[Byte]](),
           Duration.Inf)
 
       // Check that it exactly matches the gzip output stream
@@ -52,9 +51,8 @@ object GzipSpec extends Specification {
       // Check that it can be unzipped
       val bais = new ByteArrayInputStream(result)
       val is = new GZIPInputStream(bais)
-      val check: Array[Byte] = Await.result(
-          Enumerator.fromStream(is) |>>> Iteratee.consume[Array[Byte]](),
-          10.seconds)
+      val check: Array[Byte] =
+        Await.result(Enumerator.fromStream(is) |>>> Iteratee.consume[Array[Byte]](), 10.seconds)
       values.mkString("") must_== new String(check, "utf-8")
     }
 
@@ -120,8 +118,7 @@ object GzipSpec extends Specification {
         case Some(size) => Enumerator.enumerate(input.grouped(size))
         case None => Enumerator(input)
       }
-      val future =
-        gzipEnumerator &> gunzip |>>> Iteratee.consume[Array[Byte]]()
+      val future = gzipEnumerator &> gunzip |>>> Iteratee.consume[Array[Byte]]()
       val result = new String(Await.result(future, 10.seconds), "utf-8")
       result must_== expected
     }

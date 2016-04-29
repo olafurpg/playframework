@@ -43,9 +43,8 @@ object RoutesCompiler {
 
       if (lines.contains("// @GENERATOR:play-routes-compiler")) {
         Some(new GeneratedSource {
-          val source: Option[File] = lines
-            .find(_.startsWith("// @SOURCE:"))
-            .map(m => new File(m.trim.drop(11)))
+          val source: Option[File] =
+            lines.find(_.startsWith("// @SOURCE:")).map(m => new File(m.trim.drop(11)))
 
           def mapLine(generatedLine: Int): Option[Int] = {
             lines.view.take(generatedLine).reverse.collectFirst {
@@ -82,10 +81,9 @@ object RoutesCompiler {
     * @param generatedDir The directory to place the generated source code in
     * @return Either the list of files that were generated (right) or the routes compilation errors (left)
     */
-  def compile(
-      task: RoutesCompilerTask,
-      generator: RoutesGenerator,
-      generatedDir: File): Either[Seq[RoutesCompilationError], Seq[File]] = {
+  def compile(task: RoutesCompilerTask,
+              generator: RoutesGenerator,
+              generatedDir: File): Either[Seq[RoutesCompilationError], Seq[File]] = {
 
     val namespace = Option(task.file.getName)
       .filter(_.endsWith(".routes"))

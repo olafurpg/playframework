@@ -13,8 +13,7 @@ import Results._
 
 // #scalafunctionaltest-onebrowserpertest
 class ExampleSpec
-    extends PlaySpec with OneServerPerTest with OneBrowserPerTest
-    with HtmlUnitFactory {
+    extends PlaySpec with OneServerPerTest with OneBrowserPerTest with HtmlUnitFactory {
 
   // Override newAppForTest if you need a FakeApplication with other than
   // default parameters.
@@ -26,8 +25,7 @@ class ExampleSpec
             Action(
                 Results
                   .Ok(
-                      "<html>" + "<head><title>Test Page</title></head>" +
-                      "<body>" +
+                      "<html>" + "<head><title>Test Page</title></head>" + "<body>" +
                       "<input type='button' name='b' value='Click Me' onclick='document.title=\"scalatest\"' />" +
                       "</body>" + "</html>"
                   )

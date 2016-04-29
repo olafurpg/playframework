@@ -25,22 +25,17 @@ class RequestHeaderSpec extends Specification {
       }
 
       "parse multiple accept languages" in {
-        accept("en-US, es") must contain(
-            exactly(Lang("en", "US"), Lang("es")).inOrder)
+        accept("en-US, es") must contain(exactly(Lang("en", "US"), Lang("es")).inOrder)
       }
 
       "sort accept languages by quality" in {
-        accept("en-US;q=0.8, es;q=0.7") must contain(
-            exactly(Lang("en", "US"), Lang("es")).inOrder)
-        accept("en-US;q=0.7, es;q=0.8") must contain(
-            exactly(Lang("es"), Lang("en", "US")).inOrder)
+        accept("en-US;q=0.8, es;q=0.7") must contain(exactly(Lang("en", "US"), Lang("es")).inOrder)
+        accept("en-US;q=0.7, es;q=0.8") must contain(exactly(Lang("es"), Lang("en", "US")).inOrder)
       }
 
       "default accept language quality to 1" in {
-        accept("en-US, es;q=0.7") must contain(
-            exactly(Lang("en", "US"), Lang("es")).inOrder)
-        accept("en-US;q=0.7, es") must contain(
-            exactly(Lang("es"), Lang("en", "US")).inOrder)
+        accept("en-US, es;q=0.7") must contain(exactly(Lang("en", "US"), Lang("es")).inOrder)
+        accept("en-US;q=0.7, es") must contain(exactly(Lang("es"), Lang("en", "US")).inOrder)
       }
     }
   }
@@ -48,8 +43,7 @@ class RequestHeaderSpec extends Specification {
   def accept(value: String) =
     DummyRequestHeader(Headers("Accept-Language" -> value)).acceptLanguages
 
-  case class DummyRequestHeader(headers: Headers = Headers())
-      extends RequestHeader {
+  case class DummyRequestHeader(headers: Headers = Headers()) extends RequestHeader {
     def id = 1
     def tags = Map()
     def uri = ""

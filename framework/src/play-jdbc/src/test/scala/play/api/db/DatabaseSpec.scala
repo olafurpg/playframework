@@ -12,15 +12,13 @@ object DatabaseSpec extends Specification {
   "Database" should {
 
     "create database" in new WithDatabase {
-      val db = Database(
-          name = "test", driver = "org.h2.Driver", url = "jdbc:h2:mem:test")
+      val db = Database(name = "test", driver = "org.h2.Driver", url = "jdbc:h2:mem:test")
       db.name must_== "test"
       db.url must_== "jdbc:h2:mem:test"
     }
 
     "create database with named arguments" in new WithDatabase {
-      val db = Database(
-          name = "test", driver = "org.h2.Driver", url = "jdbc:h2:mem:test")
+      val db = Database(name = "test", driver = "org.h2.Driver", url = "jdbc:h2:mem:test")
       db.name must_== "test"
       db.url must_== "jdbc:h2:mem:test"
     }
@@ -69,10 +67,8 @@ object DatabaseSpec extends Specification {
       val c2 = db.getConnection
 
       try {
-        c1.createStatement
-          .execute("create table test (id bigint not null, name varchar(255))")
-        c1.createStatement
-          .execute("insert into test (id, name) values (1, 'alice')")
+        c1.createStatement.execute("create table test (id bigint not null, name varchar(255))")
+        c1.createStatement.execute("insert into test (id, name) values (1, 'alice')")
         val results = c2.createStatement.executeQuery("select * from test")
         results.next must beTrue
         results.next must beFalse
@@ -86,10 +82,8 @@ object DatabaseSpec extends Specification {
       val db = Database.inMemory(name = "test-withConnection")
 
       db.withConnection { c =>
-        c.createStatement
-          .execute("create table test (id bigint not null, name varchar(255))")
-        c.createStatement
-          .execute("insert into test (id, name) values (1, 'alice')")
+        c.createStatement.execute("create table test (id bigint not null, name varchar(255))")
+        c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
         val results = c.createStatement.executeQuery("select * from test")
         results.next must beTrue
         results.next must beFalse
@@ -100,10 +94,8 @@ object DatabaseSpec extends Specification {
       val db = Database.inMemory(name = "test-withTransaction")
 
       db.withTransaction { c =>
-        c.createStatement
-          .execute("create table test (id bigint not null, name varchar(255))")
-        c.createStatement
-          .execute("insert into test (id, name) values (1, 'alice')")
+        c.createStatement.execute("create table test (id bigint not null, name varchar(255))")
+        c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
       }
 
       db.withConnection { c =>
@@ -113,8 +105,7 @@ object DatabaseSpec extends Specification {
       }
 
       db.withTransaction { c =>
-        c.createStatement
-          .execute("insert into test (id, name) values (2, 'bob')")
+        c.createStatement.execute("insert into test (id, name) values (2, 'bob')")
         throw new RuntimeException("boom")
         success
       } must throwA[RuntimeException](message = "boom")

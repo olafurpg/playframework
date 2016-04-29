@@ -11,8 +11,7 @@ package simple {
   import play.api.mvc._
   import play.api.routing.Router
 
-  class SimpleHttpRequestHandler @Inject()(router: Router)
-      extends HttpRequestHandler {
+  class SimpleHttpRequestHandler @Inject()(router: Router) extends HttpRequestHandler {
     def handlerForRequest(request: RequestHeader) = {
       router.routes.lift(request) match {
         case Some(handler) => (request, handler)

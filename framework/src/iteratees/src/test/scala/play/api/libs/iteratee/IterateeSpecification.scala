@@ -20,15 +20,14 @@ trait IterateeSpecification extends NoConcurrentExecutionContext {
   def ready[A](f: Future[A]): Future[A] = Await.ready(f, waitTime)
 
   def mustTransformTo[E, A](in: E*)(out: A*)(e: Enumeratee[E, A]) = {
-    val f = Future(Enumerator(in:_*) |>>> e &>> Iteratee.getChunks[A])(
-        Execution.defaultExecutionContext)
-      .flatMap[List[A]](x => x)(Execution.defaultExecutionContext)
+    val f =
+      Future(Enumerator(in:_*) |>>> e &>> Iteratee.getChunks[A])(Execution.defaultExecutionContext)
+        .flatMap[List[A]](x => x)(Execution.defaultExecutionContext)
     Await.result(f, Duration.Inf) must equalTo(List(out:_*))
   }
 
   def enumeratorChunks[E](e: Enumerator[E]): Future[List[E]] = {
-    executeFuture(e |>>> Iteratee.getChunks[E])(
-        Execution.defaultExecutionContext)
+    executeFuture(e |>>> Iteratee.getChunks[E])(Execution.defaultExecutionContext)
   }
 
   def mustEnumerateTo[E, A](out: A*)(e: Enumerator[E]) = {
@@ -45,14 +44,12 @@ trait IterateeSpecification extends NoConcurrentExecutionContext {
   /**
     * Convenience function for creating a Done Iteratee that returns the given value
     */
-  def done(value: String): Iteratee[String, String] =
-    Done[String, String](value)
+  def done(value: String): Iteratee[String, String] = Done[String, String](value)
 
   /**
     * Convenience function for an Error Iteratee that contains the given error message
     */
-  def error(msg: String): Iteratee[String, String] =
-    Error[String](msg, Input.Empty)
+  def error(msg: String): Iteratee[String, String] = Error[String](msg, Input.Empty)
 
   /**
     * Convenience function for creating a Cont Iteratee that feeds its input to the given function
@@ -61,23 +58,20 @@ trait IterateeSpecification extends NoConcurrentExecutionContext {
     Cont[String, String]({
       case Input.El(input: String) => f(input)
       case unrecognized =>
-        throw new IllegalArgumentException(
-            s"Unexpected input for Cont iteratee: $unrecognized")
+        throw new IllegalArgumentException(s"Unexpected input for Cont iteratee: $unrecognized")
     })
   }
 
   /**
     * Convenience function for creating the given Iteratee after the given delay
     */
-  def delayed(it: => Iteratee[String, String],
-              delay: Duration = Duration(5, MILLISECONDS))(
+  def delayed(it: => Iteratee[String, String], delay: Duration = Duration(5, MILLISECONDS))(
       implicit ec: ExecutionContext): Iteratee[String, String] = {
     Iteratee.flatten(timeout(it, delay))
   }
 
   val timer = new java.util.Timer(true)
-  def timeout[A](a: => A, d: Duration)(
-      implicit e: ExecutionContext): Future[A] = {
+  def timeout[A](a: => A, d: Duration)(implicit e: ExecutionContext): Future[A] = {
     val p = Promise[A]()
     timer.schedule(new java.util.TimerTask {
       def run() {

@@ -46,8 +46,7 @@ class GzipFilter @Inject()(config: GzipFilterConfig) extends EssentialFilter {
 
   def this(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(8192),
            chunkedThreshold: Int = 102400,
-           shouldGzip: (RequestHeader, ResponseHeader) => Boolean = (_,
-             _) => true) = this(
+           shouldGzip: (RequestHeader, ResponseHeader) => Boolean = (_, _) => true) = this(
       GzipFilterConfig(gzip, chunkedThreshold, shouldGzip))
 
   def apply(next: EssentialAction) = new EssentialAction {
@@ -60,15 +59,12 @@ class GzipFilter @Inject()(config: GzipFilterConfig) extends EssentialFilter {
     }
   }
 
-  private def handleResult(
-      request: RequestHeader, result: Result): Future[Result] = {
-    if (shouldCompress(result.header) &&
-        config.shouldGzip(request, result.header)) {
+  private def handleResult(request: RequestHeader, result: Result): Future[Result] = {
+    if (shouldCompress(result.header) && config.shouldGzip(request, result.header)) {
       // If connection is close, don't bother buffering it, we can send it without a content length
       if (result.connection == HttpConnection.Close) {
         Future.successful(Result(
-                header = result.header
-                    .copy(headers = setupHeader(result.header.headers)),
+                header = result.header.copy(headers = setupHeader(result.header.headers)),
                 body = result.body &> config.gzip,
                 connection = result.connection
             ))
@@ -79,8 +75,7 @@ class GzipFilter @Inject()(config: GzipFilterConfig) extends EssentialFilter {
         // right means we did buffer it before reaching the threshold, and contains the chunks and the length of data
         def buffer(chunks: List[Array[Byte]],
                    count: Int
-        ): Iteratee[Array[Byte],
-                    Either[List[Array[Byte]], (List[Array[Byte]], Int)]] = {
+        ): Iteratee[Array[Byte], Either[List[Array[Byte]], (List[Array[Byte]], Int)]] = {
           Cont {
             case Input.EOF => Done(Right((chunks.reverse, count)), Input.EOF)
             // If we have 10 or less bytes already, then we have so far only seen the gzip header
@@ -98,8 +93,7 @@ class GzipFilter @Inject()(config: GzipFilterConfig) extends EssentialFilter {
           // We successfully buffered the whole thing, so we have a content length
           case (Right((chunks, contentLength)), empty) =>
             Result(
-                header = result.header
-                    .copy(headers = setupHeader(result.header.headers) +
+                header = result.header.copy(headers = setupHeader(result.header.headers) +
                         (CONTENT_LENGTH -> Integer.toString(contentLength))),
                 // include the empty enumerator so that it's fully consumed
                 // needed by New Relic monitoring, which tracks all promises within a request
@@ -111,16 +105,14 @@ class GzipFilter @Inject()(config: GzipFilterConfig) extends EssentialFilter {
               if (request.version == HTTP_1_0) {
                 // Don't chunk for HTTP/1.0
                 Result(
-                    header = result.header
-                        .copy(headers = setupHeader(result.header.headers)),
+                    header = result.header.copy(headers = setupHeader(result.header.headers)),
                     body = Enumerator.enumerate(chunks) >>> remaining,
                     connection = HttpConnection.Close
                 )
               } else {
                 // Otherwise chunk
                 Result(
-                    header = result.header
-                        .copy(headers = setupHeader(result.header.headers) +
+                    header = result.header.copy(headers = setupHeader(result.header.headers) +
                             (TRANSFER_ENCODING -> CHUNKED)),
                     body = (Enumerator.enumerate(chunks) >>> remaining) &> Results.chunk,
                     connection = result.connection
@@ -144,11 +136,9 @@ class GzipFilter @Inject()(config: GzipFilterConfig) extends EssentialFilter {
     val codings = acceptHeader(request.headers, ACCEPT_ENCODING)
     def explicitQValue(coding: String) =
       codings collectFirst { case (q, c) if c equalsIgnoreCase coding => q }
-    def defaultQValue(coding: String) =
-      if (coding == "identity") 0.001d else 0d
+    def defaultQValue(coding: String) = if (coding == "identity") 0.001d else 0d
     def qvalue(coding: String) =
-      explicitQValue(coding) orElse explicitQValue("*") getOrElse defaultQValue(
-          coding)
+      explicitQValue(coding) orElse explicitQValue("*") getOrElse defaultQValue(coding)
 
     qvalue("gzip") > 0d && qvalue("gzip") >= qvalue("identity")
   }
@@ -159,8 +149,8 @@ class GzipFilter @Inject()(config: GzipFilterConfig) extends EssentialFilter {
     * responses won't be compressed.
     */
   private def shouldCompress(header: ResponseHeader) =
-    isAllowedContent(header) && isNotAlreadyCompressed(header) &&
-    isNotServerSentEvents(header) && isNotChunked(header)
+    isAllowedContent(header) && isNotAlreadyCompressed(header) && isNotServerSentEvents(header) &&
+    isNotChunked(header)
 
   /**
     * We don't compress chunked responses because this is often used for comet events, and because we would have to
@@ -189,8 +179,8 @@ class GzipFilter @Inject()(config: GzipFilterConfig) extends EssentialFilter {
     header.headers.get(CONTENT_ENCODING).isEmpty
 
   private def setupHeader(header: Map[String, String]): Map[String, String] = {
-    header.filterNot(_._1 == CONTENT_LENGTH) + (CONTENT_ENCODING -> "gzip") +
-    addToVaryHeader(header, VARY, ACCEPT_ENCODING)
+    header.filterNot(_._1 == CONTENT_LENGTH) + (CONTENT_ENCODING -> "gzip") + addToVaryHeader(
+        header, VARY, ACCEPT_ENCODING)
   }
 
   /**
@@ -220,23 +210,19 @@ object GzipFilter {
   * @param shouldGzip Whether the given request/result should be gzipped.  This can be used, for example, to implement
   *                   black/white lists for gzipping by content type.
   */
-case class GzipFilterConfig(
-    gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(8192),
-    chunkedThreshold: Int = 102400,
-    shouldGzip: (RequestHeader, ResponseHeader) => Boolean = (_, _) => true) {}
+case class GzipFilterConfig(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(8192),
+                            chunkedThreshold: Int = 102400,
+                            shouldGzip: (RequestHeader, ResponseHeader) => Boolean = (_, _) =>
+                                true) {}
 
 object GzipFilterConfig {
   def fromConfiguration(conf: Configuration) = {
     val config = PlayConfig(conf).get[PlayConfig]("play.filters.gzip")
 
     GzipFilterConfig(
-        gzip = Gzip
-            .gzip(config.get[ConfigMemorySize]("bufferSize").toBytes.toInt),
-        chunkedThreshold = config
-            .get[ConfigMemorySize]("chunkedThreshold")
-            .toBytes
-            .toInt
-      )
+        gzip = Gzip.gzip(config.get[ConfigMemorySize]("bufferSize").toBytes.toInt),
+        chunkedThreshold = config.get[ConfigMemorySize]("chunkedThreshold").toBytes.toInt
+    )
   }
 }
 
@@ -266,7 +252,6 @@ class GzipFilterModule extends Module {
 trait GzipFilterComponents {
   def configuration: Configuration
 
-  lazy val gzipFilterConfig: GzipFilterConfig =
-    GzipFilterConfig.fromConfiguration(configuration)
+  lazy val gzipFilterConfig: GzipFilterConfig = GzipFilterConfig.fromConfiguration(configuration)
   lazy val gzipFilter: GzipFilter = new GzipFilter(gzipFilterConfig)
 }

@@ -17,13 +17,10 @@ import scala.concurrent.ExecutionContext
 @implicitNotFound(
     "Cannot write an instance of ${A} to HTTP response. Try to define a Writeable[${A}]"
 )
-class Writeable[-A](
-    val transform: (A => Array[Byte]), val contentType: Option[String])(
+class Writeable[-A](val transform: (A => Array[Byte]), val contentType: Option[String])(
     implicit ec: ExecutionContext) {
-  def map[B](f: B => A): Writeable[B] =
-    Writeable(b => transform(f(b)), contentType)
-  def toEnumeratee[E <: A]: Enumeratee[E, Array[Byte]] =
-    Enumeratee.map[E](transform)
+  def map[B](f: B => A): Writeable[B] = Writeable(b => transform(f(b)), contentType)
+  def toEnumeratee[E <: A]: Enumeratee[E, Array[Byte]] = Enumeratee.map[E](transform)
 }
 
 /**
@@ -32,8 +29,7 @@ class Writeable[-A](
 object Writeable extends DefaultWriteables {
 
   def apply[A](transform: (A => Array[Byte]), contentType: Option[String])(
-      implicit ec: ExecutionContext): Writeable[A] =
-    new Writeable(transform, contentType)
+      implicit ec: ExecutionContext): Writeable[A] = new Writeable(transform, contentType)
 
   /**
     * Creates a `Writeable[A]` using a content type for `A` available in the implicit scope
@@ -79,16 +75,14 @@ trait DefaultWriteables extends LowPriorityWriteables {
   /**
     * `Writeable` for `NodeSeq` values - literal Scala XML.
     */
-  implicit def writeableOf_NodeSeq[C <: scala.xml.NodeSeq](
-      implicit codec: Codec): Writeable[C] = {
+  implicit def writeableOf_NodeSeq[C <: scala.xml.NodeSeq](implicit codec: Codec): Writeable[C] = {
     Writeable(xml => codec.encode(xml.toString))
   }
 
   /**
     * `Writeable` for `NodeBuffer` values - literal Scala XML.
     */
-  implicit def writeableOf_NodeBuffer(
-      implicit codec: Codec): Writeable[scala.xml.NodeBuffer] = {
+  implicit def writeableOf_NodeBuffer(implicit codec: Codec): Writeable[scala.xml.NodeBuffer] = {
     Writeable(xml => codec.encode(xml.toString))
   }
 
@@ -100,9 +94,7 @@ trait DefaultWriteables extends LowPriorityWriteables {
     import java.net.URLEncoder
     Writeable(formData =>
           codec.encode(formData
-                .map(item =>
-                      item._2.map(
-                          c => item._1 + "=" + URLEncoder.encode(c, "UTF-8")))
+                .map(item => item._2.map(c => item._1 + "=" + URLEncoder.encode(c, "UTF-8")))
                 .flatten
                 .mkString("&")))
   }
@@ -117,8 +109,8 @@ trait DefaultWriteables extends LowPriorityWriteables {
   /**
     * `Writeable` for empty responses.
     */
-  implicit val writeableOf_EmptyContent: Writeable[Results.EmptyContent] =
-    Writeable(_ => Array.empty)
+  implicit val writeableOf_EmptyContent: Writeable[Results.EmptyContent] = Writeable(
+      _ => Array.empty)
 
   /**
     * Straightforward `Writeable` for String values.

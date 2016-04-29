@@ -14,8 +14,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * A keymanager that wraps other X509 key managers.
   */
-class CompositeX509KeyManager(keyManagers: Seq[X509KeyManager])
-    extends X509ExtendedKeyManager {
+class CompositeX509KeyManager(keyManagers: Seq[X509KeyManager]) extends X509ExtendedKeyManager {
   // Must specify X509ExtendedKeyManager: otherwise you get
   // "X509KeyManager passed to SSLContext.init():  need an X509ExtendedKeyManager for SSLEngine use"
 
@@ -31,10 +30,8 @@ class CompositeX509KeyManager(keyManagers: Seq[X509KeyManager])
   // This doesn't mean you can't have multiple key managers, but that you can't have multiple key managers of
   // the same class, i.e. you can't have two X509KeyManagers in the array.
 
-  def getClientAliases(
-      keyType: String, issuers: Array[Principal]): Array[String] = {
-    logger.debug(
-        s"getClientAliases: keyType = $keyType, issuers = ${issuers.toSeq}")
+  def getClientAliases(keyType: String, issuers: Array[Principal]): Array[String] = {
+    logger.debug(s"getClientAliases: keyType = $keyType, issuers = ${issuers.toSeq}")
 
     val clientAliases = new ArrayBuffer[String]
     withKeyManagers { keyManager =>
@@ -73,8 +70,7 @@ class CompositeX509KeyManager(keyManagers: Seq[X509KeyManager])
     withKeyManagers { keyManager: X509KeyManager =>
       keyManager match {
         case extendedKeyManager: X509ExtendedKeyManager =>
-          val clientAlias = extendedKeyManager.chooseEngineClientAlias(
-              keyType, issuers, engine)
+          val clientAlias = extendedKeyManager.chooseEngineClientAlias(keyType, issuers, engine)
           if (clientAlias != null) {
             logger.debug(
                 s"chooseEngineClientAlias: using clientAlias $clientAlias with keyManager $extendedKeyManager")
@@ -96,8 +92,7 @@ class CompositeX509KeyManager(keyManagers: Seq[X509KeyManager])
     withKeyManagers { keyManager: X509KeyManager =>
       keyManager match {
         case extendedKeyManager: X509ExtendedKeyManager =>
-          val clientAlias = extendedKeyManager.chooseEngineServerAlias(
-              keyType, issuers, engine)
+          val clientAlias = extendedKeyManager.chooseEngineServerAlias(keyType, issuers, engine)
           if (clientAlias != null) {
             logger.debug(
                 s"chooseEngineServerAlias: using clientAlias $clientAlias with keyManager $extendedKeyManager")
@@ -110,10 +105,8 @@ class CompositeX509KeyManager(keyManagers: Seq[X509KeyManager])
     null
   }
 
-  def getServerAliases(
-      keyType: String, issuers: Array[Principal]): Array[String] = {
-    logger.debug(
-        s"getServerAliases: keyType = $keyType, issuers = ${issuers.toSeq}")
+  def getServerAliases(keyType: String, issuers: Array[Principal]): Array[String] = {
+    logger.debug(s"getServerAliases: keyType = $keyType, issuers = ${issuers.toSeq}")
 
     val serverAliases = new ArrayBuffer[String]
     withKeyManagers { keyManager =>
@@ -127,8 +120,7 @@ class CompositeX509KeyManager(keyManagers: Seq[X509KeyManager])
     nullIfEmpty(serverAliases.toArray)
   }
 
-  def chooseServerAlias(
-      keyType: String, issuers: Array[Principal], socket: Socket): String = {
+  def chooseServerAlias(keyType: String, issuers: Array[Principal], socket: Socket): String = {
     logger.debug(
         s"chooseServerAlias: keyType = $keyType, issuers = ${issuers.toSeq}, socket = $socket")
     withKeyManagers { keyManager =>
@@ -160,16 +152,14 @@ class CompositeX509KeyManager(keyManagers: Seq[X509KeyManager])
     withKeyManagers { keyManager =>
       val privateKey = keyManager.getPrivateKey(alias)
       if (privateKey != null) {
-        logger.debug(
-            s"getPrivateKey: privateKey $privateKey with keyManager $keyManager")
+        logger.debug(s"getPrivateKey: privateKey $privateKey with keyManager $keyManager")
         return privateKey
       }
     }
     null
   }
 
-  private def withKeyManagers[T](
-      block: (X509KeyManager => T)): Seq[CertificateException] = {
+  private def withKeyManagers[T](block: (X509KeyManager => T)): Seq[CertificateException] = {
     val exceptionList = ArrayBuffer[CertificateException]()
     keyManagers.foreach { keyManager =>
       try {
@@ -182,8 +172,7 @@ class CompositeX509KeyManager(keyManagers: Seq[X509KeyManager])
     exceptionList
   }
 
-  private def nullIfEmpty[T](array: Array[T]) =
-    if (array.size == 0) null else array
+  private def nullIfEmpty[T](array: Array[T]) = if (array.size == 0) null else array
 
   override def toString = {
     s"CompositeX509KeyManager(keyManagers = [$keyManagers])"

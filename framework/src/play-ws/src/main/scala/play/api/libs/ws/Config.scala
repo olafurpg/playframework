@@ -28,16 +28,14 @@ case class WSClientConfig(connectionTimeout: Duration = 2.minutes,
   * This class creates a DefaultWSClientConfig object from the play.api.Configuration.
   */
 @Singleton
-class WSConfigParser @Inject()(
-    configuration: Configuration, environment: Environment)
+class WSConfigParser @Inject()(configuration: Configuration, environment: Environment)
     extends Provider[WSClientConfig] {
 
   def get = parse()
 
   def parse(): WSClientConfig = {
 
-    val config =
-      PlayConfig(configuration).getDeprecatedWithFallback("play.ws", "ws")
+    val config = PlayConfig(configuration).getDeprecatedWithFallback("play.ws", "ws")
 
     val connectionTimeout = config.get[Duration]("timeout.connection")
     val idleTimeout = config.get[Duration]("timeout.idle")
@@ -50,8 +48,8 @@ class WSConfigParser @Inject()(
 
     val compressionEnabled = config.get[Boolean]("compressionEnabled")
 
-    val sslConfig = new SSLConfigParser(
-        config.get[PlayConfig]("ssl"), environment.classLoader).parse()
+    val sslConfig =
+      new SSLConfigParser(config.get[PlayConfig]("ssl"), environment.classLoader).parse()
 
     WSClientConfig(connectionTimeout = connectionTimeout,
                    idleTimeout = idleTimeout,

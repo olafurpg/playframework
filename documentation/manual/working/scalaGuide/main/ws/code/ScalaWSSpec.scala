@@ -36,8 +36,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
   val url = s"http://localhost:$testServerPort/"
 
   // #scalaws-context
-  implicit val context =
-    play.api.libs.concurrent.Execution.Implicits.defaultContext
+  implicit val context = play.api.libs.concurrent.Execution.Implicits.defaultContext
   // #scalaws-context
 
   def withSimpleServer[T](block: WSClient => T): T =
@@ -45,13 +44,11 @@ class ScalaWSSpec extends PlaySpecification with Results {
       case _ => Action(Ok)
     }(block)
 
-  def withServer[T](routes: (String, String) => Handler)(
-      block: WSClient => T): T = {
+  def withServer[T](routes: (String, String) => Handler)(block: WSClient => T): T = {
     val app = FakeApplication(withRoutes = {
       case (method, path) => routes(method, path)
     })
-    running(TestServer(testServerPort, app))(
-        block(app.injector.instanceOf[WSClient]))
+    running(TestServer(testServerPort, app))(block(app.injector.instanceOf[WSClient]))
   }
 
   /**
@@ -127,10 +124,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
     "allow setting the content type" in withSimpleServer { ws =>
       val xmlString = "<foo></foo>"
       val response = //#content-type
-      ws
-        .url(url)
-        .withHeaders("Content-Type" -> "application/xml")
-        .post(xmlString)
+      ws.url(url).withHeaders("Content-Type" -> "application/xml").post(xmlString)
       //#content-type
 
       await(response).status must_== 200
@@ -227,9 +221,8 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
         implicit val personReads = Json.reads[Person]
 
-        val futureResult: Future[JsResult[Person]] = ws.url(url).get().map {
-          response =>
-            (response.json \ "person").validate[Person]
+        val futureResult: Future[JsResult[Person]] = ws.url(url).get().map { response =>
+          (response.json \ "person").validate[Person]
         }
         // #scalaws-process-json-with-implicit
 
@@ -249,9 +242,8 @@ class ScalaWSSpec extends PlaySpecification with Results {
           }
       } { ws =>
         // #scalaws-process-xml
-        val futureResult: Future[scala.xml.NodeSeq] = ws.url(url).get().map {
-          response =>
-            response.xml \ "message"
+        val futureResult: Future[scala.xml.NodeSeq] = ws.url(url).get().map { response =>
+          response.xml \ "message"
         }
         // #scalaws-process-xml
         await(futureResult).text must_== "Hello"
@@ -264,8 +256,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
         import play.api.libs.iteratee._
 
         // Make the request
-        val futureResponse: Future[
-            (WSResponseHeaders, Enumerator[Array[Byte]])] =
+        val futureResponse: Future[(WSResponseHeaders, Enumerator[Array[Byte]])] =
           ws.url(url).getStream()
 
         val bytesReturned: Future[Long] = futureResponse.flatMap {
@@ -288,8 +279,8 @@ class ScalaWSSpec extends PlaySpecification with Results {
           import play.api.libs.iteratee._
 
           // Make the request
-          val futureResponse: Future[(WSResponseHeaders, Enumerator[
-                  Array[Byte]])] = ws.url(url).getStream()
+          val futureResponse: Future[(WSResponseHeaders, Enumerator[Array[Byte]])] =
+            ws.url(url).getStream()
 
           val downloadedFile: Future[File] = futureResponse.flatMap {
             case (headers, body) =>
@@ -339,10 +330,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
                   // If there's a content length, send that, otherwise return the body chunked
                   response.headers.get("Content-Length") match {
                     case Some(Seq(length)) =>
-                      Ok
-                        .feed(body)
-                        .as(contentType)
-                        .withHeaders("Content-Length" -> length)
+                      Ok.feed(body).as(contentType).withHeaders("Content-Length" -> length)
                     case _ =>
                       Ok.chunked(body).as(contentType)
                   }
@@ -355,8 +343,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
           import play.api.libs.iteratee._
           await(
               downloadFile(FakeRequest())
-                .flatMap(_.body &> Results.dechunk |>>> Iteratee.fold(0l)((t,
-                      b) => t + b.length))
+                .flatMap(_.body &> Results.dechunk |>>> Iteratee.fold(0l)((t, b) => t + b.length))
           ) must_== 10000l
         } finally {
           file.delete()
@@ -369,8 +356,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
         import play.api.libs.iteratee._
 
         //#stream-put
-        val futureResponse: Future[
-            (WSResponseHeaders, Enumerator[Array[Byte]])] =
+        val futureResponse: Future[(WSResponseHeaders, Enumerator[Array[Byte]])] =
           ws.url(url).withMethod("PUT").withBody("some body").stream()
         //#stream-put
 
@@ -440,10 +426,8 @@ class ScalaWSSpec extends PlaySpecification with Results {
       // You can directly use the builder for specific options once you have secure TLS defaults...
       val builder = new AsyncHttpClientConfig.Builder(secureDefaults)
       builder.setCompressionEnforced(true)
-      val secureDefaultsWithSpecificOptions: AsyncHttpClientConfig =
-        builder.build()
-      implicit val sslClient =
-        new NingWSClient(secureDefaultsWithSpecificOptions)
+      val secureDefaultsWithSpecificOptions: AsyncHttpClientConfig = builder.build()
+      implicit val sslClient = new NingWSClient(secureDefaultsWithSpecificOptions)
 
       val response = WS.clientUrl(url).get()
       //#implicit-client
@@ -463,13 +447,12 @@ class ScalaWSSpec extends PlaySpecification with Results {
     "allow using pair magnets" in withSimpleServer { ws =>
       //#pair-magnet
       object PairMagnet {
-        implicit def fromPair(pair: (WSClient, java.net.URL)) =
-          new WSRequestMagnet {
-            def apply(): WSRequest = {
-              val (client, netUrl) = pair
-              client.url(netUrl.toString)
-            }
+        implicit def fromPair(pair: (WSClient, java.net.URL)) = new WSRequestMagnet {
+          def apply(): WSRequest = {
+            val (client, netUrl) = pair
+            client.url(netUrl.toString)
           }
+        }
       }
 
       import scala.language.implicitConversions
@@ -496,8 +479,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
         """.stripMargin))
 
       // If running in Play, environment should be injected
-      val environment =
-        Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
+      val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
 
       val parser = new WSConfigParser(configuration, environment)
       val config = new NingWSClientConfig(wsClientConfig = parser.parse())

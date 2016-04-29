@@ -10,8 +10,7 @@ object TestExecutionContext {
   /**
     * Create a `TestExecutionContext` that delegates to the iteratee package's default `ExecutionContext`.
     */
-  def apply(): TestExecutionContext =
-    new TestExecutionContext(Execution.defaultExecutionContext)
+  def apply(): TestExecutionContext = new TestExecutionContext(Execution.defaultExecutionContext)
 }
 
 /**
@@ -19,8 +18,7 @@ object TestExecutionContext {
   *
   * @param delegate The underlying `ExecutionContext` to delegate execution to.
   */
-class TestExecutionContext(delegate: ExecutionContext)
-    extends ExecutionContext { top =>
+class TestExecutionContext(delegate: ExecutionContext) extends ExecutionContext { top =>
 
   val count = new java.util.concurrent.atomic.AtomicInteger()
 
@@ -32,8 +30,7 @@ class TestExecutionContext(delegate: ExecutionContext)
   }
 
   def execute(runnable: Runnable): Unit = {
-    throw new RuntimeException(
-        "Cannot execute unprepared TestExecutionContext")
+    throw new RuntimeException("Cannot execute unprepared TestExecutionContext")
   }
 
   def reportFailure(t: Throwable): Unit = delegate.reportFailure(t)
@@ -41,8 +38,7 @@ class TestExecutionContext(delegate: ExecutionContext)
   override def prepare(): ExecutionContext = {
     val isLocal = Option(local.get()).getOrElse(false: java.lang.Boolean)
     if (!isLocal)
-      throw new RuntimeException(
-          "Can only prepare TestExecutionContext within 'preparable' scope")
+      throw new RuntimeException("Can only prepare TestExecutionContext within 'preparable' scope")
     val preparedDelegate = delegate.prepare()
     return new ExecutionContext {
 

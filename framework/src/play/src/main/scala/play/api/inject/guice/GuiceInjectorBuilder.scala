@@ -31,14 +31,12 @@ abstract class GuiceBuilder[Self] protected (environment: Environment,
   /**
     * Set the environment path.
     */
-  final def in(path: File): Self =
-    copyBuilder(environment = environment.copy(rootPath = path))
+  final def in(path: File): Self = copyBuilder(environment = environment.copy(rootPath = path))
 
   /**
     * Set the environment mode.
     */
-  final def in(mode: Mode.Mode): Self =
-    copyBuilder(environment = environment.copy(mode = mode))
+  final def in(mode: Mode.Mode): Self = copyBuilder(environment = environment.copy(mode = mode))
 
   /**
     * Set the environment class loader.
@@ -55,8 +53,7 @@ abstract class GuiceBuilder[Self] protected (environment: Environment,
   /**
     * Add additional configuration.
     */
-  final def configure(conf: Map[String, Any]): Self =
-    configure(Configuration.from(conf))
+  final def configure(conf: Map[String, Any]): Self = configure(Configuration.from(conf))
 
   /**
     * Add additional configuration.
@@ -90,8 +87,7 @@ abstract class GuiceBuilder[Self] protected (environment: Environment,
   /**
     * Disable module by class.
     */
-  final def disable[T](implicit tag: ClassTag[T]): Self =
-    disable(tag.runtimeClass)
+  final def disable[T](implicit tag: ClassTag[T]): Self = disable(tag.runtimeClass)
 
   /**
     * Create a Play Injector backed by Guice using this configured builder.
@@ -114,11 +110,9 @@ abstract class GuiceBuilder[Self] protected (environment: Environment,
       val enabledModules = modules.map(_.disable(disabled))
       val bindingModules =
         GuiceableModule.guiced(environment, configuration)(enabledModules) :+ injectorModule
-      val overrideModules =
-        GuiceableModule.guiced(environment, configuration)(overrides)
-      val guiceInjector = Guice.createInjector(GuiceModules
-            .`override`(bindingModules.asJava)
-            .`with`(overrideModules.asJava))
+      val overrideModules = GuiceableModule.guiced(environment, configuration)(overrides)
+      val guiceInjector = Guice.createInjector(
+          GuiceModules.`override`(bindingModules.asJava).`with`(overrideModules.asJava))
       guiceInjector.getInstance(classOf[PlayInjector])
     } catch {
       case e: CreationException =>
@@ -153,12 +147,11 @@ abstract class GuiceBuilder[Self] protected (environment: Environment,
 /**
   * Default empty builder for creating Guice-backed Injectors.
   */
-final class GuiceInjectorBuilder(
-    environment: Environment = Environment.simple(),
-    configuration: Configuration = Configuration.empty,
-    modules: Seq[GuiceableModule] = Seq.empty,
-    overrides: Seq[GuiceableModule] = Seq.empty,
-    disabled: Seq[Class[_]] = Seq.empty)
+final class GuiceInjectorBuilder(environment: Environment = Environment.simple(),
+                                 configuration: Configuration = Configuration.empty,
+                                 modules: Seq[GuiceableModule] = Seq.empty,
+                                 overrides: Seq[GuiceableModule] = Seq.empty,
+                                 disabled: Seq[Class[_]] = Seq.empty)
     extends GuiceBuilder[GuiceInjectorBuilder](
         environment,
         configuration,
@@ -180,8 +173,7 @@ final class GuiceInjectorBuilder(
                            modules: Seq[GuiceableModule],
                            overrides: Seq[GuiceableModule],
                            disabled: Seq[Class[_]]): GuiceInjectorBuilder =
-    new GuiceInjectorBuilder(
-        environment, configuration, modules, overrides, disabled)
+    new GuiceInjectorBuilder(environment, configuration, modules, overrides, disabled)
 }
 
 /**
@@ -197,8 +189,7 @@ trait GuiceableModule {
   */
 object GuiceableModule extends GuiceableModuleConversions {
 
-  def loadModules(environment: Environment,
-                  configuration: Configuration): Seq[GuiceableModule] = {
+  def loadModules(environment: Environment, configuration: Configuration): Seq[GuiceableModule] = {
     Modules.locate(environment, configuration) map guiceable
   }
 
@@ -219,10 +210,9 @@ object GuiceableModule extends GuiceableModuleConversions {
     * Apply GuiceableModules to create Guice modules.
     */
   def guiced(env: Environment, conf: Configuration)(
-      builders: Seq[GuiceableModule]): Seq[GuiceModule] =
-    builders flatMap { module =>
-      module.guiced(env, conf)
-    }
+      builders: Seq[GuiceableModule]): Seq[GuiceModule] = builders flatMap { module =>
+    module.guiced(env, conf)
+  }
 }
 
 /**
@@ -235,14 +225,13 @@ trait GuiceableModuleConversions {
   implicit def fromGuiceModule(guiceModule: GuiceModule): GuiceableModule =
     fromGuiceModules(Seq(guiceModule))
 
-  implicit def fromGuiceModules(
-      guiceModules: Seq[GuiceModule]): GuiceableModule = new GuiceableModule {
-    def guiced(env: Environment, conf: Configuration): Seq[GuiceModule] =
-      guiceModules
-    def disable(classes: Seq[Class[_]]): GuiceableModule =
-      fromGuiceModules(filterOut(classes, guiceModules))
-    override def toString = s"GuiceableModule(${guiceModules.mkString(", ")})"
-  }
+  implicit def fromGuiceModules(guiceModules: Seq[GuiceModule]): GuiceableModule =
+    new GuiceableModule {
+      def guiced(env: Environment, conf: Configuration): Seq[GuiceModule] = guiceModules
+      def disable(classes: Seq[Class[_]]): GuiceableModule =
+        fromGuiceModules(filterOut(classes, guiceModules))
+      override def toString = s"GuiceableModule(${guiceModules.mkString(", ")})"
+    }
 
   implicit def fromPlayModule(playModule: PlayModule): GuiceableModule =
     fromPlayModules(Seq(playModule))
@@ -259,13 +248,12 @@ trait GuiceableModuleConversions {
   implicit def fromPlayBinding(binding: PlayBinding[_]): GuiceableModule =
     fromPlayBindings(Seq(binding))
 
-  implicit def fromPlayBindings(
-      bindings: Seq[PlayBinding[_]]): GuiceableModule = new GuiceableModule {
-    def guiced(env: Environment, conf: Configuration): Seq[GuiceModule] =
-      Seq(guice(bindings))
-    def disable(classes: Seq[Class[_]]): GuiceableModule = this // no filtering
-    override def toString = s"GuiceableModule(${bindings.mkString(", ")})"
-  }
+  implicit def fromPlayBindings(bindings: Seq[PlayBinding[_]]): GuiceableModule =
+    new GuiceableModule {
+      def guiced(env: Environment, conf: Configuration): Seq[GuiceModule] = Seq(guice(bindings))
+      def disable(classes: Seq[Class[_]]): GuiceableModule = this // no filtering
+      override def toString = s"GuiceableModule(${bindings.mkString(", ")})"
+    }
 
   private def filterOut[A](classes: Seq[Class[_]], instances: Seq[A]): Seq[A] =
     instances.filterNot(o => classes.exists(_.isAssignableFrom(o.getClass)))
@@ -273,8 +261,8 @@ trait GuiceableModuleConversions {
   /**
     * Convert the given Play module to a Guice module.
     */
-  def guice(env: Environment, conf: Configuration)(
-      module: PlayModule): GuiceModule = guice(module.bindings(env, conf))
+  def guice(env: Environment, conf: Configuration)(module: PlayModule): GuiceModule =
+    guice(module.bindings(env, conf))
 
   /**
     * Convert the given Play bindings to a Guice module.
@@ -284,8 +272,7 @@ trait GuiceableModuleConversions {
       def configure(): Unit = {
         for (b <- bindings) {
           val binding = b.asInstanceOf[PlayBinding[Any]]
-          val builder =
-            binder().withSource(binding).bind(GuiceKey(binding.key))
+          val builder = binder().withSource(binding).bind(GuiceKey(binding.key))
           binding.target.foreach {
             case ProviderTarget(provider) =>
               builder.toProvider(GuiceProviders.guicify(provider))
@@ -300,8 +287,7 @@ trait GuiceableModuleConversions {
             case (None, true) => builder.asEagerSingleton()
             case (Some(scope), true) =>
               throw new GuiceLoadException(
-                  "A binding must either declare a scope or be eager: " +
-                  binding)
+                  "A binding must either declare a scope or be eager: " + binding)
             case _ => // do nothing
           }
         }
@@ -328,14 +314,12 @@ object GuiceKey {
 /**
   * Play Injector backed by a Guice Injector.
   */
-class GuiceInjector @Inject()(injector: com.google.inject.Injector)
-    extends PlayInjector {
+class GuiceInjector @Inject()(injector: com.google.inject.Injector) extends PlayInjector {
 
   /**
     * Get an instance of the given class from the injector.
     */
-  def instanceOf[T](implicit ct: ClassTag[T]) =
-    instanceOf(ct.runtimeClass.asInstanceOf[Class[T]])
+  def instanceOf[T](implicit ct: ClassTag[T]) = instanceOf(ct.runtimeClass.asInstanceOf[Class[T]])
 
   /**
     * Get an instance of the given class from the injector.

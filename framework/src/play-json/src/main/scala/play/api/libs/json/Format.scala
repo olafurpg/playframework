@@ -28,25 +28,21 @@ object OFormat {
         )
     }
 
-  implicit val invariantFunctorOFormat: InvariantFunctor[OFormat] =
-    new InvariantFunctor[OFormat] {
+  implicit val invariantFunctorOFormat: InvariantFunctor[OFormat] = new InvariantFunctor[OFormat] {
 
-      def inmap[A, B](fa: OFormat[A], f1: A => B, f2: B => A): OFormat[B] =
-        OFormat[B](
-            (js: JsValue) => fa.reads(js).map(f1), (b: B) => fa.writes(f2(b)))
-    }
+    def inmap[A, B](fa: OFormat[A], f1: A => B, f2: B => A): OFormat[B] =
+      OFormat[B]((js: JsValue) => fa.reads(js).map(f1), (b: B) => fa.writes(f2(b)))
+  }
 
-  implicit def GenericOFormat[T](
-      implicit fjs: Reads[T], tjs: OWrites[T]): Format[T] = apply(fjs, tjs)
+  implicit def GenericOFormat[T](implicit fjs: Reads[T], tjs: OWrites[T]): Format[T] =
+    apply(fjs, tjs)
 
-  def apply[A](
-      read: JsValue => JsResult[A], write: A => JsObject): OFormat[A] =
-    new OFormat[A] {
+  def apply[A](read: JsValue => JsResult[A], write: A => JsObject): OFormat[A] = new OFormat[A] {
 
-      def reads(js: JsValue): JsResult[A] = read(js)
+    def reads(js: JsValue): JsResult[A] = read(js)
 
-      def writes(a: A): JsObject = write(a)
-    }
+    def writes(a: A): JsObject = write(a)
+  }
 
   def apply[A](r: Reads[A], w: OWrites[A]): OFormat[A] = new OFormat[A] {
     def reads(js: JsValue): JsResult[A] = r.reads(js)
@@ -63,11 +59,10 @@ object Format extends PathFormat with ConstraintFormat with DefaultFormat {
   val constraints: ConstraintFormat = this
   val path: PathFormat = this
 
-  implicit val invariantFunctorFormat: InvariantFunctor[Format] =
-    new InvariantFunctor[Format] {
-      def inmap[A, B](fa: Format[A], f1: A => B, f2: B => A) =
-        Format(fa.map(f1), Writes(b => fa.writes(f2(b))))
-    }
+  implicit val invariantFunctorFormat: InvariantFunctor[Format] = new InvariantFunctor[Format] {
+    def inmap[A, B](fa: Format[A], f1: A => B, f2: B => A) =
+      Format(fa.map(f1), Writes(b => fa.writes(f2(b))))
+  }
 
   def apply[A](fjs: Reads[A], tjs: Writes[A]): Format[A] = {
     new Format[A] {
@@ -82,8 +77,7 @@ object Format extends PathFormat with ConstraintFormat with DefaultFormat {
   */
 trait DefaultFormat {
 
-  implicit def GenericFormat[T](
-      implicit fjs: Reads[T], tjs: Writes[T]): Format[T] = {
+  implicit def GenericFormat[T](implicit fjs: Reads[T], tjs: Writes[T]): Format[T] = {
     new Format[T] {
       def reads(json: JsValue) = fjs.reads(json)
       def writes(o: T) = tjs.writes(o)

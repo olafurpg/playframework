@@ -25,13 +25,11 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       //#serve-json-imports
 
       //#serve-json-implicits
-      implicit val locationWrites: Writes[Location] =
-        ((JsPath \ "lat").write[Double] and (JsPath \ "long").write[Double])(
-            unlift(Location.unapply))
+      implicit val locationWrites: Writes[Location] = ((JsPath \ "lat").write[Double] and
+          (JsPath \ "long").write[Double])(unlift(Location.unapply))
 
-      implicit val placeWrites: Writes[Place] =
-        ((JsPath \ "name").write[String] and (JsPath \ "location")
-              .write[Location])(unlift(Place.unapply))
+      implicit val placeWrites: Writes[Place] = ((JsPath \ "name").write[String] and
+          (JsPath \ "location").write[Location])(unlift(Place.unapply))
       //#serve-json-implicits
 
       //#serve-json
@@ -55,12 +53,11 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       //#handle-json-imports
 
       //#handle-json-implicits
-      implicit val locationReads: Reads[Location] = ((JsPath \ "lat")
-            .read[Double] and (JsPath \ "long").read[Double])(Location.apply _)
+      implicit val locationReads: Reads[Location] = ((JsPath \ "lat").read[Double] and
+          (JsPath \ "long").read[Double])(Location.apply _)
 
-      implicit val placeReads: Reads[Place] =
-        ((JsPath \ "name").read[String] and (JsPath \ "location")
-              .read[Location])(Place.apply _)
+      implicit val placeReads: Reads[Place] = ((JsPath \ "name").read[String] and
+          (JsPath \ "location").read[Location])(Place.apply _)
       //#handle-json-implicits
 
       //#handle-json
@@ -70,20 +67,17 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
           placeResult.fold(
               errors =>
                 {
-                  BadRequest(Json.obj("status" -> "KO",
-                                      "message" -> JsError.toFlatJson(errors)))
+                  BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toFlatJson(errors)))
               },
               place =>
                 {
                   Place.save(place)
                   Ok(Json.obj("status" -> "OK",
-                              "message" ->
-                              ("Place '" + place.name + "' saved.")))
+                              "message" -> ("Place '" + place.name + "' saved.")))
               }
           )
         }.getOrElse {
-          BadRequest(
-              Json.obj("status" -> "KO", "message" -> "Expecting JSON data."))
+          BadRequest(Json.obj("status" -> "KO", "message" -> "Expecting JSON data."))
         }
       }
       //#handle-json
@@ -97,9 +91,8 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
         }
       }
       """)
-      val request = FakeRequest()
-        .withHeaders(CONTENT_TYPE -> "application/json")
-        .withJsonBody(body)
+      val request =
+        FakeRequest().withHeaders(CONTENT_TYPE -> "application/json").withJsonBody(body)
       val result: Future[Result] = savePlace().apply(request)
 
       status(result) === OK
@@ -112,12 +105,11 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       import play.api.libs.json._
       import play.api.libs.functional.syntax._
 
-      implicit val locationReads: Reads[Location] = ((JsPath \ "lat")
-            .read[Double] and (JsPath \ "long").read[Double])(Location.apply _)
+      implicit val locationReads: Reads[Location] = ((JsPath \ "lat").read[Double] and
+          (JsPath \ "long").read[Double])(Location.apply _)
 
-      implicit val placeReads: Reads[Place] =
-        ((JsPath \ "name").read[String] and (JsPath \ "location")
-              .read[Location])(Place.apply _)
+      implicit val placeReads: Reads[Place] = ((JsPath \ "name").read[String] and
+          (JsPath \ "location").read[Location])(Place.apply _)
 
       //#handle-json-bodyparser
       def savePlace = Action(BodyParsers.parse.json) { request =>
@@ -125,15 +117,13 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
         placeResult.fold(
             errors =>
               {
-                BadRequest(Json.obj("status" -> "KO",
-                                    "message" -> JsError.toFlatJson(errors)))
+                BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toFlatJson(errors)))
             },
             place =>
               {
                 Place.save(place)
-                Ok(Json.obj(
-                        "status" -> "OK",
-                        "message" -> ("Place '" + place.name + "' saved.")))
+                Ok(Json.obj("status" -> "OK",
+                            "message" -> ("Place '" + place.name + "' saved.")))
             }
         )
       }
@@ -148,9 +138,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
         }
       }
       """)
-      val request = FakeRequest()
-        .withHeaders(CONTENT_TYPE -> "application/json")
-        .withBody(body)
+      val request = FakeRequest().withHeaders(CONTENT_TYPE -> "application/json").withBody(body)
       val result: Future[Result] = savePlace().apply(request)
       val bodyText: String = contentAsString(result)
       status(result) === OK

@@ -29,13 +29,10 @@ package scalaguide.http.scalacontentnegotiation {
         //#negotiate_accept_type
 
         val requestHtml = FakeRequest().withHeaders(ACCEPT -> "text/html")
-        assertAction(list, OK, requestHtml)(
-            r => contentAsString(r) === "<html>1,2,3</html>")
+        assertAction(list, OK, requestHtml)(r => contentAsString(r) === "<html>1,2,3</html>")
 
-        val requestJson =
-          FakeRequest().withHeaders(ACCEPT -> "application/json")
-        assertAction(list, OK, requestJson)(
-            r => contentAsString(r) === "[1,2,3]")
+        val requestJson = FakeRequest().withHeaders(ACCEPT -> "application/json")
+        assertAction(list, OK, requestJson)(r => contentAsString(r) === "[1,2,3]")
       }
 
       "negotiate accept type" in {

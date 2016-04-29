@@ -16,8 +16,7 @@ object MimeTypes {
     * @param ext the file extension, e.g. `txt`
     * @return the MIME type, if defined
     */
-  def forExtension(ext: String): Option[String] =
-    types.get(ext.toLowerCase(Locale.ENGLISH))
+  def forExtension(ext: String): Option[String] = types.get(ext.toLowerCase(Locale.ENGLISH))
 
   /**
     * Retrieves the usual MIME type for a given file name

@@ -35,16 +35,14 @@ final class GuiceApplicationBuilder(
     * Set the initial configuration loader.
     * Overrides the default or any previously configured values.
     */
-  def loadConfig(
-      loader: Environment => Configuration): GuiceApplicationBuilder =
+  def loadConfig(loader: Environment => Configuration): GuiceApplicationBuilder =
     copy(loadConfiguration = loader)
 
   /**
     * Set the initial configuration.
     * Overrides the default or any previously configured values.
     */
-  def loadConfig(conf: Configuration): GuiceApplicationBuilder =
-    loadConfig(env => conf)
+  def loadConfig(conf: Configuration): GuiceApplicationBuilder = loadConfig(env => conf)
 
   /**
     * Set the global settings object.
@@ -57,27 +55,24 @@ final class GuiceApplicationBuilder(
     * Set the module loader.
     * Overrides the default or any previously configured values.
     */
-  def load(loader: (Environment, Configuration) => Seq[GuiceableModule]
-      ): GuiceApplicationBuilder = copy(loadModules = loader)
+  def load(loader: (Environment, Configuration) => Seq[GuiceableModule]): GuiceApplicationBuilder =
+    copy(loadModules = loader)
 
   /**
     * Override the module loader with the given modules.
     */
-  def load(modules: GuiceableModule*): GuiceApplicationBuilder =
-    load((env, conf) => modules)
+  def load(modules: GuiceableModule*): GuiceApplicationBuilder = load((env, conf) => modules)
 
   /**
     * Create a new Play Injector for an Application using this configured builder.
     */
   override def injector(): PlayInjector = {
     val initialConfiguration = loadConfiguration(environment)
-    val globalSettings =
-      global.getOrElse(GlobalSettings(initialConfiguration, environment))
-    val loadedConfiguration = globalSettings.onLoadConfig(
-        initialConfiguration,
-        environment.rootPath,
-        environment.classLoader,
-        environment.mode)
+    val globalSettings = global.getOrElse(GlobalSettings(initialConfiguration, environment))
+    val loadedConfiguration = globalSettings.onLoadConfig(initialConfiguration,
+                                                          environment.rootPath,
+                                                          environment.classLoader,
+                                                          environment.mode)
     val appConfiguration = loadedConfiguration ++ configuration
 
     // TODO: Logger should be application specific, and available via dependency injection.
@@ -117,9 +112,8 @@ final class GuiceApplicationBuilder(
       disabled: Seq[Class[_]] = disabled,
       loadConfiguration: Environment => Configuration = loadConfiguration,
       global: Option[GlobalSettings] = global,
-      loadModules: (Environment,
-      Configuration) => Seq[GuiceableModule] = loadModules
-      ): GuiceApplicationBuilder =
+      loadModules: (Environment, Configuration) => Seq[GuiceableModule] = loadModules
+  ): GuiceApplicationBuilder =
     new GuiceApplicationBuilder(environment,
                                 configuration,
                                 modules,

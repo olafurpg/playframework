@@ -11,8 +11,7 @@ import scala.reflect.macros.Context
 
 class RequiredQueryStringParameter(paramName: String)
     extends QueryStringParameterExtractor[String] {
-  def unapply(qs: QueryString): Option[String] =
-    qs.get(paramName).flatMap(_.headOption)
+  def unapply(qs: QueryString): Option[String] = qs.get(paramName).flatMap(_.headOption)
 }
 
 class OptionalQueryStringParameter(paramName: String)
@@ -23,8 +22,7 @@ class OptionalQueryStringParameter(paramName: String)
 
 class SeqQueryStringParameter(paramName: String)
     extends QueryStringParameterExtractor[Seq[String]] {
-  def unapply(qs: QueryString): Option[Seq[String]] =
-    Some(qs.get(paramName).getOrElse(Nil))
+  def unapply(qs: QueryString): Option[Seq[String]] = Some(qs.get(paramName).getOrElse(Nil))
 }
 
 trait QueryStringParameterExtractor[T] {
@@ -80,8 +78,7 @@ private[sird] object QueryStringParameterMacros {
     c.prefix.tree match {
       case Apply(_, List(Apply(_, rawParts))) =>
         // extract the part literals
-        val parts =
-          rawParts map { case Literal(Constant(const: String)) => const }
+        val parts = rawParts map { case Literal(Constant(const: String)) => const }
 
         // Extract paramName, and validate
         val startOfString = c.enclosingPosition.point + name.length + 1
@@ -89,15 +86,13 @@ private[sird] object QueryStringParameterMacros {
           case paramEquals(param) => param
           case _ =>
             c.abort(c.enclosingPosition.withPoint(startOfString),
-                    "Invalid start of string for query string extractor '" +
-                    parts.head + "', extractor string must have format " +
-                    name + "\"param=$extracted\"")
+                    "Invalid start of string for query string extractor '" + parts.head +
+                    "', extractor string must have format " + name + "\"param=$extracted\"")
         }
 
         if (parts.length == 1) {
-          c.abort(
-              c.enclosingPosition.withPoint(startOfString + paramName.length),
-              "Unexpected end of String, expected parameter extractor, eg $extracted")
+          c.abort(c.enclosingPosition.withPoint(startOfString + paramName.length),
+                  "Unexpected end of String, expected parameter extractor, eg $extracted")
         }
 
         if (parts.length > 2) {
@@ -108,18 +103,15 @@ private[sird] object QueryStringParameterMacros {
         }
 
         if (parts(1).nonEmpty) {
-          c.abort(
-              c.enclosingPosition,
-              s"Unexpected text at end of query string extractor: '${parts(1)}'")
+          c.abort(c.enclosingPosition,
+                  s"Unexpected text at end of query string extractor: '${parts(1)}'")
         }
 
         // the QueryStringParameterExtractor object
         val sirdPackage = Select(
-            Select(Select(Ident(newTermName("play")), newTermName("api")),
-                   newTermName("routing")),
+            Select(Select(Ident(newTermName("play")), newTermName("api")), newTermName("routing")),
             newTermName("sird"))
-        val extractor = Select(
-            sirdPackage, newTermName("QueryStringParameterExtractor"))
+        val extractor = Select(sirdPackage, newTermName("QueryStringParameterExtractor"))
 
         // Return AST that invokes the desired method to create the extractor on QueryStringParameterExtractor, passing
         // the parameter name to it

@@ -22,8 +22,7 @@ trait HttpFilters {
 
 object HttpFilters {
 
-  def bindingsFromConfiguration(
-      environment: Environment, configuration: Configuration) = {
+  def bindingsFromConfiguration(environment: Environment, configuration: Configuration) = {
     Reflect.bindingsFromConfiguration[HttpFilters,
                                       play.http.HttpFilters,
                                       JavaHttpFiltersAdapter,
@@ -51,7 +50,6 @@ object NoHttpFilters extends NoHttpFilters
 /**
   * Adapter from the Java HttpFliters to the Scala HttpFilters interface.
   */
-class JavaHttpFiltersAdapter @Inject()(underlying: play.http.HttpFilters)
-    extends HttpFilters {
+class JavaHttpFiltersAdapter @Inject()(underlying: play.http.HttpFilters) extends HttpFilters {
   def filters = underlying.filters()
 }

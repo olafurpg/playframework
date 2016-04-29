@@ -33,13 +33,11 @@ class HikariCPModule extends Module {
 trait HikariCPComponents {
   def environment: Environment
 
-  lazy val connectionPool: ConnectionPool = new HikariCPConnectionPool(
-      environment)
+  lazy val connectionPool: ConnectionPool = new HikariCPConnectionPool(environment)
 }
 
 @Singleton
-class HikariCPConnectionPool @Inject()(environment: Environment)
-    extends ConnectionPool {
+class HikariCPConnectionPool @Inject()(environment: Environment) extends ConnectionPool {
 
   import HikariCPConnectionPool._
 
@@ -105,8 +103,7 @@ class HikariCPConfig(dbConfig: DatabaseConfig, configuration: PlayConfig) {
     config.getOptional[String]("dataSourceClassName") match {
       case Some(className) => hikariConfig.setDataSourceClassName(className)
       case None =>
-        Logger.debug(
-            "`dataSourceClassName` not present. Will use `url` instead.")
+        Logger.debug("`dataSourceClassName` not present. Will use `url` instead.")
     }
 
     dbConfig.url.foreach(hikariConfig.setJdbcUrl)
@@ -119,8 +116,7 @@ class HikariCPConfig(dbConfig: DatabaseConfig, configuration: PlayConfig) {
 
     val dataSourceConfig = config.get[PlayConfig]("dataSource")
     dataSourceConfig.underlying.root().keySet().asScala.foreach { key =>
-      hikariConfig.addDataSourceProperty(
-          key, dataSourceConfig.get[String](key))
+      hikariConfig.addDataSourceProperty(key, dataSourceConfig.get[String](key))
     }
 
     def toMillis(duration: Duration) = {
@@ -130,32 +126,25 @@ class HikariCPConfig(dbConfig: DatabaseConfig, configuration: PlayConfig) {
 
     // Frequently used
     hikariConfig.setAutoCommit(config.get[Boolean]("autoCommit"))
-    hikariConfig.setConnectionTimeout(
-        toMillis(config.get[Duration]("connectionTimeout")))
+    hikariConfig.setConnectionTimeout(toMillis(config.get[Duration]("connectionTimeout")))
     hikariConfig.setIdleTimeout(toMillis(config.get[Duration]("idleTimeout")))
     hikariConfig.setMaxLifetime(toMillis(config.get[Duration]("maxLifetime")))
-    config
-      .getOptional[String]("connectionTestQuery")
-      .foreach(hikariConfig.setConnectionTestQuery)
+    config.getOptional[String]("connectionTestQuery").foreach(hikariConfig.setConnectionTestQuery)
     config.getOptional[Int]("minimumIdle").foreach(hikariConfig.setMinimumIdle)
     hikariConfig.setMaximumPoolSize(config.get[Int]("maximumPoolSize"))
     config.getOptional[String]("poolName").foreach(hikariConfig.setPoolName)
 
     // Infrequently used
-    hikariConfig.setInitializationFailFast(
-        config.get[Boolean]("initializationFailFast"))
-    hikariConfig.setIsolateInternalQueries(
-        config.get[Boolean]("isolateInternalQueries"))
-    hikariConfig.setAllowPoolSuspension(
-        config.get[Boolean]("allowPoolSuspension"))
+    hikariConfig.setInitializationFailFast(config.get[Boolean]("initializationFailFast"))
+    hikariConfig.setIsolateInternalQueries(config.get[Boolean]("isolateInternalQueries"))
+    hikariConfig.setAllowPoolSuspension(config.get[Boolean]("allowPoolSuspension"))
     hikariConfig.setReadOnly(config.get[Boolean]("readOnly"))
     hikariConfig.setRegisterMbeans(config.get[Boolean]("registerMbeans"))
     config.getOptional[String]("catalog").foreach(hikariConfig.setCatalog)
     config
       .getOptional[String]("transactionIsolation")
       .foreach(hikariConfig.setTransactionIsolation)
-    hikariConfig.setValidationTimeout(
-        config.get[FiniteDuration]("validationTimeout").toMillis)
+    hikariConfig.setValidationTimeout(config.get[FiniteDuration]("validationTimeout").toMillis)
     hikariConfig.setLeakDetectionThreshold(
         toMillis(config.get[Duration]("leakDetectionThreshold")))
 

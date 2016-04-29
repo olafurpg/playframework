@@ -17,8 +17,7 @@ import scala.Some
 import play.api.test.FakeApplication
 
 abstract class MixedPlaySpec
-    extends fixture.WordSpec with MustMatchers with OptionValues
-    with MixedFixtures
+    extends fixture.WordSpec with MustMatchers with OptionValues with MixedFixtures
 
 /**
   *
@@ -29,17 +28,15 @@ class ScalaFunctionalTestSpec extends MixedPlaySpec with Results {
   case class Computer(name: String, introduced: Option[String])
 
   object Computer {
-    def findById(id: Int): Option[Computer] =
-      Some(Computer("Macintosh", Some("1984-01-24")))
+    def findById(id: Int): Option[Computer] = Some(Computer("Macintosh", Some("1984-01-24")))
   }
 
   "Scala Functional Test" should {
 
     // #scalafunctionaltest-fakeApplication
-    val fakeApplicationWithGlobal =
-      FakeApplication(withGlobal = Some(new GlobalSettings() {
-          override def onStart(app: Application) { println("Hello world!") }
-        }))
+    val fakeApplicationWithGlobal = FakeApplication(withGlobal = Some(new GlobalSettings() {
+        override def onStart(app: Application) { println("Hello world!") }
+      }))
     // #scalafunctionaltest-fakeApplication
 
     val fakeApplication = FakeApplication(withRoutes = {
@@ -69,8 +66,7 @@ class ScalaFunctionalTestSpec extends MixedPlaySpec with Results {
     // #scalafunctionaltest-testview
 
     // #scalafunctionaltest-testmodel
-    val appWithMemoryDatabase =
-      FakeApplication(additionalConfiguration = inMemoryDatabase("test"))
+    val appWithMemoryDatabase = FakeApplication(additionalConfiguration = inMemoryDatabase("test"))
     "run an application" in new App(appWithMemoryDatabase) {
 
       val Some(macintosh) = Computer.findById(21)
@@ -121,18 +117,15 @@ class ScalaFunctionalTestSpec extends MixedPlaySpec with Results {
     // #scalafunctionaltest-testwithbrowser
 
     // #scalafunctionaltest-testpaymentgateway
-    "test server logic" in new Server(app = fakeApplicationWithBrowser,
-                                      port = 19001) { port =>
+    "test server logic" in new Server(app = fakeApplicationWithBrowser, port = 19001) { port =>
       val myPublicAddress = s"localhost:$port"
       val testPaymentGatewayURL = s"http://$myPublicAddress"
       // The test payment gateway requires a callback to this server before it returns a result...
       val callbackURL = s"http://$myPublicAddress/callback"
 
       // await is from play.api.test.FutureAwaits
-      val response = await(WS
-            .url(testPaymentGatewayURL)
-            .withQueryString("callbackURL" -> callbackURL)
-            .get())
+      val response =
+        await(WS.url(testPaymentGatewayURL).withQueryString("callbackURL" -> callbackURL).get())
 
       response.status mustEqual OK
     }

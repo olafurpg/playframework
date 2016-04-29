@@ -28,14 +28,14 @@ class ExampleControllerSpec extends PlaySpec with Results {
 
   "REST API" should {
     "create a new user" in new WithControllerAndRequest {
-      val request = fakeRequest("POST", "/user")
-        .withJsonBody(Json.parse(s"""{"first_name": "Alice",
-                                    |  "last_name": "Doe",
-                                    |  "credentials": {
-                                    |    "username": "alice",
-                                    |    "password": "secret"
-                                    |  }
-                                    |}""".stripMargin))
+      val request =
+        fakeRequest("POST", "/user").withJsonBody(Json.parse(s"""{"first_name": "Alice",
+                                                                |  "last_name": "Doe",
+                                                                |  "credentials": {
+                                                                |    "username": "alice",
+                                                                |    "password": "secret"
+                                                                |  }
+                                                                |}""".stripMargin))
       val apiResult = call(testController.createUser, request)
       status(apiResult) mustEqual CREATED
       val jsonResult = contentAsJson(apiResult)

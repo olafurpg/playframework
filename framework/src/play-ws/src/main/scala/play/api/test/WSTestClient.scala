@@ -21,8 +21,7 @@ trait WsTestClient {
     * }}}
     */
   def wsCall(call: Call)(
-      implicit port: Port,
-      client: WSClient = WS.client(play.api.Play.current)): WSRequest =
+      implicit port: Port, client: WSClient = WS.client(play.api.Play.current)): WSRequest =
     wsUrl(call.url)
 
   /**
@@ -30,8 +29,7 @@ trait WsTestClient {
     * by default requires a running Play application (use WithApplication for tests).
     */
   def wsUrl(url: String)(
-      implicit port: Port,
-      client: WSClient = WS.client(play.api.Play.current)) = {
+      implicit port: Port, client: WSClient = WS.client(play.api.Play.current)) = {
     WS.clientUrl("http://localhost:" + port + url)
   }
 

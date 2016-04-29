@@ -27,14 +27,12 @@ class FunctorOps[M[_], A](ma: M[A])(implicit fu: Functor[M]) {
   def fmap[B](f: A => B): M[B] = fu.fmap(ma, f)
 }
 
-class ContravariantFunctorOps[M[_], A](ma: M[A])(
-    implicit fu: ContravariantFunctor[M]) {
+class ContravariantFunctorOps[M[_], A](ma: M[A])(implicit fu: ContravariantFunctor[M]) {
 
   def contramap[B](f: B => A): M[B] = fu.contramap(ma, f)
 }
 
-class InvariantFunctorOps[
-    M[_], A](ma: M[A])(implicit fu: InvariantFunctor[M]) {
+class InvariantFunctorOps[M[_], A](ma: M[A])(implicit fu: InvariantFunctor[M]) {
 
   def inmap[B](f: A => B, g: B => A): M[B] = fu.inmap(ma, f, g)
 }
@@ -43,25 +41,22 @@ class InvariantFunctorOps[
 // We use case classes wrappers so we can pattern match using their extractor
 sealed trait VariantExtractor[M[_]]
 
-case class FunctorExtractor[M[_]](functor: Functor[M])
+case class FunctorExtractor[M[_]](functor: Functor[M]) extends VariantExtractor[M]
+
+case class InvariantFunctorExtractor[M[_]](InvariantFunctor: InvariantFunctor[M])
     extends VariantExtractor[M]
 
-case class InvariantFunctorExtractor[M[_]](
-    InvariantFunctor: InvariantFunctor[M]) extends VariantExtractor[M]
-
-case class ContravariantFunctorExtractor[M[_]](
-    ContraVariantFunctor: ContravariantFunctor[M]) extends VariantExtractor[M]
+case class ContravariantFunctorExtractor[M[_]](ContraVariantFunctor: ContravariantFunctor[M])
+    extends VariantExtractor[M]
 
 object VariantExtractor {
 
   implicit def functor[M[_]: Functor]: FunctorExtractor[M] =
     FunctorExtractor(implicitly[Functor[M]])
 
-  implicit def contravariantFunctor[
-      M[_]: ContravariantFunctor]: ContravariantFunctorExtractor[M] =
+  implicit def contravariantFunctor[M[_]: ContravariantFunctor]: ContravariantFunctorExtractor[M] =
     ContravariantFunctorExtractor(implicitly[ContravariantFunctor[M]])
 
-  implicit def invariantFunctor[
-      M[_]: InvariantFunctor]: InvariantFunctorExtractor[M] =
+  implicit def invariantFunctor[M[_]: InvariantFunctor]: InvariantFunctorExtractor[M] =
     InvariantFunctorExtractor(implicitly[InvariantFunctor[M]])
 }

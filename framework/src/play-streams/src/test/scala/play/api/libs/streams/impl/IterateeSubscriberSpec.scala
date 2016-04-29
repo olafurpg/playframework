@@ -203,8 +203,7 @@ class IterateeSubscriberSpec extends Specification {
       val testEnv = new TestEnv[Int]
 
       testEnv.errorStep("iteratee error", Input.El(99))
-      testEnv.next must_==
-        Result(Success(Error("iteratee error", Input.El(99))))
+      testEnv.next must_== Result(Success(Error("iteratee error", Input.El(99))))
       testEnv.isEmptyAfterDelay() must beTrue
 
       testEnv.onSubscribe()

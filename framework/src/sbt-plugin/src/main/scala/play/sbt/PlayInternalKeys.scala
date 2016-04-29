@@ -28,20 +28,18 @@ object PlayInternalKeys {
       "playReload",
       "Executed when sources of changed, to recompile (and possibly reload) the app")
   val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]](
-      "playCompileEverything",
-      "Compiles this project and every project it depends on.")
+      "playCompileEverything", "Compiles this project and every project it depends on.")
   val playAssetsWithCompilation = TaskKey[sbt.inc.Analysis](
       "playAssetsWithCompilation",
       "The task that's run on a particular project to compile it. By default, builds assets and runs compile.")
 
-  val playStop = TaskKey[Unit](
-      "playStop", "Stop Play, if it has been started in non blocking mode")
+  val playStop =
+    TaskKey[Unit]("playStop", "Stop Play, if it has been started in non blocking mode")
 
-  val playAllAssets = TaskKey[Seq[(String, File)]](
-      "playAllAssets", "Compiles all assets for all projects")
+  val playAllAssets =
+    TaskKey[Seq[(String, File)]]("playAllAssets", "Compiles all assets for all projects")
   val playPrefixAndAssets = TaskKey[(String, File)](
-      "playPrefixAndAssets",
-      "Gets all the assets with their associated prefixes")
+      "playPrefixAndAssets", "Gets all the assets with their associated prefixes")
   val playAssetsClassLoader = TaskKey[ClassLoader => ClassLoader](
       "playAssetsClassloader",
       "Function that creates a classloader from a given parent that contains all the assets.")

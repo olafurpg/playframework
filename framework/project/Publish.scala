@@ -15,24 +15,20 @@ object ResolverSettings {
     "Typesafe Snapshots Repository" at "https://repo.typesafe.com/typesafe/snapshots/"
   val typesafeIvyReleases =
     Resolver.url("Typesafe Ivy Releases Repository",
-                 url("https://repo.typesafe.com/typesafe/ivy-releases"))(
-        Resolver.ivyStylePatterns)
-  val typesafeIvySnapshots =
-    Resolver.url("Typesafe Ivy Snapshots Repository",
-                 url("https://repo.typesafe.com/typesafe/ivy-snapshots"))(
-        Resolver.ivyStylePatterns)
+                 url("https://repo.typesafe.com/typesafe/ivy-releases"))(Resolver.ivyStylePatterns)
+  val typesafeIvySnapshots = Resolver.url(
+      "Typesafe Ivy Snapshots Repository",
+      url("https://repo.typesafe.com/typesafe/ivy-snapshots"))(Resolver.ivyStylePatterns)
   val publishTypesafeMavenReleases =
     "Typesafe Maven Releases Repository for publishing" at "https://private-repo.typesafe.com/typesafe/maven-releases/"
   val publishTypesafeMavenSnapshots =
     "Typesafe Maven Snapshots Repository for publishing" at "https://private-repo.typesafe.com/typesafe/maven-snapshots/"
   val publishTypesafeIvyReleases = Resolver.url(
       "Typesafe Ivy Releases Repository for publishing",
-      url("https://private-repo.typesafe.com/typesafe/ivy-releases/"))(
-      Resolver.ivyStylePatterns)
+      url("https://private-repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
   val publishTypesafeIvySnapshots = Resolver.url(
       "Typesafe Ivy Snapshots Repository for publishing",
-      url("https://private-repo.typesafe.com/typesafe/ivy-snapshots/"))(
-      Resolver.ivyStylePatterns)
+      url("https://private-repo.typesafe.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
 
   val publishSonatypeReleases =
     "Sonatype Maven Repository for publishing" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
@@ -41,9 +37,8 @@ object ResolverSettings {
 
   val sonatypeSnapshots =
     "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
-  val sbtPluginSnapshots = Resolver.url(
-      "sbt plugin snapshots",
-      url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots"))(
+  val sbtPluginSnapshots = Resolver
+    .url("sbt plugin snapshots", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots"))(
       Resolver.ivyStylePatterns)
 
   val playResolvers = Seq(typesafeReleases, typesafeIvyReleases)
@@ -68,8 +63,7 @@ object PublishSettings {
     */
   def dontPublishSettings: Seq[Setting[_]] =
     Seq(
-        publishTo := Some(Resolver.file("Unused transient repository",
-                                        file("target/unusedrepo")))
+        publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo")))
     )
 
   /**
@@ -113,9 +107,7 @@ object PublishSettings {
         ("sadache", "Sadek Drobi", "http://sadache.tumblr.com"),
         ("erwan", "Erwan Loisant", "http://caffeinelab.net/"),
         ("jroper", "James Roper", "https://jazzy.id.au"),
-        ("huntc",
-         "Christopher Hunt",
-         "http://christopherhunt-software.blogspot.com.au/"),
+        ("huntc", "Christopher Hunt", "http://christopherhunt-software.blogspot.com.au/"),
         ("richdougherty", "Rich Dougherty", "http://www.richdougherty.com/"),
         ("pvlugter", "Peter Vlugter", "https://github.com/pvlugter"),
         ("wsargent", "Will Sargent", "https://github.com/wsargent"),
@@ -124,14 +116,11 @@ object PublishSettings {
         ("cchantep", "Cédric Chantepie", "https://twitter.com/cchantep"),
         ("benmccann", "Ben McCann", "http://www.benmccann.com"),
         ("mandubian", "Pascal Voitot", "http://www.mandubian.com"),
-        ("nraychaudhuri",
-         "Nilanjan Raychaudhuri",
-         "http://www.manning.com/raychaudhuri/"),
+        ("nraychaudhuri", "Nilanjan Raychaudhuri", "http://www.manning.com/raychaudhuri/"),
         ("gmethvin", "Greg Methvin", "http://methvin.net")
     )
 
-  private def makeDevelopersXml(developers: (String, String, String)*) =
-    <developers>
+  private def makeDevelopersXml(developers: (String, String, String)*) = <developers>
       {
       for ((id, name, url) <- developers) yield
         <developer>

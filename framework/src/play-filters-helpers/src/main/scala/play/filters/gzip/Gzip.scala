@@ -74,11 +74,9 @@ object Gzip {
       }
 
       def deflateUntilNeedsInput[A](
-          state: State,
-          k: K[Bytes, A]): Iteratee[Bytes, Iteratee[Bytes, A]] = {
+          state: State, k: K[Bytes, A]): Iteratee[Bytes, Iteratee[Bytes, A]] = {
         // Deflate some bytes
-        val numBytes = state.deflater
-          .deflate(state.buffer, state.pos, bufferSize - state.pos)
+        val numBytes = state.deflater.deflate(state.buffer, state.pos, bufferSize - state.pos)
         if (numBytes == 0) {
           if (state.deflater.needsInput()) {
             // Deflater needs more input, so continue
@@ -95,18 +93,15 @@ object Gzip {
             val buffer = state.buffer
             state.reset()
             new CheckDoneBytes {
-              def continue[B](k: K[Bytes, B]) =
-                deflateUntilNeedsInput(state, k)
+              def continue[B](k: K[Bytes, B]) = deflateUntilNeedsInput(state, k)
             } &> k(Input.El(buffer))
           }
         }
       }
 
       def deflateUntilFinished[A](
-          state: State,
-          k: K[Bytes, A]): Iteratee[Bytes, Iteratee[Bytes, A]] = {
-        val numBytes = state.deflater
-          .deflate(state.buffer, state.pos, bufferSize - state.pos)
+          state: State, k: K[Bytes, A]): Iteratee[Bytes, Iteratee[Bytes, A]] = {
+        val numBytes = state.deflater.deflate(state.buffer, state.pos, bufferSize - state.pos)
         if (numBytes == 0) {
           if (state.deflater.finished()) {
             // Deflater is finished, send the trailer
@@ -151,9 +146,7 @@ object Gzip {
         k(Input.El(header))
       }
 
-      def feedTrailer[A](
-          state: State,
-          k: K[Bytes, A]): Iteratee[Bytes, Iteratee[Bytes, A]] = {
+      def feedTrailer[A](state: State, k: K[Bytes, A]): Iteratee[Bytes, Iteratee[Bytes, A]] = {
         def writeTrailer(buffer: Bytes, pos: Int) {
           val crc = state.crc.getValue
           val length = state.deflater.getTotalIn
@@ -182,8 +175,7 @@ object Gzip {
             Seq(buffer, trailer)
           }
         Iteratee
-          .flatten(
-              Enumerator.enumerate(finalIn) >>> Enumerator.eof |>> Cont(k))
+          .flatten(Enumerator.enumerate(finalIn) >>> Enumerator.eof |>> Cont(k))
           .map(it => Done(it, Input.EOF))
       }
     }
@@ -246,16 +238,12 @@ object Gzip {
         } yield step
       }
 
-      def maybeEmpty(bytes: Bytes) =
-        if (bytes.isEmpty) Input.Empty else Input.El(bytes)
+      def maybeEmpty(bytes: Bytes) = if (bytes.isEmpty) Input.Empty else Input.El(bytes)
 
       def inflateUntilNeedsInput[A](
-          state: State,
-          k: K[Bytes, A],
-          input: Bytes): Iteratee[Bytes, Iteratee[Bytes, A]] = {
+          state: State, k: K[Bytes, A], input: Bytes): Iteratee[Bytes, Iteratee[Bytes, A]] = {
         // Inflate some bytes
-        val numBytes = state.inflater
-          .inflate(state.buffer, state.pos, bufferSize - state.pos)
+        val numBytes = state.inflater.inflate(state.buffer, state.pos, bufferSize - state.pos)
         if (numBytes == 0) {
           if (state.inflater.finished()) {
             // Feed the current buffer
@@ -285,8 +273,7 @@ object Gzip {
             state.crc.update(buffer)
             state.reset()
             new CheckDoneBytes {
-              def continue[B](k: K[Bytes, B]) =
-                inflateUntilNeedsInput(state, k, input)
+              def continue[B](k: K[Bytes, B]) = inflateUntilNeedsInput(state, k, input)
             } &> k(Input.El(buffer))
           }
         }
@@ -299,9 +286,8 @@ object Gzip {
 
       def done[A](a: A = Unit): Iteratee[Bytes, A] = Done[Bytes, A](a)
 
-      def finish[A](state: State,
-                    k: K[Bytes, A],
-                    input: Bytes): Iteratee[Bytes, Iteratee[Bytes, A]] = {
+      def finish[A](
+          state: State, k: K[Bytes, A], input: Bytes): Iteratee[Bytes, Iteratee[Bytes, A]] = {
         // Get the left over bytes from the inflater
         val leftOver =
           if (input.length > state.inflater.getRemaining) {
@@ -327,25 +313,20 @@ object Gzip {
                                 headerBytes(2),
                                 headerBytes(3)))
           _ <- if (header.magic != GzipMagic.asInstanceOf[Short])
-                Error("Not a gzip file, found header" + headerBytes
-                        .take(2)
-                        .map(b => "%02X".format(b))
-                        .mkString("(", ", ", ")"),
+                Error("Not a gzip file, found header" +
+                      headerBytes.take(2).map(b => "%02X".format(b)).mkString("(", ", ", ")"),
                       Input.El(headerBytes)) else done()
           _ <- if (header.compressionMethod != Deflater.DEFLATED)
                 Error("Unsupported compression method", Input.El(headerBytes))
               else done()
           efLength <- if (header.hasExtraField) readShort(crc) else done(0)
-          _ <- if (header.hasExtraField)
-                drop(efLength, "Not enough bytes for extra field", crc)
+          _ <- if (header.hasExtraField) drop(efLength, "Not enough bytes for extra field", crc)
               else done()
           _ <- if (header.hasFilename)
-                dropWhileIncluding(
-                    _ != 0x00, "EOF found in middle of file name", crc)
+                dropWhileIncluding(_ != 0x00, "EOF found in middle of file name", crc)
               else done()
           _ <- if (header.hasComment)
-                dropWhileIncluding(
-                    _ != 0x00, "EOF found in middle of comment", crc)
+                dropWhileIncluding(_ != 0x00, "EOF found in middle of comment", crc)
               else done()
           headerCrc <- if (header.hasCrc) readShort(new CRC32) else done(0)
           _ <- if (header.hasCrc && (crc.getValue & 0xffff) != headerCrc)
@@ -366,8 +347,7 @@ object Gzip {
                       Input.El(intToLittleEndian(crc))) else done()
           length <- readInt("Premature EOF before gzip total length", dummy)
           _ <- if (length != state.inflater.getTotalOut)
-                Error(
-                    "Length check failed", Input.El(intToLittleEndian(length)))
+                Error("Length check failed", Input.El(intToLittleEndian(length)))
               else done()
         } yield {
           state.inflater.end()
@@ -407,20 +387,19 @@ object Gzip {
           }
       }
 
-      def drop(n: Int, error: String, crc: CRC32): Iteratee[Bytes, Unit] =
-        Cont {
-          case Input.EOF => Error(error, Input.EOF)
-          case Input.Empty => drop(n, error, crc)
-          case Input.El(b) =>
-            if (b.length >= n) {
-              val splitted = b.splitAt(n)
-              crc.update(splitted._1)
-              Done(Unit, maybeEmpty(splitted._2))
-            } else {
-              crc.update(b)
-              drop(b.length - n, error, crc)
-            }
-        }
+      def drop(n: Int, error: String, crc: CRC32): Iteratee[Bytes, Unit] = Cont {
+        case Input.EOF => Error(error, Input.EOF)
+        case Input.Empty => drop(n, error, crc)
+        case Input.El(b) =>
+          if (b.length >= n) {
+            val splitted = b.splitAt(n)
+            crc.update(splitted._1)
+            Done(Unit, maybeEmpty(splitted._2))
+          } else {
+            crc.update(b)
+            drop(b.length - n, error, crc)
+          }
+      }
 
       def dropWhileIncluding(p: Byte => Boolean,
                              error: String,
@@ -438,8 +417,7 @@ object Gzip {
     }
   }
 
-  private def intToLittleEndian(
-      i: Int, out: Bytes = new Bytes(4), offset: Int = 0): Bytes = {
+  private def intToLittleEndian(i: Int, out: Bytes = new Bytes(4), offset: Int = 0): Bytes = {
     out(offset) = (i & 0xff).asInstanceOf[Byte]
     out(offset + 1) = (i >> 8 & 0xff).asInstanceOf[Byte]
     out(offset + 2) = (i >> 16 & 0xff).asInstanceOf[Byte]
@@ -448,8 +426,7 @@ object Gzip {
   }
 
   private def littleEndianToShort(bytes: Bytes, offset: Int = 0): Short = {
-    ((bytes(offset + 1) & 0xff) << 8 | bytes(offset) & 0xff)
-      .asInstanceOf[Short]
+    ((bytes(offset + 1) & 0xff) << 8 | bytes(offset) & 0xff).asInstanceOf[Short]
   }
 
   private def littleEndianToInt(bytes: Bytes, offset: Int = 0): Int = {

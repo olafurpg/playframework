@@ -21,7 +21,6 @@ class JavaHttpErrorHandlerAdapter @Inject()(underlying: JHttpErrorHandler)
   }
 
   def onServerError(request: RequestHeader, exception: Throwable) = {
-    JavaHelpers.invokeWithContext(
-        request, req => underlying.onServerError(req, exception))
+    JavaHelpers.invokeWithContext(request, req => underlying.onServerError(req, exception))
   }
 }

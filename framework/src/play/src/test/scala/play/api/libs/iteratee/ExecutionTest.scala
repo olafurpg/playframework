@@ -22,25 +22,20 @@ class ExecutionTest {
     _testExecution(f.apply)
   }
 
-  def testExecution[A](
-      f: F.Function2[TestExecutionContext, TestExecutionContext, A]): A = {
+  def testExecution[A](f: F.Function2[TestExecutionContext, TestExecutionContext, A]): A = {
     _testExecution(ec1 => _testExecution(ec2 => f(ec1, ec2)))
   }
 
-  def testExecution[A](f: F.Function3[
-          TestExecutionContext, TestExecutionContext, TestExecutionContext, A]
-      ): A = {
-    _testExecution(
-        ec1 => _testExecution(ec2 => _testExecution(ec3 => f(ec1, ec2, ec3))))
+  def testExecution[A](
+      f: F.Function3[TestExecutionContext, TestExecutionContext, TestExecutionContext, A]): A = {
+    _testExecution(ec1 => _testExecution(ec2 => _testExecution(ec3 => f(ec1, ec2, ec3))))
   }
 
-  private def _mustExecute[A](expectedCount: => Int)(
-      f: ExecutionContext => A): A = {
+  private def _mustExecute[A](expectedCount: => Int)(f: ExecutionContext => A): A = {
     _testExecution { tec =>
       val result = f(tec)
-      assert(
-          tec.executionCount == expectedCount,
-          s"Expected execution count of $expectedCount but recorded ${tec.executionCount}")
+      assert(tec.executionCount == expectedCount,
+             s"Expected execution count of $expectedCount but recorded ${tec.executionCount}")
       result
     }
   }
@@ -52,8 +47,7 @@ class ExecutionTest {
   def mustExecute(expectedCount1: Int,
                   expectedCount2: Int,
                   c: F.Callback2[ExecutionContext, ExecutionContext]): Unit = {
-    _mustExecute(expectedCount1)(
-        ec1 => _mustExecute(expectedCount2)(ec2 => c.invoke(ec1, ec2)))
+    _mustExecute(expectedCount1)(ec1 => _mustExecute(expectedCount2)(ec2 => c.invoke(ec1, ec2)))
   }
 
   def mustExecute(
@@ -61,9 +55,9 @@ class ExecutionTest {
       expectedCount2: Int,
       expectedCount3: Int,
       c: F.Callback3[ExecutionContext, ExecutionContext, ExecutionContext]
-      ): Unit = {
+  ): Unit = {
     _mustExecute(expectedCount1)(ec1 =>
-          _mustExecute(expectedCount2)(ec2 =>
-                _mustExecute(expectedCount3)(ec3 => c.invoke(ec1, ec2, ec3))))
+          _mustExecute(expectedCount2)(
+              ec2 => _mustExecute(expectedCount3)(ec3 => c.invoke(ec1, ec2, ec3))))
   }
 }

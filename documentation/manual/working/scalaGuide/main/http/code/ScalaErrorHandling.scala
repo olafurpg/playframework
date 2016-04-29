@@ -12,8 +12,7 @@ object ScalaErrorHandling extends PlaySpecification with WsTestClient {
 
   def fakeApp[A](implicit ct: ClassTag[A]) = {
     FakeApplication(
-        additionalConfiguration = Map(
-              "play.http.errorHandler" -> ct.runtimeClass.getName),
+        additionalConfiguration = Map("play.http.errorHandler" -> ct.runtimeClass.getName),
         withRoutes = {
           case (_, "/error") => Action(_ => throw new RuntimeException("foo"))
         }
@@ -21,8 +20,7 @@ object ScalaErrorHandling extends PlaySpecification with WsTestClient {
   }
 
   "scala error handling" should {
-    "allow providing a custom error handler" in new WithServer(
-        fakeApp[root.ErrorHandler]) {
+    "allow providing a custom error handler" in new WithServer(fakeApp[root.ErrorHandler]) {
       await(wsUrl("/error").get()).body must_== "A server error occurred: foo"
     }
 
@@ -38,8 +36,8 @@ object ScalaErrorHandling extends PlaySpecification with WsTestClient {
             new Provider[Router] { def get = Router.empty }
         )
       def errorContent(mode: Mode.Mode) =
-        contentAsString(errorHandler(mode)
-              .onServerError(FakeRequest(), new RuntimeException("foo")))
+        contentAsString(
+            errorHandler(mode).onServerError(FakeRequest(), new RuntimeException("foo")))
 
       errorContent(Mode.Prod) must startWith("A server error occurred: ")
       errorContent(Mode.Dev) must not startWith ("A server error occurred: ")
@@ -56,8 +54,7 @@ package root {
 
   class ErrorHandler extends HttpErrorHandler {
 
-    def onClientError(
-        request: RequestHeader, statusCode: Int, message: String) = {
+    def onClientError(request: RequestHeader, statusCode: Int, message: String) = {
       Future.successful(
           Status(statusCode)("A client error occurred: " + message)
       )
@@ -65,8 +62,7 @@ package root {
 
     def onServerError(request: RequestHeader, exception: Throwable) = {
       Future.successful(
-          InternalServerError(
-              "A server error occurred: " + exception.getMessage)
+          InternalServerError("A server error occurred: " + exception.getMessage)
       )
     }
   }
@@ -91,11 +87,9 @@ package default {
       router: Provider[Router]
   ) extends DefaultHttpErrorHandler(env, config, sourceMapper, router) {
 
-    override def onProdServerError(
-        request: RequestHeader, exception: UsefulException) = {
+    override def onProdServerError(request: RequestHeader, exception: UsefulException) = {
       Future.successful(
-          InternalServerError(
-              "A server error occurred: " + exception.getMessage)
+          InternalServerError("A server error occurred: " + exception.getMessage)
       )
     }
 

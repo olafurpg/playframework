@@ -21,8 +21,8 @@ object WSSpec extends PlaySpecification {
   "WS.url().post(InputStream)" should {
     "uploads the stream" in new WithServer(app = uploadApp, port = 3333) {
 
-      val input = this.getClass.getClassLoader
-        .getResourceAsStream("play/libs/ws/play_full_color.png")
+      val input =
+        this.getClass.getClassLoader.getResourceAsStream("play/libs/ws/play_full_color.png")
       val req = WS.url("http://localhost:3333").post(input).wrapped()
 
       val rep = await(req)

@@ -60,8 +60,7 @@ object Algorithms {
     *
     * @return "RSA keySize < 2048, DSA keySize < 2048, EC keySize < 224"
     */
-  def disabledKeyAlgorithms: String =
-    "RSA keySize < 2048, DSA keySize < 2048, EC keySize < 224"
+  def disabledKeyAlgorithms: String = "RSA keySize < 2048, DSA keySize < 2048, EC keySize < 224"
 
   /**
     * Returns the keySize of the given key, or None if no key exists.
@@ -92,8 +91,7 @@ object Algorithms {
           if (l >= 0) Some(l) else None
         } catch {
           case _: Throwable =>
-            throw new IllegalStateException(
-                s"unknown key ${key.getClass.getName}")
+            throw new IllegalStateException(s"unknown key ${key.getClass.getName}")
         }
       // None
     }
@@ -125,10 +123,8 @@ object Algorithms {
   }
 
   def translateECKey(pubk: Key): Key = {
-    val keyFactory = Thread
-      .currentThread()
-      .getContextClassLoader
-      .loadClass("sun.security.ec.ECKeyFactory")
+    val keyFactory =
+      Thread.currentThread().getContextClassLoader.loadClass("sun.security.ec.ECKeyFactory")
     val method = keyFactory.getMethod("toECKey", classOf[java.security.Key])
     method.invoke(null, pubk) match {
       case e: ECPublicKey =>
@@ -211,8 +207,7 @@ case class MoreThanOrEqual(x: Int) extends ExpressionSymbol {
   override def toString = " keySize >= " + x
 }
 
-case class AlgorithmConstraint(
-    algorithm: String, constraint: Option[ExpressionSymbol] = None) {
+case class AlgorithmConstraint(algorithm: String, constraint: Option[ExpressionSymbol] = None) {
 
   /**
     * Returns true only if the algorithm matches.  Useful for signature algorithms where we don't care about key size.
@@ -252,44 +247,40 @@ object AlgorithmConstraintsParser extends RegexParsers {
 
   import scala.language.postfixOps
 
-  def apply(input: String): AlgorithmConstraint =
-    parseAll(expression, input) match {
-      case Success(result, _) =>
-        result
-      case NoSuccess(message, _) =>
-        throw new IllegalArgumentException(
-            s"Cannot parse string $input: $message")
-    }
+  def apply(input: String): AlgorithmConstraint = parseAll(expression, input) match {
+    case Success(result, _) =>
+      result
+    case NoSuccess(message, _) =>
+      throw new IllegalArgumentException(s"Cannot parse string $input: $message")
+  }
 
-  def expression: Parser[AlgorithmConstraint] =
-    algorithm ~ (keySizeConstraint ?) ^^ {
-      case algorithm ~ Some(constraint) =>
-        AlgorithmConstraint(algorithm, Some(constraint))
+  def expression: Parser[AlgorithmConstraint] = algorithm ~ (keySizeConstraint ?) ^^ {
+    case algorithm ~ Some(constraint) =>
+      AlgorithmConstraint(algorithm, Some(constraint))
 
-      case algorithm ~ None =>
-        AlgorithmConstraint(algorithm, None)
-    }
+    case algorithm ~ None =>
+      AlgorithmConstraint(algorithm, None)
+  }
 
-  def keySizeConstraint: Parser[ExpressionSymbol] =
-    "keySize" ~> operator ~ decimalInteger ^^ {
-      case "<=" ~ decimal =>
-        LessThanOrEqual(decimal)
+  def keySizeConstraint: Parser[ExpressionSymbol] = "keySize" ~> operator ~ decimalInteger ^^ {
+    case "<=" ~ decimal =>
+      LessThanOrEqual(decimal)
 
-      case "<" ~ decimal =>
-        LessThan(decimal)
+    case "<" ~ decimal =>
+      LessThan(decimal)
 
-      case "==" ~ decimal =>
-        Equal(decimal)
+    case "==" ~ decimal =>
+      Equal(decimal)
 
-      case "!=" ~ decimal =>
-        NotEqual(decimal)
+    case "!=" ~ decimal =>
+      NotEqual(decimal)
 
-      case ">=" ~ decimal =>
-        MoreThanOrEqual(decimal)
+    case ">=" ~ decimal =>
+      MoreThanOrEqual(decimal)
 
-      case ">" ~ decimal =>
-        MoreThan(decimal)
-    }
+    case ">" ~ decimal =>
+      MoreThan(decimal)
+  }
 
   def operator: Parser[String] = "<=" | "<" | "==" | "!=" | ">=" | ">"
 

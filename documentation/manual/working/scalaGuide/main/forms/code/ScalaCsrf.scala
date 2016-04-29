@@ -42,19 +42,14 @@ object ScalaCsrf extends PlaySpecification {
 
     "allow rendering a token in a query string" in withApplication {
       val token = Crypto.generateSignedToken
-      val body = scalaguide.forms.html
-        .csrf(FakeRequest().withSession("csrfToken" -> token))
-        .body
-      body must find(
-          "action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"")
+      val body = scalaguide.forms.html.csrf(FakeRequest().withSession("csrfToken" -> token)).body
+      body must find("action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"")
         .withGroup(Crypto.extractSignedToken(token).get)
     }
 
     "allow rendering a token in a hidden field" in withApplication {
       val token = Crypto.generateSignedToken
-      val body = scalaguide.forms.html
-        .csrf(FakeRequest().withSession("csrfToken" -> token))
-        .body
+      val body = scalaguide.forms.html.csrf(FakeRequest().withSession("csrfToken" -> token)).body
       body must find("value=\"[a-f0-9]+-\\d+-([a-f0-9]+)\"")
         .withGroup(Crypto.extractSignedToken(token).get)
     }
@@ -91,8 +86,8 @@ object ScalaCsrf extends PlaySpecification {
       }
       //#csrf-add-token
 
-      val body = await(form(FakeRequest("GET", "/"))
-            .flatMap(_.body |>>> Iteratee.consume[Array[Byte]]()))
+      val body =
+        await(form(FakeRequest("GET", "/")).flatMap(_.body |>>> Iteratee.consume[Array[Byte]]()))
       Crypto.extractSignedToken(new String(body, "UTF-8")) must beSome
     }
 
@@ -104,8 +99,7 @@ object ScalaCsrf extends PlaySpecification {
       import play.filters.csrf._
 
       object PostAction extends ActionBuilder[Request] {
-        def invokeBlock[A](request: Request[A],
-                           block: (Request[A]) => Future[Result]) = {
+        def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
           // authentication code here
           block(request)
         }
@@ -113,8 +107,7 @@ object ScalaCsrf extends PlaySpecification {
       }
 
       object GetAction extends ActionBuilder[Request] {
-        def invokeBlock[A](request: Request[A],
-                           block: (Request[A]) => Future[Result]) = {
+        def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
           // authentication code here
           block(request)
         }
@@ -135,8 +128,8 @@ object ScalaCsrf extends PlaySpecification {
 
       await(save(FakeRequest("POST", "/").withHeaders(
                   CONTENT_TYPE -> "application/x-www-form-urlencoded"))).header.status must_== FORBIDDEN
-      val body = await(form(FakeRequest("GET", "/"))
-            .flatMap(_.body |>>> Iteratee.consume[Array[Byte]]()))
+      val body =
+        await(form(FakeRequest("GET", "/")).flatMap(_.body |>>> Iteratee.consume[Array[Byte]]()))
       Crypto.extractSignedToken(new String(body, "UTF-8")) must beSome
     }
   }

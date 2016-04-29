@@ -35,8 +35,7 @@ class CORSFilter(override protected val corsConfig: CORSConfig = CORSConfig(),
 
   override protected val logger = Logger(classOf[CORSFilter])
 
-  override def apply(f: RequestHeader => Future[Result])(
-      request: RequestHeader): Future[Result] = {
+  override def apply(f: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
     if (pathPrefixes.exists(request.path startsWith _)) {
       filterRequest(() => f(request), request)
     } else {
@@ -47,7 +46,6 @@ class CORSFilter(override protected val corsConfig: CORSConfig = CORSConfig(),
 
 object CORSFilter {
 
-  def apply(corsConfig: CORSConfig = CORSConfig(),
-            pathPrefixes: Seq[String] = Seq("/")) =
+  def apply(corsConfig: CORSConfig = CORSConfig(), pathPrefixes: Seq[String] = Seq("/")) =
     new CORSFilter(corsConfig, pathPrefixes)
 }

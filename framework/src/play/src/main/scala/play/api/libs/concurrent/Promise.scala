@@ -44,8 +44,7 @@ object Promise {
     * @param duration duration for the scheduled promise
     * @return a scheduled promise
     */
-  def timeout[A](
-      message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS)(
+  def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS)(
       implicit ec: ExecutionContext): Future[A] = {
     val p = SPromise[A]()
     import play.api.Play.current

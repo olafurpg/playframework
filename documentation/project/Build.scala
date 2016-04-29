@@ -34,16 +34,13 @@ object ApplicationBuild extends Build {
 
   val externalPlayModules: Map[String, Seq[Setting[_]]] = Map(
       "scalatestplus-play" -> Seq(
-          resolvers +=
-            "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases", // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
-          libraryDependencies +=
-            "org.scalatestplus" %% "play" % "1.1.0-RC1" % "test" exclude
+          resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases", // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
+          libraryDependencies += "org.scalatestplus" %% "play" % "1.1.0-RC1" % "test" exclude
           ("com.typesafe.play", "play-test_2.10")
       )
   )
 
-  val enabledExternalPlayModules = Option(
-      System.getProperty("external.modules"))
+  val enabledExternalPlayModules = Option(System.getProperty("external.modules"))
 
   val (externalPlayModuleSettings, codeFilter): (Seq[Setting[_]],
   FileFilter) = enabledExternalPlayModules match {
@@ -67,8 +64,7 @@ object ApplicationBuild extends Build {
         libraryDependencies ++= Seq(
             "org.mockito" % "mockito-core" % "1.9.5" % "test"
         ),
-        PlayDocsKeys.docsJarFile :=
-          Some((packageBin in (playDocs, Compile)).value),
+        PlayDocsKeys.docsJarFile := Some((packageBin in (playDocs, Compile)).value),
         PlayDocsKeys.javaManualSourceDirectories :=
         (baseDirectory.value / "manual" / "working" / "javaGuide" ** codeFilter).get,
         PlayDocsKeys.scalaManualSourceDirectories :=

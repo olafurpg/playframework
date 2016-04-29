@@ -77,8 +77,7 @@ object OAuthRequestVerifier {
         oauthTimestamp must beSome.like {
           case timestamp =>
             // Verify no more than 100 seconds in the past
-            timestamp.toLong must beGreaterThan(
-                System.currentTimeMillis() / 1000 - 100)
+            timestamp.toLong must beGreaterThan(System.currentTimeMillis() / 1000 - 100)
         }
 
         // Verify the signature
@@ -89,14 +88,10 @@ object OAuthRequestVerifier {
         // If the body is form URL encoded, must include body parameters
         val collectedParamsWithBody = request.contentType match {
           case Some(formUrlEncoded)
-              if formUrlEncoded.startsWith(
-                  "application/x-www-form-urlencoded") =>
-            val form = FormUrlEncodedParser
-              .parse(new String(body, "UTF-8"))
-              .toSeq
-              .flatMap {
-                case (key, values) => values.map(value => key -> value)
-              }
+              if formUrlEncoded.startsWith("application/x-www-form-urlencoded") =>
+            val form = FormUrlEncodedParser.parse(new String(body, "UTF-8")).toSeq.flatMap {
+              case (key, values) => values.map(value => key -> value)
+            }
             collectedParams ++ form
           case _ => collectedParams
         }
@@ -129,11 +124,9 @@ object OAuthRequestVerifier {
     val signatureBaseString =
       s"${method.toUpperCase(Locale.ENGLISH)}&${percentEncode(baseUrl)}&${percentEncode(parameterString)}"
 
-    val signingKey =
-      s"${percentEncode(consumerSecret)}&${percentEncode(tokenSecret)}"
+    val signingKey = s"${percentEncode(consumerSecret)}&${percentEncode(tokenSecret)}"
 
-    val keySpec = new SecretKeySpec(
-        signingKey.getBytes("US-ASCII"), "HmacSHA1")
+    val keySpec = new SecretKeySpec(signingKey.getBytes("US-ASCII"), "HmacSHA1")
     val mac = Mac.getInstance("HmacSHA1")
     mac.init(keySpec)
     val signature = mac.doFinal(signatureBaseString.getBytes("US-ASCII"))

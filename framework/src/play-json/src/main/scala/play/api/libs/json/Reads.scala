@@ -47,24 +47,21 @@ trait Reads[A] { self =>
     self.reads(json).filter(f)
   }
 
-  def filter(error: ValidationError)(f: A => Boolean): Reads[A] =
-    Reads[A] { json =>
-      self.reads(json).filter(error)(f)
-    }
+  def filter(error: ValidationError)(f: A => Boolean): Reads[A] = Reads[A] { json =>
+    self.reads(json).filter(error)(f)
+  }
 
   def filterNot(f: A => Boolean): Reads[A] = Reads[A] { json =>
     self.reads(json).filterNot(f)
   }
 
-  def filterNot(error: ValidationError)(f: A => Boolean): Reads[A] =
-    Reads[A] { json =>
-      self.reads(json).filterNot(error)(f)
-    }
+  def filterNot(error: ValidationError)(f: A => Boolean): Reads[A] = Reads[A] { json =>
+    self.reads(json).filterNot(error)(f)
+  }
 
-  def collect[B](error: ValidationError)(f: PartialFunction[A, B]) =
-    Reads[B] { json =>
-      self.reads(json).collect(error)(f)
-    }
+  def collect[B](error: ValidationError)(f: PartialFunction[A, B]) = Reads[B] { json =>
+    self.reads(json).collect(error)(f)
+  }
 
   def orElse(v: Reads[A]): Reads[A] = Reads[A] { json =>
     self.reads(json).orElse(v.reads(json))
@@ -92,47 +89,44 @@ object Reads extends ConstraintReads with PathReads with DefaultReads {
 
   import play.api.libs.functional._
 
-  implicit def applicative(implicit applicativeJsResult: Applicative[JsResult]
-      ): Applicative[Reads] = new Applicative[Reads] {
+  implicit def applicative(
+      implicit applicativeJsResult: Applicative[JsResult]): Applicative[Reads] =
+    new Applicative[Reads] {
 
-    def pure[A](a: A): Reads[A] = Reads[A] { _ =>
-      JsSuccess(a)
+      def pure[A](a: A): Reads[A] = Reads[A] { _ =>
+        JsSuccess(a)
+      }
+
+      def map[A, B](m: Reads[A], f: A => B): Reads[B] = m.map(f)
+
+      def apply[A, B](mf: Reads[A => B], ma: Reads[A]): Reads[B] = new Reads[B] {
+        def reads(js: JsValue) = applicativeJsResult(mf.reads(js), ma.reads(js))
+      }
     }
 
-    def map[A, B](m: Reads[A], f: A => B): Reads[B] = m.map(f)
-
-    def apply[A, B](mf: Reads[A => B], ma: Reads[A]): Reads[B] = new Reads[B] {
-      def reads(js: JsValue) = applicativeJsResult(mf.reads(js), ma.reads(js))
-    }
-  }
-
-  implicit def alternative(
-      implicit a: Applicative[Reads]): Alternative[Reads] =
+  implicit def alternative(implicit a: Applicative[Reads]): Alternative[Reads] =
     new Alternative[Reads] {
       val app = a
-      def |[A, B >: A](alt1: Reads[A], alt2: Reads[B]): Reads[B] =
-        new Reads[B] {
-          def reads(js: JsValue) = alt1.reads(js) match {
-            case r@JsSuccess(_, _) => r
-            case r@JsError(es1) =>
-              alt2.reads(js) match {
-                case r2@JsSuccess(_, _) => r2
-                case r2@JsError(es2) => JsError(JsError.merge(es1, es2))
-              }
-          }
+      def |[A, B >: A](alt1: Reads[A], alt2: Reads[B]): Reads[B] = new Reads[B] {
+        def reads(js: JsValue) = alt1.reads(js) match {
+          case r@JsSuccess(_, _) => r
+          case r@JsError(es1) =>
+            alt2.reads(js) match {
+              case r2@JsSuccess(_, _) => r2
+              case r2@JsError(es2) => JsError(JsError.merge(es1, es2))
+            }
         }
-      def empty: Reads[Nothing] =
-        new Reads[Nothing] { def reads(js: JsValue) = JsError(Seq()) }
+      }
+      def empty: Reads[Nothing] = new Reads[Nothing] { def reads(js: JsValue) = JsError(Seq()) }
     }
 
   def apply[A](f: JsValue => JsResult[A]): Reads[A] = new Reads[A] {
     def reads(json: JsValue) = f(json)
   }
 
-  implicit def functorReads(implicit a: Applicative[Reads]) =
-    new Functor[Reads] {
-      def fmap[A, B](reads: Reads[A], f: A => B): Reads[B] = a.map(reads, f)
-    }
+  implicit def functorReads(implicit a: Applicative[Reads]) = new Functor[Reads] {
+    def fmap[A, B](reads: Reads[A], f: A => B): Reads[B] = a.map(reads, f)
+  }
 
   implicit object JsObjectMonoid extends Monoid[JsObject] {
     def append(o1: JsObject, o2: JsObject) = o1 deepMerge o2
@@ -146,8 +140,7 @@ object Reads extends ConstraintReads with PathReads with DefaultReads {
     def identity = JsArray()
   }
 
-  implicit val JsArrayReducer =
-    Reducer[JsValue, JsArray](js => JsArray(Seq(js)))
+  implicit val JsArrayReducer = Reducer[JsValue, JsArray](js => JsArray(Seq(js)))
 }
 
 /**
@@ -168,8 +161,7 @@ trait DefaultReads {
     Json.obj(
         "__VAL__" -> knownValue,
         "__ERR__" -> key,
-        "__ARGS__" -> args.foldLeft(JsArray())(
-            (acc: JsArray, arg: JsValue) => acc :+ arg)
+        "__ARGS__" -> args.foldLeft(JsArray())((acc: JsArray, arg: JsValue) => acc :+ arg)
     )
   }
 
@@ -246,8 +238,7 @@ trait DefaultReads {
         scala.util.control.Exception
           .catching(classOf[NumberFormatException])
           .opt(JsSuccess(BigDecimal(new java.math.BigDecimal(s))))
-          .getOrElse(JsError(
-                  ValidationError("error.expected.numberformatexception")))
+          .getOrElse(JsError(ValidationError("error.expected.numberformatexception")))
       case JsNumber(d) => JsSuccess(d.underlying)
       case _ => JsError(ValidationError("error.expected.jsnumberorjsstring"))
   })
@@ -261,8 +252,7 @@ trait DefaultReads {
         scala.util.control.Exception
           .catching(classOf[NumberFormatException])
           .opt(JsSuccess(new java.math.BigDecimal(s)))
-          .getOrElse(JsError(
-                  ValidationError("error.expected.numberformatexception")))
+          .getOrElse(JsError(ValidationError("error.expected.numberformatexception")))
       case JsNumber(d) => JsSuccess(d.underlying)
       case _ => JsError(ValidationError("error.expected.jsnumberorjsstring"))
   })
@@ -273,9 +263,7 @@ trait DefaultReads {
     * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
     * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
     */
-  def dateReads(
-      pattern: String,
-      corrector: String => String = identity): Reads[java.util.Date] =
+  def dateReads(pattern: String, corrector: String => String = identity): Reads[java.util.Date] =
     new Reads[java.util.Date] {
 
       def reads(json: JsValue): JsResult[java.util.Date] = json match {
@@ -284,16 +272,15 @@ trait DefaultReads {
           parseJDate(pattern, corrector(s)) match {
             case Some(d) => JsSuccess(d)
             case None =>
-              JsError(Seq(JsPath() -> Seq(ValidationError(
-                              "error.expected.date.isoformat", pattern))))
+              JsError(
+                  Seq(JsPath() -> Seq(ValidationError("error.expected.date.isoformat", pattern))))
           }
         case _ =>
           JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date"))))
       }
     }
 
-  private def parseJDate(
-      pattern: String, input: String): Option[java.util.Date] = {
+  private def parseJDate(pattern: String, input: String): Option[java.util.Date] = {
     // REMEMBER THAT SIMPLEDATEFORMAT IS NOT THREADSAFE
     val df = new java.text.SimpleDateFormat(pattern)
     df.setLenient(false)
@@ -318,13 +305,11 @@ trait DefaultReads {
   object TemporalParser {
 
     /** Instance of local date/time based on specified pattern. */
-    implicit def LocalDateTimePatternParser(
-        pattern: String): TemporalParser[LocalDateTime] =
+    implicit def LocalDateTimePatternParser(pattern: String): TemporalParser[LocalDateTime] =
       new TemporalParser[LocalDateTime] {
         def parse(input: String): Option[LocalDateTime] =
           try {
-            Some(LocalDateTime.parse(
-                    input, DateTimeFormatter.ofPattern(pattern)))
+            Some(LocalDateTime.parse(input, DateTimeFormatter.ofPattern(pattern)))
           } catch {
             case _: DateTimeParseException => None
             case _: UnsupportedTemporalTypeException => None
@@ -345,8 +330,7 @@ trait DefaultReads {
       }
 
     /** Instance of date based on specified pattern. */
-    implicit def DatePatternParser(
-        pattern: String): TemporalParser[LocalDate] =
+    implicit def DatePatternParser(pattern: String): TemporalParser[LocalDate] =
       new TemporalParser[LocalDate] {
         def parse(input: String): Option[LocalDate] =
           try {
@@ -358,8 +342,7 @@ trait DefaultReads {
       }
 
     /** Instance of date based on formatter. */
-    implicit def DateFormatterParser(
-        formatter: DateTimeFormatter): TemporalParser[LocalDate] =
+    implicit def DateFormatterParser(formatter: DateTimeFormatter): TemporalParser[LocalDate] =
       new TemporalParser[LocalDate] {
         def parse(input: String): Option[LocalDate] =
           try {
@@ -371,13 +354,11 @@ trait DefaultReads {
       }
 
     /** Instance of instant parser based on specified pattern. */
-    implicit def InstantPatternParser(
-        pattern: String): TemporalParser[Instant] =
+    implicit def InstantPatternParser(pattern: String): TemporalParser[Instant] =
       new TemporalParser[Instant] {
         def parse(input: String): Option[Instant] =
           try {
-            val time =
-              LocalDateTime.parse(input, DateTimeFormatter.ofPattern(pattern))
+            val time = LocalDateTime.parse(input, DateTimeFormatter.ofPattern(pattern))
 
             Some(Instant parse s"${time.toString}Z")
           } catch {
@@ -387,8 +368,7 @@ trait DefaultReads {
       }
 
     /** Instance of instant parser based on formatter. */
-    implicit def InstantFormatterParser(
-        formatter: DateTimeFormatter): TemporalParser[Instant] =
+    implicit def InstantFormatterParser(formatter: DateTimeFormatter): TemporalParser[Instant] =
       new TemporalParser[Instant] {
         def parse(input: String): Option[Instant] =
           try {
@@ -401,13 +381,11 @@ trait DefaultReads {
       }
 
     /** Instance of zoned date/time based on specified pattern. */
-    implicit def ZonedDateTimePatternParser(
-        pattern: String): TemporalParser[ZonedDateTime] =
+    implicit def ZonedDateTimePatternParser(pattern: String): TemporalParser[ZonedDateTime] =
       new TemporalParser[ZonedDateTime] {
         def parse(input: String): Option[ZonedDateTime] =
           try {
-            Some(ZonedDateTime.parse(
-                    input, DateTimeFormatter.ofPattern(pattern)))
+            Some(ZonedDateTime.parse(input, DateTimeFormatter.ofPattern(pattern)))
           } catch {
             case _: DateTimeParseException =>
               try {
@@ -432,9 +410,7 @@ trait DefaultReads {
           } catch {
             case _: DateTimeParseException =>
               try {
-                Some(LocalDateTime
-                      .parse(input, formatter)
-                      .atZone(ZoneId.systemDefault))
+                Some(LocalDateTime.parse(input, formatter).atZone(ZoneId.systemDefault))
               } catch {
                 case _: DateTimeParseException => None
                 case _: UnsupportedTemporalTypeException => None
@@ -464,8 +440,7 @@ trait DefaultReads {
     *   DateTimeFormatter.ISO_DATE_TIME, _.drop(1))
     * }}}
     */
-  def localDateTimeReads[T](
-      parsing: T, corrector: String => String = identity)(
+  def localDateTimeReads[T](parsing: T, corrector: String => String = identity)(
       implicit p: T => TemporalParser[LocalDateTime]): Reads[LocalDateTime] =
     new Reads[LocalDateTime] {
 
@@ -475,24 +450,22 @@ trait DefaultReads {
           p(parsing).parse(corrector(s)) match {
             case Some(d) => JsSuccess(d)
             case None =>
-              JsError(Seq(JsPath() -> Seq(ValidationError(
-                              "error.expected.date.isoformat", parsing))))
+              JsError(
+                  Seq(JsPath() -> Seq(ValidationError("error.expected.date.isoformat", parsing))))
           }
         case _ =>
           JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date"))))
       }
 
       @inline def epoch(millis: Long): LocalDateTime =
-        LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(millis), ZoneId.systemDefault)
+        LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault)
     }
 
   /**
     * The default typeclass to reads `java.time.LocalDateTime` from JSON.
     * Accepts date/time formats as '2011-12-03T10:15:30', '2011-12-03T10:15:30+01:00' or '2011-12-03T10:15:30+01:00[Europe/Paris]'.
     */
-  implicit val DefaultLocalDateTimeReads = localDateTimeReads(
-      DateTimeFormatter.ISO_DATE_TIME)
+  implicit val DefaultLocalDateTimeReads = localDateTimeReads(DateTimeFormatter.ISO_DATE_TIME)
 
   /**
     * Reads for the `java.time.ZonedDateTime` type.
@@ -514,8 +487,7 @@ trait DefaultReads {
     *   DateTimeFormatter.ISO_DATE_TIME, _.drop(1))
     * }}}
     */
-  def zonedDateTimeReads[T](
-      parsing: T, corrector: String => String = identity)(
+  def zonedDateTimeReads[T](parsing: T, corrector: String => String = identity)(
       implicit p: T => TemporalParser[ZonedDateTime]): Reads[ZonedDateTime] =
     new Reads[ZonedDateTime] {
 
@@ -525,24 +497,22 @@ trait DefaultReads {
           p(parsing).parse(corrector(s)) match {
             case Some(d) => JsSuccess(d)
             case None =>
-              JsError(Seq(JsPath() -> Seq(ValidationError(
-                              "error.expected.date.isoformat", parsing))))
+              JsError(
+                  Seq(JsPath() -> Seq(ValidationError("error.expected.date.isoformat", parsing))))
           }
         case _ =>
           JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date"))))
       }
 
       @inline def epoch(millis: Long): ZonedDateTime =
-        ZonedDateTime.ofInstant(
-            Instant.ofEpochMilli(millis), ZoneId.systemDefault)
+        ZonedDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault)
     }
 
   /**
     * The default typeclass to reads `java.time.ZonedDateTime` from JSON.
     * Accepts date/time formats as '2011-12-03T10:15:30', '2011-12-03T10:15:30+01:00' or '2011-12-03T10:15:30+01:00[Europe/Paris]'.
     */
-  implicit val DefaultZonedDateTimeReads = zonedDateTimeReads(
-      DateTimeFormatter.ISO_DATE_TIME)
+  implicit val DefaultZonedDateTimeReads = zonedDateTimeReads(DateTimeFormatter.ISO_DATE_TIME)
 
   /**
     * Reads for the `java.time.LocalDate` type.
@@ -564,32 +534,29 @@ trait DefaultReads {
     * }}}
     */
   def localDateReads[T](parsing: T, corrector: String => String = identity)(
-      implicit p: T => TemporalParser[LocalDate]): Reads[LocalDate] =
-    new Reads[LocalDate] {
-      def reads(json: JsValue): JsResult[LocalDate] = json match {
-        case JsNumber(d) => JsSuccess(epoch(d.toLong))
-        case JsString(s) =>
-          p(parsing).parse(corrector(s)) match {
-            case Some(d) => JsSuccess(d)
-            case None =>
-              JsError(Seq(JsPath() -> Seq(ValidationError(
-                              "error.expected.date.isoformat", parsing))))
-          }
-        case _ =>
-          JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date"))))
-      }
-
-      @inline def epoch(millis: Long): LocalDate =
-        LocalDate.now(
-            Clock.fixed(Instant.ofEpochMilli(millis), ZoneId.systemDefault))
+      implicit p: T => TemporalParser[LocalDate]): Reads[LocalDate] = new Reads[LocalDate] {
+    def reads(json: JsValue): JsResult[LocalDate] = json match {
+      case JsNumber(d) => JsSuccess(epoch(d.toLong))
+      case JsString(s) =>
+        p(parsing).parse(corrector(s)) match {
+          case Some(d) => JsSuccess(d)
+          case None =>
+            JsError(
+                Seq(JsPath() -> Seq(ValidationError("error.expected.date.isoformat", parsing))))
+        }
+      case _ =>
+        JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date"))))
     }
+
+    @inline def epoch(millis: Long): LocalDate =
+      LocalDate.now(Clock.fixed(Instant.ofEpochMilli(millis), ZoneId.systemDefault))
+  }
 
   /**
     * The default typeclass to reads `java.time.LocalDate` from JSON.
     * Accepts date formats as '2011-12-03'.
     */
-  implicit val DefaultLocalDateReads = localDateReads(
-      DateTimeFormatter.ISO_DATE)
+  implicit val DefaultLocalDateReads = localDateReads(DateTimeFormatter.ISO_DATE)
 
   /**
     * Reads for the `java.time.Instant` type.
@@ -611,28 +578,26 @@ trait DefaultReads {
     * }}}
     */
   def instantReads[T](parsing: T, corrector: String => String = identity)(
-      implicit p: T => TemporalParser[Instant]): Reads[Instant] =
-    new Reads[Instant] {
-      def reads(json: JsValue): JsResult[Instant] = json match {
-        case JsNumber(d) => JsSuccess(Instant ofEpochMilli d.toLong)
-        case JsString(s) =>
-          p(parsing).parse(corrector(s)) match {
-            case Some(d) => JsSuccess(d)
-            case None =>
-              JsError(Seq(JsPath() -> Seq(ValidationError(
-                              "error.expected.date.isoformat", parsing))))
-          }
-        case _ =>
-          JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date"))))
-      }
+      implicit p: T => TemporalParser[Instant]): Reads[Instant] = new Reads[Instant] {
+    def reads(json: JsValue): JsResult[Instant] = json match {
+      case JsNumber(d) => JsSuccess(Instant ofEpochMilli d.toLong)
+      case JsString(s) =>
+        p(parsing).parse(corrector(s)) match {
+          case Some(d) => JsSuccess(d)
+          case None =>
+            JsError(
+                Seq(JsPath() -> Seq(ValidationError("error.expected.date.isoformat", parsing))))
+        }
+      case _ =>
+        JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date"))))
     }
+  }
 
   /**
     * The default typeclass to reads `java.time.Instant` from JSON.
     * Accepts instant formats as '2011-12-03T10:15:30', '2011-12-03T10:15:30+01:00' or '2011-12-03T10:15:30+01:00[Europe/Paris]'.
     */
-  implicit val DefaultInstantReads = instantReads(
-      DateTimeFormatter.ISO_DATE_TIME)
+  implicit val DefaultInstantReads = instantReads(DateTimeFormatter.ISO_DATE_TIME)
 
   /**
     * ISO 8601 Reads
@@ -648,11 +613,9 @@ trait DefaultReads {
     val WithMillisAndTz =
       """^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}.+$""".r
 
-    val WithMillis =
-      """^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}$""".r
+    val WithMillis = """^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}$""".r
 
-    val WithTz =
-      """^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[^.]+$""".r
+    val WithTz = """^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[^.]+$""".r
 
     def reads(json: JsValue): JsResult[Date] = json match {
       case JsNumber(d) => JsSuccess(new Date(d.toLong))
@@ -665,8 +628,7 @@ trait DefaultReads {
         }) match {
           case (_, Some(d)) => JsSuccess(d)
           case (p, None) =>
-            JsError(Seq(JsPath() -> Seq(
-                        ValidationError("error.expected.date.isoformat", p))))
+            JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date.isoformat", p))))
         }
     }
   }
@@ -678,8 +640,7 @@ trait DefaultReads {
     * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
     */
   def jodaDateReads(
-      pattern: String,
-      corrector: String => String = identity): Reads[org.joda.time.DateTime] =
+      pattern: String, corrector: String => String = identity): Reads[org.joda.time.DateTime] =
     new Reads[org.joda.time.DateTime] {
       import org.joda.time.DateTime
 
@@ -691,16 +652,15 @@ trait DefaultReads {
           parseDate(corrector(s)) match {
             case Some(d) => JsSuccess(d)
             case None =>
-              JsError(Seq(JsPath() -> Seq(ValidationError(
-                              "error.expected.jodadate.format", pattern))))
+              JsError(
+                  Seq(JsPath() -> Seq(ValidationError("error.expected.jodadate.format", pattern))))
           }
         case _ =>
           JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date"))))
       }
 
       private def parseDate(input: String): Option[DateTime] =
-        scala.util.control.Exception.allCatch[DateTime] opt
-        (DateTime.parse(input, df))
+        scala.util.control.Exception.allCatch[DateTime] opt (DateTime.parse(input, df))
     }
 
   /**
@@ -715,8 +675,7 @@ trait DefaultReads {
     * @param corrector string transformation function (See jodaDateReads)
     */
   def jodaLocalDateReads(
-      pattern: String,
-      corrector: String => String = identity): Reads[org.joda.time.LocalDate] =
+      pattern: String, corrector: String => String = identity): Reads[org.joda.time.LocalDate] =
     new Reads[org.joda.time.LocalDate] {
 
       import org.joda.time.LocalDate
@@ -731,16 +690,15 @@ trait DefaultReads {
           parseDate(corrector(s)) match {
             case Some(d) => JsSuccess(d)
             case None =>
-              JsError(Seq(JsPath() -> Seq(ValidationError(
-                              "error.expected.jodadate.format", pattern))))
+              JsError(
+                  Seq(JsPath() -> Seq(ValidationError("error.expected.jodadate.format", pattern))))
           }
         case _ =>
           JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date"))))
       }
 
       private def parseDate(input: String): Option[LocalDate] =
-        scala.util.control.Exception.allCatch[LocalDate] opt
-        (LocalDate.parse(input, df))
+        scala.util.control.Exception.allCatch[LocalDate] opt (LocalDate.parse(input, df))
     }
 
   /**
@@ -755,8 +713,7 @@ trait DefaultReads {
     * @param corrector string transformation function (See jodaTimeReads)
     */
   def jodaLocalTimeReads(
-      pattern: String,
-      corrector: String => String = identity): Reads[org.joda.time.LocalTime] =
+      pattern: String, corrector: String => String = identity): Reads[org.joda.time.LocalTime] =
     new Reads[org.joda.time.LocalTime] {
 
       import org.joda.time.LocalTime
@@ -772,16 +729,15 @@ trait DefaultReads {
           parseTime(corrector(s)) match {
             case Some(d) => JsSuccess(d)
             case None =>
-              JsError(Seq(JsPath() -> Seq(ValidationError(
-                              "error.expected.jodatime.format", pattern))))
+              JsError(
+                  Seq(JsPath() -> Seq(ValidationError("error.expected.jodatime.format", pattern))))
           }
         case _ =>
           JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.time"))))
       }
 
       private def parseTime(input: String): Option[LocalTime] =
-        scala.util.control.Exception.allCatch[LocalTime] opt
-        (LocalTime.parse(input, df))
+        scala.util.control.Exception.allCatch[LocalTime] opt (LocalTime.parse(input, df))
     }
 
   /**
@@ -795,9 +751,7 @@ trait DefaultReads {
     * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
     * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
     */
-  def sqlDateReads(
-      pattern: String,
-      corrector: String => String = identity): Reads[java.sql.Date] =
+  def sqlDateReads(pattern: String, corrector: String => String = identity): Reads[java.sql.Date] =
     dateReads(pattern, corrector).map(d => new java.sql.Date(d.getTime))
 
   /**
@@ -810,20 +764,18 @@ trait DefaultReads {
     *
     * @param enum a `scala.Enumeration`.
     */
-  def enumNameReads[E <: Enumeration](enum: E): Reads[E#Value] =
-    new Reads[E#Value] {
-      def reads(json: JsValue) = json match {
-        case JsString(str) =>
-          enum.values
-            .find(_.toString == str)
-            .map(JsSuccess(_))
-            .getOrElse(JsError(Seq(JsPath() -> Seq(ValidationError(
-                                "error.expected.validenumvalue")))))
-        case _ =>
-          JsError(Seq(JsPath() -> Seq(
-                      ValidationError("error.expected.enumstring"))))
-      }
+  def enumNameReads[E <: Enumeration](enum: E): Reads[E#Value] = new Reads[E#Value] {
+    def reads(json: JsValue) = json match {
+      case JsString(str) =>
+        enum.values
+          .find(_.toString == str)
+          .map(JsSuccess(_))
+          .getOrElse(JsError(
+                  Seq(JsPath() -> Seq(ValidationError("error.expected.validenumvalue")))))
+      case _ =>
+        JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.enumstring"))))
     }
+  }
 
   /**
     * Deserializer for Boolean types.
@@ -832,8 +784,7 @@ trait DefaultReads {
     def reads(json: JsValue) = json match {
       case JsBoolean(b) => JsSuccess(b)
       case _ =>
-        JsError(
-            Seq(JsPath() -> Seq(ValidationError("error.expected.jsboolean"))))
+        JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsboolean"))))
     }
   }
 
@@ -844,8 +795,7 @@ trait DefaultReads {
     def reads(json: JsValue) = json match {
       case JsString(s) => JsSuccess(s)
       case _ =>
-        JsError(
-            Seq(JsPath() -> Seq(ValidationError("error.expected.jsstring"))))
+        JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsstring"))))
     }
   }
 
@@ -856,8 +806,7 @@ trait DefaultReads {
     def reads(json: JsValue) = json match {
       case o: JsObject => JsSuccess(o)
       case _ =>
-        JsError(
-            Seq(JsPath() -> Seq(ValidationError("error.expected.jsobject"))))
+        JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsobject"))))
     }
   }
 
@@ -865,8 +814,7 @@ trait DefaultReads {
     def reads(json: JsValue) = json match {
       case o: JsArray => JsSuccess(o)
       case _ =>
-        JsError(
-            Seq(JsPath() -> Seq(ValidationError("error.expected.jsarray"))))
+        JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsarray"))))
     }
   }
 
@@ -881,8 +829,7 @@ trait DefaultReads {
     def reads(json: JsValue) = json match {
       case s: JsString => JsSuccess(s)
       case _ =>
-        JsError(
-            Seq(JsPath() -> Seq(ValidationError("error.expected.jsstring"))))
+        JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsstring"))))
     }
   }
 
@@ -890,8 +837,7 @@ trait DefaultReads {
     def reads(json: JsValue) = json match {
       case n: JsNumber => JsSuccess(n)
       case _ =>
-        JsError(
-            Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
+        JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
     }
   }
 
@@ -899,8 +845,7 @@ trait DefaultReads {
     def reads(json: JsValue) = json match {
       case b: JsBoolean => JsSuccess(b)
       case _ =>
-        JsError(
-            Seq(JsPath() -> Seq(ValidationError("error.expected.jsboolean"))))
+        JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsboolean"))))
     }
   }
 
@@ -908,8 +853,7 @@ trait DefaultReads {
     * Deserializer for Jackson JsonNode
     */
   implicit object JsonNodeReads extends Reads[JsonNode] {
-    def reads(json: JsValue): JsResult[JsonNode] =
-      JsSuccess(JacksonJson.jsValueToJsonNode(json))
+    def reads(json: JsValue): JsResult[JsonNode] = JsSuccess(JacksonJson.jsValueToJsonNode(json))
   }
 
   /**
@@ -927,16 +871,14 @@ trait DefaultReads {
     */
   implicit object ArrayNodeReads extends Reads[ArrayNode] {
     def reads(json: JsValue): JsResult[ArrayNode] = {
-      json.validate[JsArray] map
-      (ja => JacksonJson.jsValueToJsonNode(ja).asInstanceOf[ArrayNode])
+      json.validate[JsArray] map (ja => JacksonJson.jsValueToJsonNode(ja).asInstanceOf[ArrayNode])
     }
   }
 
   /**
     * Deserializer for Map[String,V] types.
     */
-  implicit def mapReads[V](
-      implicit fmtv: Reads[V]): Reads[collection.immutable.Map[String, V]] =
+  implicit def mapReads[V](implicit fmtv: Reads[V]): Reads[collection.immutable.Map[String, V]] =
     new Reads[collection.immutable.Map[String, V]] {
       def reads(json: JsValue) = json match {
         case JsObject(m) => {
@@ -958,8 +900,7 @@ trait DefaultReads {
               .fold(JsError.apply, res => JsSuccess(res.toMap))
           }
         case _ =>
-          JsError(
-              Seq(JsPath() -> Seq(ValidationError("error.expected.jsobject"))))
+          JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsobject"))))
       }
     }
 
@@ -967,42 +908,39 @@ trait DefaultReads {
     * Generic deserializer for collections types.
     */
   implicit def traversableReads[F[_], A](
-      implicit bf: generic.CanBuildFrom[F[_], A, F[A]], ra: Reads[A]) =
-    new Reads[F[A]] {
-      def reads(json: JsValue) = json match {
-        case JsArray(ts) =>
-          type Errors = Seq[(JsPath, Seq[ValidationError])]
-          def locate(e: Errors, idx: Int) =
-            e.map { case (p, valerr) => (JsPath(idx)) ++ p -> valerr }
+      implicit bf: generic.CanBuildFrom[F[_], A, F[A]], ra: Reads[A]) = new Reads[F[A]] {
+    def reads(json: JsValue) = json match {
+      case JsArray(ts) =>
+        type Errors = Seq[(JsPath, Seq[ValidationError])]
+        def locate(e: Errors, idx: Int) =
+          e.map { case (p, valerr) => (JsPath(idx)) ++ p -> valerr }
 
-          ts.zipWithIndex
-            .foldLeft(Right(Vector.empty): Either[Errors, Vector[A]]) {
-              case (acc, (elt, idx)) =>
-                (acc, fromJson[A](elt)(ra)) match {
-                  case (Right(vs), JsSuccess(v, _)) => Right(vs :+ v)
-                  case (Right(_), JsError(e)) => Left(locate(e, idx))
-                  case (Left(e), _: JsSuccess [_]) => Left(e)
-                  case (Left(e1), JsError(e2)) => Left(e1 ++ locate(e2, idx))
-                }
-            }
-            .fold(JsError.apply, { res =>
-              val builder = bf()
-              res.foreach(builder.+=)
-              JsSuccess(builder.result())
-            })
-        case _ =>
-          JsError(
-              Seq(JsPath() -> Seq(ValidationError("error.expected.jsarray"))))
-      }
+        ts.zipWithIndex
+          .foldLeft(Right(Vector.empty): Either[Errors, Vector[A]]) {
+            case (acc, (elt, idx)) =>
+              (acc, fromJson[A](elt)(ra)) match {
+                case (Right(vs), JsSuccess(v, _)) => Right(vs :+ v)
+                case (Right(_), JsError(e)) => Left(locate(e, idx))
+                case (Left(e), _: JsSuccess [_]) => Left(e)
+                case (Left(e1), JsError(e2)) => Left(e1 ++ locate(e2, idx))
+              }
+          }
+          .fold(JsError.apply, { res =>
+            val builder = bf()
+            res.foreach(builder.+=)
+            JsSuccess(builder.result())
+          })
+      case _ =>
+        JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsarray"))))
     }
+  }
 
   /**
     * Deserializer for Array[T] types.
     */
-  implicit def ArrayReads[T : Reads : ClassTag]: Reads[Array[T]] =
-    new Reads[Array[T]] {
-      def reads(json: JsValue) = json.validate[List[T]].map(_.toArray)
-    }
+  implicit def ArrayReads[T : Reads : ClassTag]: Reads[Array[T]] = new Reads[Array[T]] {
+    def reads(json: JsValue) = json.validate[List[T]].map(_.toArray)
+  }
 
   /**
     * Deserializer for java.util.UUID
@@ -1026,8 +964,7 @@ trait DefaultReads {
         case JsString(s) => {
             parseUuid(s)
               .map(JsSuccess(_))
-              .getOrElse(JsError(Seq(JsPath() -> Seq(
-                              ValidationError("error.expected.uuid")))))
+              .getOrElse(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.uuid")))))
           }
         case _ =>
           JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.uuid"))))

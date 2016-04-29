@@ -20,10 +20,8 @@ private[common] case class Subnet(ip: InetAddress, cidr: Option[Int] = None) {
 
   def isInRange(otherIp: InetAddress) = {
     val mask = cidr.getOrElse(ip.getAddress.length * 8)
-    ip.getClass == otherIp.getClass && ip.getAddress
-      .take(mask / 8)
-      .toList
-      .equals(otherIp.getAddress.take(mask / 8).toList) && (for {
+    ip.getClass == otherIp.getClass &&
+    ip.getAddress.take(mask / 8).toList.equals(otherIp.getAddress.take(mask / 8).toList) && (for {
       a <- ip.getAddress.drop(mask / 8).headOption
       b <- otherIp.getAddress.drop(mask / 8).headOption
       c <- remainderOfMask

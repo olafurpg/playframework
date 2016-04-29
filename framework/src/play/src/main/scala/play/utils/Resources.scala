@@ -29,24 +29,23 @@ object Resources {
     * Depends on the URL connection type whether it's accurate.  If it's unable to determine whether it's a directory,
     * this returns false.
     */
-  def isUrlConnectionADirectory(urlConnection: URLConnection) =
-    urlConnection match {
-      case file: FileURLConnection => new File(file.getURL.toURI).isDirectory
-      case jar: JarURLConnection =>
-        if (jar.getJarEntry.isDirectory) {
+  def isUrlConnectionADirectory(urlConnection: URLConnection) = urlConnection match {
+    case file: FileURLConnection => new File(file.getURL.toURI).isDirectory
+    case jar: JarURLConnection =>
+      if (jar.getJarEntry.isDirectory) {
+        true
+      } else {
+        // JarEntry.isDirectory is rubbish....
+        val is = jar.getJarFile.getInputStream(jar.getJarEntry)
+        if (is == null) {
           true
         } else {
-          // JarEntry.isDirectory is rubbish....
-          val is = jar.getJarFile.getInputStream(jar.getJarEntry)
-          if (is == null) {
-            true
-          } else {
-            is.close()
-            false
-          }
+          is.close()
+          false
         }
-      case other => false
-    }
+      }
+    case other => false
+  }
 
   /**
     * Close a URL connection.
@@ -65,8 +64,7 @@ object Resources {
     }
   }
 
-  private def isBundleResourceDirectory(
-      classLoader: ClassLoader, url: URL): Boolean = {
+  private def isBundleResourceDirectory(classLoader: ClassLoader, url: URL): Boolean = {
     /* ClassLoader within an OSGi container behave differently than the standard classloader.
      * One difference is how getResource returns when the resource's name end with a slash.
      * In a standard JVM, getResource doesn't care of ending slashes, and return the URL of
@@ -76,8 +74,7 @@ object Resources {
     val path = url.getPath
     val pathSlash = if (path.last == '/') path else path + '/'
 
-    classLoader.getResource(path) != null &&
-    classLoader.getResource(pathSlash) != null
+    classLoader.getResource(path) != null && classLoader.getResource(pathSlash) != null
   }
 
   private def isJarResourceDirectory(url: URL): Boolean = {
@@ -85,8 +82,7 @@ object Resources {
     val bangIndex = url.getFile.indexOf("!")
 
     val jarFile: File = new File(URI.create(path.substring(0, bangIndex)))
-    val resourcePath =
-      URI.create(path.substring(bangIndex + 1)).getPath.drop(1)
+    val resourcePath = URI.create(path.substring(bangIndex + 1)).getPath.drop(1)
     val zip = new ZipFile(jarFile)
 
     try {

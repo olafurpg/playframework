@@ -15,8 +15,7 @@ import org.scalatest.concurrent.IntegrationPatience
 
 // #scalafunctionaltest-playspec
 class ExampleSpec
-    extends PlaySpec with OneServerPerSuite with ScalaFutures
-    with IntegrationPatience {
+    extends PlaySpec with OneServerPerSuite with ScalaFutures with IntegrationPatience {
 
   // Override app if you need a FakeApplication with other than
   // default parameters.
@@ -27,8 +26,7 @@ class ExampleSpec
           Action(
               Results
                 .Ok(
-                    "<html>" + "<head><title>Test Page</title></head>" +
-                    "<body>" +
+                    "<html>" + "<head><title>Test Page</title></head>" + "<body>" +
                     "<input type='button' name='b' value='Click Me' onclick='document.title=\"scalatest\"' />" +
                     "</body>" + "</html>"
                 )

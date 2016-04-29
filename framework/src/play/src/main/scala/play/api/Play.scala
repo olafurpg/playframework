@@ -41,27 +41,20 @@ object Play {
    * declaring a factory in order to yield a parser of a specific type.
    */
   private[play] val xercesSaxParserFactory = SAXParserFactory.newInstance(
-      "org.apache.xerces.jaxp.SAXParserFactoryImpl",
-      Play.getClass.getClassLoader)
+      "org.apache.xerces.jaxp.SAXParserFactoryImpl", Play.getClass.getClassLoader)
   xercesSaxParserFactory.setFeature(
-      Constants.SAX_FEATURE_PREFIX +
-      Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE,
-      false)
+      Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false)
   xercesSaxParserFactory.setFeature(
-      Constants.SAX_FEATURE_PREFIX +
-      Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE,
-      false)
-  xercesSaxParserFactory.setFeature(Constants.XERCES_FEATURE_PREFIX +
-                                    Constants.DISALLOW_DOCTYPE_DECL_FEATURE,
-                                    true)
+      Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false)
   xercesSaxParserFactory.setFeature(
-      XMLConstants.FEATURE_SECURE_PROCESSING, true)
+      Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE,
+      true)
+  xercesSaxParserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
 
   /*
    * A parser to be used that is configured to ensure that no schemas are loaded.
    */
-  private[play] def XML =
-    scala.xml.XML.withSAXParser(xercesSaxParserFactory.newSAXParser())
+  private[play] def XML = scala.xml.XML.withSAXParser(xercesSaxParserFactory.newSAXParser())
 
   /**
     * Returns the currently running application, or `null` if not defined.
@@ -139,8 +132,7 @@ object Play {
     * @param name Absolute name of the resource (from the classpath root).
     * @return Maybe a stream if found.
     */
-  def resourceAsStream(name: String)(
-      implicit app: Application): Option[InputStream] = {
+  def resourceAsStream(name: String)(implicit app: Application): Option[InputStream] = {
     app.resourceAsStream(name)
   }
 
@@ -185,8 +177,7 @@ object Play {
     * @param relativePath relative path of the file to fetch
     * @return an existing file
     */
-  def getExistingFile(relativePath: String)(
-      implicit app: Application): Option[File] = {
+  def getExistingFile(relativePath: String)(implicit app: Application): Option[File] = {
     app.getExistingFile(relativePath)
   }
 
@@ -203,8 +194,7 @@ object Play {
   /**
     * Returns the current application configuration.
     */
-  def configuration(implicit app: Application): Configuration =
-    app.configuration
+  def configuration(implicit app: Application): Configuration = app.configuration
 
   /**
     * Returns the current application router.
@@ -239,14 +229,12 @@ object Play {
   /**
     * Returns the name of the cookie that can be used to permanently set the user's language.
     */
-  def langCookieName(implicit messagesApi: MessagesApi): String =
-    messagesApi.langCookieName
+  def langCookieName(implicit messagesApi: MessagesApi): String = messagesApi.langCookieName
 
   /**
     * Returns whether the language cookie should have the secure flag set.
     */
-  def langCookieSecure(implicit messagesApi: MessagesApi): Boolean =
-    messagesApi.langCookieSecure
+  def langCookieSecure(implicit messagesApi: MessagesApi): Boolean = messagesApi.langCookieSecure
 
   /**
     * Returns whether the language cookie should have the HTTP only flag set.

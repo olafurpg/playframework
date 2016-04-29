@@ -28,8 +28,7 @@ object CSRF {
     */
   def formField(implicit token: play.filters.csrf.CSRF.Token): Html = {
     // probably not possible for an attacker to XSS with a CSRF token, but just to be on the safe side...
-    Html(
-        s"""<input type="hidden" name="${play.filters.csrf.CSRFConfig.global.tokenName}" value="${HtmlFormat
+    Html(s"""<input type="hidden" name="${play.filters.csrf.CSRFConfig.global.tokenName}" value="${HtmlFormat
       .escape(token.value)}"/>""")
   }
 }

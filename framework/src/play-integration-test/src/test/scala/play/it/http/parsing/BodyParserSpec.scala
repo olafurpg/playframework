@@ -12,8 +12,7 @@ import play.api.test.{FakeRequest, PlaySpecification}
 import org.specs2.ScalaCheck
 import org.scalacheck.{Arbitrary, Gen}
 
-object BodyParserSpec
-    extends PlaySpecification with ExecutionSpecification with ScalaCheck {
+object BodyParserSpec extends PlaySpecification with ExecutionSpecification with ScalaCheck {
 
   def run[A](bodyParser: BodyParser[A]) = {
     import scala.concurrent.ExecutionContext.Implicits.global
@@ -30,10 +29,9 @@ object BodyParserSpec
     Done(Right(a), Input.Empty)
   }
 
-  def simpleResult(s: Result): BodyParser[Any] =
-    BodyParser("simple result") { request =>
-      Done(Left(s), Input.Empty)
-    }
+  def simpleResult(s: Result): BodyParser[Any] = BodyParser("simple result") { request =>
+    Done(Left(s), Input.Empty)
+  }
 
   implicit val arbResult: Arbitrary[Result] = Arbitrary {
     Gen.oneOf(

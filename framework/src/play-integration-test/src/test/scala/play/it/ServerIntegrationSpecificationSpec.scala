@@ -13,14 +13,12 @@ import scala.concurrent.duration._
 import akka.util.Timeout
 
 object NettyServerIntegrationSpecificationSpec
-    extends ServerIntegrationSpecificationSpec
-    with NettyIntegrationSpecification {
+    extends ServerIntegrationSpecificationSpec with NettyIntegrationSpecification {
   override def isAkkaHttpServer = false
   override def expectedServerTag = None
 }
 object AkkaHttpServerIntegrationSpecificationSpec
-    extends ServerIntegrationSpecificationSpec
-    with AkkaHttpIntegrationSpecification {
+    extends ServerIntegrationSpecificationSpec with AkkaHttpIntegrationSpecification {
   override def isAkkaHttpServer = true
   override def expectedServerTag = Some("akka-http")
 }
@@ -30,8 +28,7 @@ object AkkaHttpServerIntegrationSpecificationSpec
   * server backends, works properly.
   */
 trait ServerIntegrationSpecificationSpec
-    extends PlaySpecification with WsTestClient
-    with ServerIntegrationSpecification {
+    extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
   def isAkkaHttpServer: Boolean
 
@@ -48,8 +45,7 @@ trait ServerIntegrationSpecificationSpec
     }
 
     "run the right HTTP server when using TestServer constructor" in {
-      running(TestServer(testServerPort,
-                         FakeApplication(withRoutes = httpServerTagRoutes))) {
+      running(TestServer(testServerPort, FakeApplication(withRoutes = httpServerTagRoutes))) {
         val plainRequest = wsUrl("/httpServerTag")(testServerPort)
         val responseFuture = plainRequest.get()
         val response = await(responseFuture)

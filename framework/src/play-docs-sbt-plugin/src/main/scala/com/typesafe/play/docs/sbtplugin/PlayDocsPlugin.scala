@@ -25,17 +25,16 @@ object Imports {
         "playDocsFallbackToJar",
         "Whether the docs should fallback to loading things from the jar",
         KeyRanks.CSetting)
-    val manualPath = SettingKey[File](
-        "playDocsManualPath", "The location of the manual", KeyRanks.CSetting)
-    val docsVersion = SettingKey[String](
-        "playDocsVersion",
-        "The version of the documentation to fallback to.",
-        KeyRanks.ASetting)
+    val manualPath =
+      SettingKey[File]("playDocsManualPath", "The location of the manual", KeyRanks.CSetting)
+    val docsVersion = SettingKey[String]("playDocsVersion",
+                                         "The version of the documentation to fallback to.",
+                                         KeyRanks.ASetting)
     val docsName = SettingKey[String]("playDocsName",
                                       "The name of the documentation artifact",
                                       KeyRanks.BSetting)
-    val docsJarFile = TaskKey[Option[File]](
-        "playDocsJarFile", "Optional play docs jar file", KeyRanks.CTask)
+    val docsJarFile =
+      TaskKey[Option[File]]("playDocsJarFile", "Optional play docs jar file", KeyRanks.CTask)
     val docsJarScalaBinaryVersion = SettingKey[String](
         "playDocsScalaVersion",
         "The binary scala version of the documentation",
@@ -74,15 +73,13 @@ object Imports {
         "Generates a report on the translation code samples if not already generated",
         KeyRanks.CTask)
 
-    val javaManualSourceDirectories =
-      SettingKey[Seq[File]]("javaManualSourceDirectories")
-    val scalaManualSourceDirectories =
-      SettingKey[Seq[File]]("scalaManualSourceDirectories")
+    val javaManualSourceDirectories = SettingKey[Seq[File]]("javaManualSourceDirectories")
+    val scalaManualSourceDirectories = SettingKey[Seq[File]]("scalaManualSourceDirectories")
     val javaTwirlSourceManaged = SettingKey[File]("javaRoutesSourceManaged")
     val scalaTwirlSourceManaged = SettingKey[File]("scalaRoutesSourceManaged")
 
-    val evaluateSbtFiles = TaskKey[Unit](
-        "evaluateSbtFiles", "Evaluate all the sbt files in the project")
+    val evaluateSbtFiles =
+      TaskKey[Unit]("evaluateSbtFiles", "Evaluate all the sbt files in the project")
   }
 }
 
@@ -96,16 +93,14 @@ object PlayDocsPlugin extends AutoPlugin {
 
   override def requires = RoutesCompiler
 
-  override def projectSettings =
-    docsRunSettings ++ docsReportSettings ++ docsTestSettings
+  override def projectSettings = docsRunSettings ++ docsReportSettings ++ docsTestSettings
 
   def docsRunSettings =
     Seq(
         fallbackToJar := true,
         manualPath := baseDirectory.value,
         run <<= docsRunSetting,
-        generateMarkdownRefReport <<=
-          PlayDocsValidation.generateMarkdownRefReportTask,
+        generateMarkdownRefReport <<= PlayDocsValidation.generateMarkdownRefReportTask,
         validateDocs <<= PlayDocsValidation.validateDocsTask,
         validateExternalLinks <<= PlayDocsValidation.validateExternalLinksTask,
         docsVersion := play.core.PlayVersion.current,
@@ -121,13 +116,10 @@ object PlayDocsPlugin extends AutoPlugin {
 
   def docsReportSettings =
     Seq(
-        generateMarkdownCodeSamplesReport <<=
-          PlayDocsValidation.generateMarkdownCodeSamplesTask,
-        generateUpstreamCodeSamplesReport <<=
-          PlayDocsValidation.generateUpstreamCodeSamplesTask,
+        generateMarkdownCodeSamplesReport <<= PlayDocsValidation.generateMarkdownCodeSamplesTask,
+        generateUpstreamCodeSamplesReport <<= PlayDocsValidation.generateUpstreamCodeSamplesTask,
         translationCodeSamplesReportFile := target.value / "report.html",
-        translationCodeSamplesReport <<=
-          PlayDocsValidation.translationCodeSamplesReportTask,
+        translationCodeSamplesReport <<= PlayDocsValidation.translationCodeSamplesReportTask,
         cachedTranslationCodeSamplesReport <<=
           PlayDocsValidation.cachedTranslationCodeSamplesReportTask
     )
@@ -165,10 +157,8 @@ object PlayDocsPlugin extends AutoPlugin {
         },
         routesCompilerTasks in Test := {
           val javaRoutes = (javaManualSourceDirectories.value * "*.routes").get
-          val scalaRoutes =
-            (scalaManualSourceDirectories.value * "*.routes").get
-          (javaRoutes.map(_ -> Seq("play.libs.F")) ++ scalaRoutes.map(
-                  _ -> Nil)).map {
+          val scalaRoutes = (scalaManualSourceDirectories.value * "*.routes").get
+          (javaRoutes.map(_ -> Seq("play.libs.F")) ++ scalaRoutes.map(_ -> Nil)).map {
             case (file, imports) =>
               RoutesCompilerTask(file, imports, true, true, true)
           }
@@ -176,21 +166,19 @@ object PlayDocsPlugin extends AutoPlugin {
         routesGenerator := InjectedRoutesGenerator,
         evaluateSbtFiles := {
           val unit = loadedBuild.value.units(thisProjectRef.value.build)
-          val (eval, structure) =
-            Load.defaultLoad(state.value, unit.localBase, state.value.log)
-          val sbtFiles =
-            ((unmanagedSourceDirectories in Test).value * "*.sbt").get
+          val (eval, structure) = Load.defaultLoad(state.value, unit.localBase, state.value.log)
+          val sbtFiles = ((unmanagedSourceDirectories in Test).value * "*.sbt").get
           val log = state.value.log
           if (sbtFiles.nonEmpty) {
             log.info("Testing .sbt files...")
           }
           val result = sbtFiles.map {
             sbtFile =>
-              val relativeFile = relativeTo(baseDirectory.value)(sbtFile)
-                .getOrElse(sbtFile.getAbsolutePath)
+              val relativeFile =
+                relativeTo(baseDirectory.value)(sbtFile).getOrElse(sbtFile.getAbsolutePath)
               try {
-                EvaluateConfigurations.evaluateConfiguration(
-                    eval(), sbtFile, unit.imports)(unit.loader)
+                EvaluateConfigurations.evaluateConfiguration(eval(), sbtFile, unit.imports)(
+                    unit.loader)
                 log.info(s"  ${Colors.green("+")} $relativeFile")
                 true
               } catch {
@@ -211,16 +199,14 @@ object PlayDocsPlugin extends AutoPlugin {
                                               "true",
                                               "junitxml",
                                               "console"),
-        testOptions in Test +=
-          Tests.Argument(TestFrameworks.JUnit,
-                         "-v",
-                         "--ignore-runners=org.specs2.runner.JUnitRunner")
+        testOptions in Test += Tests.Argument(TestFrameworks.JUnit,
+                                              "-v",
+                                              "--ignore-runners=org.specs2.runner.JUnitRunner")
     )
 
   val docsJarFileSetting: Def.Initialize[Task[Option[File]]] = Def.task {
-    val jars = update.value
-      .matching(configurationFilter("docs") && artifactFilter(`type` = "jar"))
-      .toList
+    val jars =
+      update.value.matching(configurationFilter("docs") && artifactFilter(`type` = "jar")).toList
     jars match {
       case Nil =>
         streams.value.log.error("No docs jar was resolved")
@@ -228,8 +214,7 @@ object PlayDocsPlugin extends AutoPlugin {
       case jar :: Nil =>
         Option(jar)
       case multiple =>
-        streams.value.log
-          .error("Multiple docs jars were resolved: " + multiple)
+        streams.value.log.error("Multiple docs jars were resolved: " + multiple)
         multiple.headOption
     }
   }
@@ -260,25 +245,22 @@ object PlayDocsPlugin extends AutoPlugin {
         new JarFile(f)
       }
 
-    val docHandlerFactoryClass =
-      classloader.loadClass("play.docs.BuildDocHandlerFactory")
+    val docHandlerFactoryClass = classloader.loadClass("play.docs.BuildDocHandlerFactory")
     val buildDocHandler = maybeDocsJar match {
       case Some(docsJar) =>
-        val fromDirectoryAndJarMethod =
-          docHandlerFactoryClass.getMethod("fromDirectoryAndJar",
-                                           classOf[java.io.File],
-                                           classOf[JarFile],
-                                           classOf[String],
-                                           classOf[Boolean])
-        fromDirectoryAndJarMethod.invoke(
-            null,
-            manualPath.value,
-            docsJar,
-            "play/docs/content",
-            fallbackToJar.value: java.lang.Boolean)
+        val fromDirectoryAndJarMethod = docHandlerFactoryClass.getMethod("fromDirectoryAndJar",
+                                                                         classOf[java.io.File],
+                                                                         classOf[JarFile],
+                                                                         classOf[String],
+                                                                         classOf[Boolean])
+        fromDirectoryAndJarMethod.invoke(null,
+                                         manualPath.value,
+                                         docsJar,
+                                         "play/docs/content",
+                                         fallbackToJar.value: java.lang.Boolean)
       case None =>
-        val fromDirectoryMethod = docHandlerFactoryClass.getMethod(
-            "fromDirectory", classOf[java.io.File])
+        val fromDirectoryMethod =
+          docHandlerFactoryClass.getMethod("fromDirectory", classOf[java.io.File])
         fromDirectoryMethod.invoke(null, manualPath.value)
     }
 
@@ -293,23 +275,11 @@ object PlayDocsPlugin extends AutoPlugin {
 
     val translationReport = new Callable[File] {
       def call() =
-        Project
-          .runTask(cachedTranslationCodeSamplesReport, state.value)
-          .get
-          ._2
-          .toEither
-          .right
-          .get
+        Project.runTask(cachedTranslationCodeSamplesReport, state.value).get._2.toEither.right.get
     }
     val forceTranslationReport = new Callable[File] {
       def call() =
-        Project
-          .runTask(translationCodeSamplesReport, state.value)
-          .get
-          ._2
-          .toEither
-          .right
-          .get
+        Project.runTask(translationCodeSamplesReport, state.value).get._2.toEither.right.get
     }
     val docServerStart = constructor.newInstance()
     val server: ServerWithStop = startMethod
@@ -322,8 +292,8 @@ object PlayDocsPlugin extends AutoPlugin {
       .asInstanceOf[ServerWithStop]
 
     println()
-    println(Colors.green(
-            "Documentation server started, you can now view the docs by going to http://" +
+    println(Colors
+          .green("Documentation server started, you can now view the docs by going to http://" +
             server.mainAddress()))
     println()
 

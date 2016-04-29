@@ -9,13 +9,11 @@ import play.api.test._
 import play.api.test.TestServer
 import play.api.libs.iteratee._
 
-object NettyExpect100ContinueSpec
-    extends Expect100ContinueSpec with NettyIntegrationSpecification
+object NettyExpect100ContinueSpec extends Expect100ContinueSpec with NettyIntegrationSpecification
 object AkkaHttpExpect100ContinueSpec
     extends Expect100ContinueSpec with AkkaHttpIntegrationSpecification
 
-trait Expect100ContinueSpec
-    extends PlaySpecification with ServerIntegrationSpecification {
+trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   "Play" should {
 
@@ -36,8 +34,7 @@ trait Expect100ContinueSpec
           BasicRequest("POST",
                        "/",
                        "HTTP/1.1",
-                       Map("Expect" -> "100-continue",
-                           "Content-Length" -> "10"),
+                       Map("Expect" -> "100-continue", "Content-Length" -> "10"),
                        "abcdefghij")
       )
       responses.length must_== 2
@@ -52,8 +49,7 @@ trait Expect100ContinueSpec
           BasicRequest("POST",
                        "/",
                        "HTTP/1.1",
-                       Map("Expect" -> "100-continue",
-                           "Content-Length" -> "100000"),
+                       Map("Expect" -> "100-continue", "Content-Length" -> "100000"),
                        "foo")
       )
       responses.length must_== 1
@@ -74,8 +70,7 @@ trait Expect100ContinueSpec
           BasicRequest("POST",
                        "/",
                        "HTTP/1.1",
-                       Map("Expect" -> "100-continue",
-                           "Content-Length" -> "100000"),
+                       Map("Expect" -> "100-continue", "Content-Length" -> "100000"),
                        "foo")
       )
       responses.length must_== 1
@@ -89,8 +84,7 @@ trait Expect100ContinueSpec
           BasicRequest("POST",
                        "/",
                        "HTTP/1.1",
-                       Map("Expect" -> "100-continue",
-                           "Content-Length" -> "10"),
+                       Map("Expect" -> "100-continue", "Content-Length" -> "10"),
                        "abcdefghij"),
           BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
       )

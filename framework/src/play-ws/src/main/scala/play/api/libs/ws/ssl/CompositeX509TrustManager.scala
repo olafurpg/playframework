@@ -48,8 +48,7 @@ class CompositeX509TrustManager(
     logger.debug("checkClientTrusted: chain = {}", debugChain(chain))
 
     val anchor: TrustAnchor = new TrustAnchor(chain(chain.length - 1), null)
-    logger.debug(
-        s"checkClientTrusted: checking key size only on root anchor $anchor")
+    logger.debug(s"checkClientTrusted: checking key size only on root anchor $anchor")
     algorithmChecker.checkKeyAlgorithms(anchor.getTrustedCert)
 
     var trusted = false
@@ -66,17 +65,14 @@ class CompositeX509TrustManager(
     }
   }
 
-  def checkServerTrusted(
-      chain: Array[X509Certificate], authType: String): Unit = {
-    logger.debug(
-        s"checkServerTrusted: chain = ${debugChain(chain)}, authType = $authType")
+  def checkServerTrusted(chain: Array[X509Certificate], authType: String): Unit = {
+    logger.debug(s"checkServerTrusted: chain = ${debugChain(chain)}, authType = $authType")
 
     // Trust anchor is at the end of the chain... there is no way to pass a trust anchor
     // through to a checker in PKIXCertPathValidator.doValidate(), so the trust manager is the
     // last place we have access to it.
     val anchor: TrustAnchor = new TrustAnchor(chain(chain.length - 1), null)
-    logger.debug(
-        s"checkServerTrusted: checking key size only on root anchor $anchor")
+    logger.debug(s"checkServerTrusted: checking key size only on root anchor $anchor")
     algorithmChecker.checkKeyAlgorithms(anchor.getTrustedCert)
 
     var trusted = false
@@ -96,8 +92,7 @@ class CompositeX509TrustManager(
     }
   }
 
-  private def withTrustManagers(
-      block: (X509TrustManager => Unit)): Seq[Throwable] = {
+  private def withTrustManagers(block: (X509TrustManager => Unit)): Seq[Throwable] = {
     val exceptionList = ArrayBuffer[Throwable]()
     trustManagers.foreach { trustManager =>
       try {

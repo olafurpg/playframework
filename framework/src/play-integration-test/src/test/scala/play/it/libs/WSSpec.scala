@@ -21,9 +21,7 @@ object NettyWSSpec extends WSSpec with NettyIntegrationSpecification
 
 object AkkaHttpWSSpec extends WSSpec with AkkaHttpIntegrationSpecification
 
-trait WSSpec
-    extends PlaySpecification with ServerIntegrationSpecification
-    with WsTestClient {
+trait WSSpec extends PlaySpecification with ServerIntegrationSpecification with WsTestClient {
 
   "Web service client" title
 
@@ -66,10 +64,8 @@ trait WSSpec
     }
 
     "use user:password in url" in withServer { port =>
-      val rep = WS
-        .url(s"http://user:password@localhost:$port/basic-auth/user/password")
-        .get()
-        .get(1000)
+      val rep =
+        WS.url(s"http://user:password@localhost:$port/basic-auth/user/password").get().get(1000)
 
       rep.getStatus aka "status" must_== 200 and
       (rep.asJson().path("authenticated").booleanValue() must beTrue)
@@ -78,8 +74,7 @@ trait WSSpec
     "reject invalid query string" in withServer { port =>
       import java.net.MalformedURLException
 
-      WS.url("http://localhost/get?=&foo").aka("invalid request") must throwA[
-          RuntimeException].like {
+      WS.url("http://localhost/get?=&foo").aka("invalid request") must throwA[RuntimeException].like {
         case e: RuntimeException =>
           e.getCause must beAnInstanceOf[MalformedURLException]
       }
@@ -88,8 +83,7 @@ trait WSSpec
     "reject invalid user password string" in withServer { port =>
       import java.net.MalformedURLException
 
-      WS.url("http://@localhost/get").aka("invalid request") must throwA[
-          RuntimeException].like {
+      WS.url("http://@localhost/get").aka("invalid request") must throwA[RuntimeException].like {
         case e: RuntimeException =>
           e.getCause must beAnInstanceOf[MalformedURLException]
       }
@@ -104,11 +98,9 @@ trait WSSpec
     }
 
     class CustomSigner
-        extends WSSignatureCalculator
-        with com.ning.http.client.SignatureCalculator {
-      def calculateAndAddSignature(
-          request: com.ning.http.client.Request,
-          requestBuilder: com.ning.http.client.RequestBuilderBase[_]) = {
+        extends WSSignatureCalculator with com.ning.http.client.SignatureCalculator {
+      def calculateAndAddSignature(request: com.ning.http.client.Request,
+                                   requestBuilder: com.ning.http.client.RequestBuilderBase[_]) = {
         // do nothing
       }
     }
@@ -122,8 +114,7 @@ trait WSSpec
 
       val calc: WSSignatureCalculator = new CustomSigner
 
-      WS.url("http://localhost").sign(calc).aka("signed request") must not(
-          throwA[Exception])
+      WS.url("http://localhost").sign(calc).aka("signed request") must not(throwA[Exception])
     }
   }
 
@@ -144,13 +135,13 @@ trait WSSpec
       Await.result(req, Duration(1, SECONDS)).status aka "status" must_== 404
     }
 
-    "get a streamed response" in withResult(
-        Results.Ok.chunked(Enumerator("a", "b", "c"))) { port =>
-      val res = WS.url(s"http://localhost:$port/get").stream()
-      val (_, body) = await(res)
+    "get a streamed response" in withResult(Results.Ok.chunked(Enumerator("a", "b", "c"))) {
+      port =>
+        val res = WS.url(s"http://localhost:$port/get").stream()
+        val (_, body) = await(res)
 
-      new String(await(body |>>> Iteratee.consume[Array[Byte]]()), "utf-8")
-        .aka("streamed response") must_== "abc"
+        new String(await(body |>>> Iteratee.consume[Array[Byte]]()), "utf-8")
+          .aka("streamed response") must_== "abc"
     }
 
     def slow[E](ms: Long): Enumeratee[E, E] = Enumeratee.mapM { i =>
@@ -171,8 +162,8 @@ trait WSSpec
       val res = WS.url(s"http://localhost:$port/get").stream()
       val (_, body) = await(res)
 
-      new String(await(body &> slow(50) |>>> Iteratee.consume[Array[Byte]]()),
-                 "utf-8").aka("streamed response") must_== "abc"
+      new String(await(body &> slow(50) |>>> Iteratee.consume[Array[Byte]]()), "utf-8")
+        .aka("streamed response") must_== "abc"
     }
 
     "propagate errors from the stream" in withResult(Results.Ok
@@ -187,8 +178,8 @@ trait WSSpec
         val res = ws.url(s"http://localhost:$port/get").stream()
         val (_, body) = await(res)
 
-        await(body |>>> Iteratee.consume[Array[Byte]]())
-          .aka("streamed response") must throwAn[IOException]
+        await(body |>>> Iteratee.consume[Array[Byte]]()).aka("streamed response") must throwAn[
+            IOException]
       }
     }
 
@@ -203,18 +194,13 @@ trait WSSpec
       val calc = new CustomSigner
 
       "without query string" in withServer { port =>
-        WS
-          .url("http://localhost:" + port)
-          .sign(calc)
-          .get()
-          .aka("signed request") must not(throwA[NullPointerException])
+        WS.url("http://localhost:" + port).sign(calc).get().aka("signed request") must not(
+            throwA[NullPointerException])
       }
 
       "with query string" in withServer { port =>
-        WS
-          .url("http://localhost:" + port)
-          .withQueryString("lorem" -> "ipsum")
-          .sign(calc) aka "signed request" must not(throwA[Exception])
+        WS.url("http://localhost:" + port).withQueryString("lorem" -> "ipsum").sign(calc) aka "signed request" must not(
+            throwA[Exception])
       }
     }
   }

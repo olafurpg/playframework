@@ -15,9 +15,7 @@ object GuiceApplicationBuilderSpec extends Specification {
   "GuiceApplicationBuilder" should {
 
     "add bindings" in {
-      val app = new GuiceApplicationBuilder()
-        .bindings(new AModule, bind[B].to[B1])
-        .build
+      val app = new GuiceApplicationBuilder().bindings(new AModule, bind[B].to[B1]).build
 
       app.injector.instanceOf[A] must beAnInstanceOf[A1]
       app.injector.instanceOf[B] must beAnInstanceOf[B1]
@@ -26,8 +24,7 @@ object GuiceApplicationBuilderSpec extends Specification {
     "override bindings" in {
       val app = new GuiceApplicationBuilder()
         .bindings(new AModule)
-        .overrides(bind[Configuration] to new ExtendConfiguration("a" -> 1),
-                   bind[A].to[A2])
+        .overrides(bind[Configuration] to new ExtendConfiguration("a" -> 1), bind[A].to[A2])
         .build
 
       app.configuration.getInt("a") must beSome(1)
@@ -43,8 +40,7 @@ object GuiceApplicationBuilderSpec extends Specification {
 
       app.injector.instanceOf[play.api.i18n.Langs] must throwA[
           com.google.inject.ConfigurationException]
-      app.injector.instanceOf[A] must throwA[
-          com.google.inject.ConfigurationException]
+      app.injector.instanceOf[A] must throwA[com.google.inject.ConfigurationException]
     }
 
     "set initial configuration loader" in {
@@ -75,9 +71,7 @@ object GuiceApplicationBuilderSpec extends Specification {
     }
 
     "set loaded modules directly" in {
-      val app = new GuiceApplicationBuilder()
-        .load(new BuiltinModule, bind[A].to[A1])
-        .build
+      val app = new GuiceApplicationBuilder().load(new BuiltinModule, bind[A].to[A1]).build
 
       app.injector.instanceOf[A] must beAnInstanceOf[A1]
     }
@@ -97,8 +91,7 @@ object GuiceApplicationBuilderSpec extends Specification {
   trait B
   class B1 extends B
 
-  class ExtendConfiguration(conf: (String, Any)*)
-      extends Provider[Configuration] {
+  class ExtendConfiguration(conf: (String, Any)*) extends Provider[Configuration] {
     @Inject
     var injector: Injector = _
     lazy val get = {

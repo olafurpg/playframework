@@ -20,11 +20,9 @@ object EventSource {
 
   trait LowPriorityEventEncoder {
 
-    implicit val stringEvents: EventDataExtractor[String] = EventDataExtractor(
-        identity)
+    implicit val stringEvents: EventDataExtractor[String] = EventDataExtractor(identity)
 
-    implicit val jsonEvents: EventDataExtractor[JsValue] = EventDataExtractor(
-        Json.stringify)
+    implicit val jsonEvents: EventDataExtractor[JsValue] = EventDataExtractor(Json.stringify)
   }
 
   object EventDataExtractor extends LowPriorityEventEncoder
@@ -35,8 +33,7 @@ object EventSource {
 
   trait LowPriorityEventNameExtractor {
 
-    implicit def non[E]: EventNameExtractor[E] =
-      EventNameExtractor[E](_ => None)
+    implicit def non[E]: EventNameExtractor[E] = EventNameExtractor[E](_ => None)
   }
 
   trait LowPriorityEventIdExtractor {
@@ -88,9 +85,7 @@ object EventSource {
     def apply[A](a: A)(implicit dataExtractor: EventDataExtractor[A],
                        nameExtractor: EventNameExtractor[A],
                        idExtractor: EventIdExtractor[A]): Event =
-      Event(dataExtractor.eventData(a),
-            idExtractor.eventId(a),
-            nameExtractor.eventName(a))
+      Event(dataExtractor.eventData(a), idExtractor.eventId(a), nameExtractor.eventName(a))
 
     implicit def writeable(implicit codec: Codec): Writeable[Event] =
       Writeable(event => codec.encode(event.formatted))

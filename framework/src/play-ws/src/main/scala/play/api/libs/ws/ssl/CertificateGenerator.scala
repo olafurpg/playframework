@@ -28,8 +28,7 @@ object CertificateGenerator {
   def generateRSAWithSHA256(keySize: Int = 2048,
                             from: Instant = Instant.now,
                             duration: Int = 5000000): X509Certificate = {
-    val dn =
-      "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
+    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
     val to = from.plus(duration)
 
     val keyGen = KeyPairGenerator.getInstance("RSA")
@@ -58,8 +57,7 @@ object CertificateGenerator {
   def generateRSAWithMD5(keySize: Int = 2048,
                          from: Instant = Instant.now,
                          duration: Int = 5000000): X509Certificate = {
-    val dn =
-      "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
+    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
     val to = from.plus(duration)
 
     val keyGen = KeyPairGenerator.getInstance("RSA")
@@ -73,13 +71,12 @@ object CertificateGenerator {
                         AlgorithmId.md5WithRSAEncryption_oid)
   }
 
-  private[play] def generateCertificate(
-      dn: String,
-      pair: KeyPair,
-      from: Date,
-      to: Date,
-      algorithm: String,
-      oid: ObjectIdentifier): X509Certificate = {
+  private[play] def generateCertificate(dn: String,
+                                        pair: KeyPair,
+                                        from: Date,
+                                        to: Date,
+                                        algorithm: String,
+                                        oid: ObjectIdentifier): X509Certificate = {
 
     val info: X509CertInfo = new X509CertInfo
     val interval: CertificateValidity = new CertificateValidity(from, to)
@@ -93,13 +90,10 @@ object CertificateGenerator {
 
     info.set(X509CertInfo.VALIDITY, interval)
     info.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(sn))
-    info.set(X509CertInfo.SUBJECT,
-             if (justName) owner else new CertificateSubjectName(owner))
-    info.set(X509CertInfo.ISSUER,
-             if (justName) owner else new CertificateIssuerName(owner))
+    info.set(X509CertInfo.SUBJECT, if (justName) owner else new CertificateSubjectName(owner))
+    info.set(X509CertInfo.ISSUER, if (justName) owner else new CertificateIssuerName(owner))
     info.set(X509CertInfo.KEY, new CertificateX509Key(pair.getPublic))
-    info.set(
-        X509CertInfo.VERSION, new CertificateVersion(CertificateVersion.V3))
+    info.set(X509CertInfo.VERSION, new CertificateVersion(CertificateVersion.V3))
 
     var algo: AlgorithmId = new AlgorithmId(oid)
 
@@ -108,9 +102,7 @@ object CertificateGenerator {
     val privkey: PrivateKey = pair.getPrivate
     cert.sign(privkey, algorithm)
     algo = cert.get(X509CertImpl.SIG_ALG).asInstanceOf[AlgorithmId]
-    info.set(
-        CertificateAlgorithmId.NAME + "." + CertificateAlgorithmId.ALGORITHM,
-        algo)
+    info.set(CertificateAlgorithmId.NAME + "." + CertificateAlgorithmId.ALGORITHM, algo)
     cert = new X509CertImpl(info)
     cert.sign(privkey, algorithm)
     cert

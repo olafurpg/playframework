@@ -49,8 +49,7 @@ import javax.inject.{Inject, Singleton}
 private class SelfPopulatingMap[K, V] {
   private val store = TrieMap[K, Future[Option[V]]]()
 
-  def putIfAbsent(k: K)(
-      pf: K => Option[V])(implicit ec: ExecutionContext): Future[Option[V]] = {
+  def putIfAbsent(k: K)(pf: K => Option[V])(implicit ec: ExecutionContext): Future[Option[V]] = {
     lazy val p = Promise[Option[V]]()
     store.putIfAbsent(k, p.future) match {
       case Some(f) => f
@@ -87,18 +86,15 @@ private[controllers] object AssetInfo {
       resource <- app.resource(name)
     } yield resource
 
-  lazy val defaultCharSet =
-    config(_.getString("default.charset")).getOrElse("utf-8")
+  lazy val defaultCharSet = config(_.getString("default.charset")).getOrElse("utf-8")
 
-  lazy val defaultCacheControl = config(_.getString("assets.defaultCache"))
-    .getOrElse("public, max-age=3600")
+  lazy val defaultCacheControl =
+    config(_.getString("assets.defaultCache")).getOrElse("public, max-age=3600")
 
   lazy val aggressiveCacheControl =
-    config(_.getString("assets.aggressiveCache"))
-      .getOrElse("public, max-age=31536000")
+    config(_.getString("assets.aggressiveCache")).getOrElse("public, max-age=31536000")
 
-  lazy val digestAlgorithm =
-    config(_.getString("assets.digest.algorithm")).getOrElse("md5")
+  lazy val digestAlgorithm = config(_.getString("assets.digest.algorithm")).getOrElse("md5")
 
   private val basicDateFormatPattern = "EEE, dd MMM yyyy HH:mm:ss"
   val dateFormat: DateTimeFormatter = DateTimeFormat
@@ -123,9 +119,9 @@ private[controllers] object AssetInfo {
     *   matcher. (The " GMT" is discarded to give them the same format.)
     * - "Wed Jan 07 2015 22:54:20 GMT-0800" uses the second matcher.
     */
-  private val dateRecognizer = Pattern.compile(
-      """^(((\w\w\w, \d\d \w\w\w \d\d\d\d \d\d:\d\d:\d\d)(( GMT)?))|""" +
-      """(\w\w\w \w\w\w \d\d \d\d\d\d \d\d:\d\d:\d\d GMT.\d\d\d\d))(\b.*)""")
+  private val dateRecognizer =
+    Pattern.compile("""^(((\w\w\w, \d\d \w\w\w \d\d\d\d \d\d:\d\d:\d\d)(( GMT)?))|""" +
+        """(\w\w\w \w\w\w \d\d \d\d\d\d \d\d:\d\d:\d\d GMT.\d\d\d\d))(\b.*)""")
 
   /*
    * jodatime does not parse timezones, so we handle that manually
@@ -140,14 +136,11 @@ private[controllers] object AssetInfo {
         } else {
           val alternativeDate =
             matcher.group(6) // Cannot be null otherwise match would have failed
-          Some(alternativeDateFormatWithTZOffset
-                .parseDateTime(alternativeDate)
-                .toDate)
+          Some(alternativeDateFormatWithTZOffset.parseDateTime(alternativeDate).toDate)
         }
       } catch {
         case e: IllegalArgumentException =>
-          Logger.debug(
-              s"An invalid date was received: couldn't parse: $date", e)
+          Logger.debug(s"An invalid date was received: couldn't parse: $date", e)
           None
       }
     } else {
@@ -171,8 +164,7 @@ private[controllers] class AssetInfo(val name: String,
     if (MimeTypes.isText(mimeType)) s"$mimeType; charset=$defaultCharSet"
     else mimeType
 
-  val configuredCacheControl = config(
-      _.getString("\"assets.cache." + name + "\""))
+  val configuredCacheControl = config(_.getString("\"assets.cache." + name + "\""))
 
   def cacheControl(aggressiveCaching: Boolean): String = {
     configuredCacheControl.getOrElse {
@@ -210,8 +202,7 @@ private[controllers] class AssetInfo(val name: String,
       lastModified map (m => Codecs.sha1(m + " -> " + url.toExternalForm))
     } map ("\"" + _ + "\"")
 
-  val mimeType: String =
-    MimeTypes.forFileName(name).fold(ContentTypes.BINARY)(addCharsetIfNeeded)
+  val mimeType: String = MimeTypes.forFileName(name).fold(ContentTypes.BINARY)(addCharsetIfNeeded)
 
   val parsedLastModified = lastModified flatMap parseModifiedDate
 
@@ -272,8 +263,7 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
   private[controllers] def digest(path: String): Option[String] = {
     digestCache.getOrElse(path, {
       val maybeDigestUrl: Option[URL] = resource(path + "." + digestAlgorithm)
-      val maybeDigest: Option[String] =
-        maybeDigestUrl.map(Source.fromURL(_).mkString)
+      val maybeDigest: Option[String] = maybeDigestUrl.map(Source.fromURL(_).mkString)
       if (!isDev && maybeDigest.isDefined) digestCache.put(path, maybeDigest)
       maybeDigest
     })
@@ -282,8 +272,7 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
   // Sames goes for the minified paths cache.
   val minifiedPathsCache = TrieMap[String, String]()
 
-  lazy val checkForMinified =
-    config(_.getBoolean("assets.checkForMinified")).getOrElse(true)
+  lazy val checkForMinified = config(_.getBoolean("assets.checkForMinified")).getOrElse(true)
 
   private[controllers] def minifiedPath(path: String): String = {
     minifiedPathsCache.getOrElse(path, {
@@ -304,8 +293,7 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
     })
   }
 
-  private[controllers] lazy val assetInfoCache =
-    new SelfPopulatingMap[String, AssetInfo]()
+  private[controllers] lazy val assetInfoCache = new SelfPopulatingMap[String, AssetInfo]()
 
   private def assetInfoFromResource(name: String): Option[AssetInfo] = {
     blocking {
@@ -322,17 +310,14 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
     if (isDev) {
       Future.successful(assetInfoFromResource(name))
     } else {
-      assetInfoCache.putIfAbsent(name)(assetInfoFromResource)(
-          Implicits.trampoline)
+      assetInfoCache.putIfAbsent(name)(assetInfoFromResource)(Implicits.trampoline)
     }
   }
 
   private[controllers] def assetInfoForRequest(
-      request: RequestHeader,
-      name: String): Future[Option[(AssetInfo, Boolean)]] = {
-    val gzipRequested = request.headers
-      .get(ACCEPT_ENCODING)
-      .exists(_.split(',').exists(_.trim == "gzip"))
+      request: RequestHeader, name: String): Future[Option[(AssetInfo, Boolean)]] = {
+    val gzipRequested =
+      request.headers.get(ACCEPT_ENCODING).exists(_.split(',').exists(_.trim == "gzip"))
     assetInfo(name).map(_.map(_ -> gzipRequested))(Implicits.trampoline)
   }
 
@@ -357,39 +342,35 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
         .toString
     }
 
-    implicit def assetPathBindable(implicit rrc: ReverseRouteContext) =
-      new PathBindable[Asset] {
-        def bind(key: String, value: String) = Right(new Asset(value))
+    implicit def assetPathBindable(implicit rrc: ReverseRouteContext) = new PathBindable[Asset] {
+      def bind(key: String, value: String) = Right(new Asset(value))
 
-        def unbind(key: String, value: Asset): String = {
-          val base = pathFromParams(rrc)
-          val path = base + "/" + value.name
-          blocking {
-            val minPath = minifiedPath(path)
-            digest(minPath)
-              .fold(minPath) { dgst =>
-                val lastSep = minPath.lastIndexOf("/")
-                minPath.take(lastSep + 1) + dgst + "-" +
-                minPath.drop(lastSep + 1)
-              }
-              .drop(base.size + 1)
-          }
+      def unbind(key: String, value: Asset): String = {
+        val base = pathFromParams(rrc)
+        val path = base + "/" + value.name
+        blocking {
+          val minPath = minifiedPath(path)
+          digest(minPath)
+            .fold(minPath) { dgst =>
+              val lastSep = minPath.lastIndexOf("/")
+              minPath.take(lastSep + 1) + dgst + "-" + minPath.drop(lastSep + 1)
+            }
+            .drop(base.size + 1)
         }
       }
+    }
   }
 }
 
 @Singleton
-class Assets @Inject()(errorHandler: HttpErrorHandler)
-    extends AssetsBuilder(errorHandler)
+class Assets @Inject()(errorHandler: HttpErrorHandler) extends AssetsBuilder(errorHandler)
 
 class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
 
   import Assets._
   import AssetInfo._
 
-  private def currentTimeFormatted: String =
-    dateFormat.print((new Date).getTime)
+  private def currentTimeFormatted: String = dateFormat.print((new Date).getTime)
 
   private def maybeNotModified(request: RequestHeader,
                                assetInfo: AssetInfo,
@@ -401,15 +382,12 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
       case Some(etags) =>
         assetInfo.etag
           .filter(someEtag => etags.split(',').exists(_.trim == someEtag))
-          .flatMap(_ =>
-                Some(cacheableResult(
-                        assetInfo, aggressiveCaching, NotModified)))
+          .flatMap(_ => Some(cacheableResult(assetInfo, aggressiveCaching, NotModified)))
       case None =>
         for {
           ifModifiedSinceStr <- request.headers.get(IF_MODIFIED_SINCE)
           ifModifiedSince <- parseModifiedDate(ifModifiedSinceStr)
-          lastModified <- assetInfo.parsedLastModified
-                             if !lastModified.after(ifModifiedSince)
+          lastModified <- assetInfo.parsedLastModified if !lastModified.after(ifModifiedSince)
         } yield {
           NotModified.withHeaders(DATE -> currentTimeFormatted)
         }
@@ -419,8 +397,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
   private def cacheableResult[A <: Result](
       assetInfo: AssetInfo, aggressiveCaching: Boolean, r: A): Result = {
 
-    def addHeaderIfValue(
-        name: String, maybeValue: Option[String], response: Result): Result = {
+    def addHeaderIfValue(name: String, maybeValue: Option[String], response: Result): Result = {
       maybeValue.fold(response)(v => response.withHeaders(name -> v))
     }
 
@@ -458,25 +435,23 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
   /**
     * Generates an `Action` that serves a versioned static resource.
     */
-  def versioned(path: String, file: Asset): Action[AnyContent] =
-    Action.async { implicit request =>
-      val f = new File(file.name)
-      // We want to detect if it's a fingerprinted asset, because if it's fingerprinted, we can aggressively cache it,
-      // otherwise we can't.
-      val requestedDigest = f.getName.takeWhile(_ != '-')
-      if (!requestedDigest.isEmpty) {
-        val bareFile = new File(
-            f.getParent, f.getName.drop(requestedDigest.size + 1)).getPath
-        val bareFullPath = new File(path + File.separator + bareFile).getPath
-        blocking(digest(bareFullPath)) match {
-          case Some(`requestedDigest`) =>
-            assetAt(path, bareFile, aggressiveCaching = true)
-          case _ => assetAt(path, file.name, false)
-        }
-      } else {
-        assetAt(path, file.name, false)
+  def versioned(path: String, file: Asset): Action[AnyContent] = Action.async { implicit request =>
+    val f = new File(file.name)
+    // We want to detect if it's a fingerprinted asset, because if it's fingerprinted, we can aggressively cache it,
+    // otherwise we can't.
+    val requestedDigest = f.getName.takeWhile(_ != '-')
+    if (!requestedDigest.isEmpty) {
+      val bareFile = new File(f.getParent, f.getName.drop(requestedDigest.size + 1)).getPath
+      val bareFullPath = new File(path + File.separator + bareFile).getPath
+      blocking(digest(bareFullPath)) match {
+        case Some(`requestedDigest`) =>
+          assetAt(path, bareFile, aggressiveCaching = true)
+        case _ => assetAt(path, file.name, false)
       }
+    } else {
+      assetAt(path, file.name, false)
     }
+  }
 
   /**
     * Generates an `Action` that serves a static resource.
@@ -485,9 +460,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
     * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
     * @param aggressiveCaching if true then an aggressive set of caching directives will be used. Defaults to false.
     */
-  def at(path: String,
-         file: String,
-         aggressiveCaching: Boolean = false): Action[AnyContent] =
+  def at(path: String, file: String, aggressiveCaching: Boolean = false): Action[AnyContent] =
     Action.async { implicit request =>
       assetAt(path, file, aggressiveCaching)
     }
@@ -502,8 +475,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
       } getOrElse Future.successful(None)
 
     def notFound =
-      errorHandler.onClientError(
-          request, NOT_FOUND, "Resource not found by Assets controller")
+      errorHandler.onClientError(request, NOT_FOUND, "Resource not found by Assets controller")
 
     val pendingResult: Future[Result] = assetInfoFuture.flatMap {
       case Some((assetInfo, gzipRequested)) =>
@@ -515,11 +487,9 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
         } else {
           val stream = connection.getInputStream
           val length = stream.available
-          val resourceData =
-            Enumerator.fromStream(stream)(Implicits.defaultExecutionContext)
+          val resourceData = Enumerator.fromStream(stream)(Implicits.defaultExecutionContext)
 
-          Future.successful(maybeNotModified(
-                  request, assetInfo, aggressiveCaching).getOrElse {
+          Future.successful(maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
             cacheableResult(
                 assetInfo,
                 aggressiveCaching,
@@ -537,18 +507,15 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
 
     pendingResult.recoverWith {
       case e: InvalidUriEncodingException =>
-        errorHandler.onClientError(
-            request,
-            BAD_REQUEST,
-            s"Invalid URI encoding for $file at $path: " + e.getMessage)
+        errorHandler.onClientError(request,
+                                   BAD_REQUEST,
+                                   s"Invalid URI encoding for $file at $path: " + e.getMessage)
       case NonFatal(e) =>
         // Add a bit more information to the exception for better error reporting later
         errorHandler.onServerError(
             request,
-            new RuntimeException(
-                s"Unexpected error while serving $file at $path: " +
-                e.getMessage,
-                e))
+            new RuntimeException(s"Unexpected error while serving $file at $path: " + e.getMessage,
+                                 e))
     }
   }
 
@@ -558,11 +525,9 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
     * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
     * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
     */
-  private[controllers] def resourceNameAt(
-      path: String, file: String): Option[String] = {
+  private[controllers] def resourceNameAt(path: String, file: String): Option[String] = {
     val decodedFile = UriEncoding.decodePath(file, "utf-8")
-    def dblSlashRemover(input: String): String =
-      dblSlashPattern.replaceAllIn(input, "/")
+    def dblSlashRemover(input: String): String = dblSlashPattern.replaceAllIn(input, "/")
     val resourceName = dblSlashRemover(s"/$path/$decodedFile")
     val resourceFile = new File(resourceName)
     val pathFile = new File(path)

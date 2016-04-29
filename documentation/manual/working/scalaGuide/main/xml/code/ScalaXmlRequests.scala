@@ -50,8 +50,7 @@ package scalaguide.xml.scalaxmlrequests {
         }
         //#xml-request-body-parser
 
-        testAction(sayHello,
-                   FakeRequest().withXmlBody(<name>XF</name>).map(_.xml))
+        testAction(sayHello, FakeRequest().withXmlBody(<name>XF</name>).map(_.xml))
       }
 
       "request body as xml body parser and xml response" in {
@@ -64,14 +63,12 @@ package scalaguide.xml.scalaxmlrequests {
               Ok(<message status="OK">Hello {name}</message>)
             }
             .getOrElse {
-              BadRequest(
-                  <message status="KO">Missing parameter [name]</message>)
+              BadRequest(<message status="KO">Missing parameter [name]</message>)
             }
         }
         //#xml-request-body-parser-xml-response
 
-        testAction(sayHello,
-                   FakeRequest().withXmlBody(<name>XF</name>).map(_.xml))
+        testAction(sayHello, FakeRequest().withXmlBody(<name>XF</name>).map(_.xml))
       }
     }
 

@@ -28,8 +28,7 @@ package scalaguide.http.scalaactionscomposition {
         import play.api.mvc._
 
         object LoggingAction extends ActionBuilder[Request] {
-          def invokeBlock[A](request: Request[A],
-                             block: (Request[A]) => Future[Result]) = {
+          def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
             Logger.info("Calling action")
             block(request)
           }
@@ -72,12 +71,10 @@ package scalaguide.http.scalaactionscomposition {
 
         //#actions-wrapping-builder
         object LoggingAction extends ActionBuilder[Request] {
-          def invokeBlock[A](request: Request[A],
-                             block: (Request[A]) => Future[Result]) = {
+          def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
             block(request)
           }
-          override def composeAction[A](action: Action[A]) =
-            new Logging(action)
+          override def composeAction[A](action: Action[A]) = new Logging(action)
         }
         //#actions-wrapping-builder
 
@@ -109,11 +106,10 @@ package scalaguide.http.scalaactionscomposition {
         //#actions-def-wrapping
         import play.api.mvc._
 
-        def logging[A](action: Action[A]) =
-          Action.async(action.parser) { request =>
-            Logger.info("Calling action")
-            action(request)
-          }
+        def logging[A](action: Action[A]) = Action.async(action.parser) { request =>
+          Logger.info("Calling action")
+          action(request)
+        }
         //#actions-def-wrapping
 
         val request = FakeRequest().withTextBody("hello with the parse")
@@ -128,16 +124,15 @@ package scalaguide.http.scalaactionscomposition {
         //#modify-request
         import play.api.mvc._
 
-        def xForwardedFor[A](action: Action[A]) =
-          Action.async(action.parser) { request =>
-            val newRequest =
-              request.headers.get("X-Forwarded-For").map { xff =>
-                new WrappedRequest[A](request) {
-                  override def remoteAddress = xff
-                }
-              } getOrElse request
-            action(newRequest)
-          }
+        def xForwardedFor[A](action: Action[A]) = Action.async(action.parser) { request =>
+          val newRequest =
+            request.headers.get("X-Forwarded-For").map { xff =>
+              new WrappedRequest[A](request) {
+                override def remoteAddress = xff
+              }
+            } getOrElse request
+          action(newRequest)
+        }
         //#modify-request
 
         testAction(xForwardedFor(Action(Ok)))
@@ -147,18 +142,16 @@ package scalaguide.http.scalaactionscomposition {
         //#block-request
         import play.api.mvc._
 
-        def onlyHttps[A](action: Action[A]) =
-          Action.async(action.parser) { request =>
-            request.headers.get("X-Forwarded-Proto").collect {
-              case "https" => action(request)
-            } getOrElse {
-              Future.successful(Forbidden("Only HTTPS requests allowed"))
-            }
+        def onlyHttps[A](action: Action[A]) = Action.async(action.parser) { request =>
+          request.headers.get("X-Forwarded-Proto").collect {
+            case "https" => action(request)
+          } getOrElse {
+            Future.successful(Forbidden("Only HTTPS requests allowed"))
           }
+        }
         //#block-request
 
-        testAction(action = onlyHttps(Action(Ok)),
-                   expectedResponse = FORBIDDEN)
+        testAction(action = onlyHttps(Action(Ok)), expectedResponse = FORBIDDEN)
       }
 
       "allow modifying the result" in {
@@ -168,10 +161,9 @@ package scalaguide.http.scalaactionscomposition {
         import play.api.mvc._
         import play.api.libs.concurrent.Execution.Implicits._
 
-        def addUaHeader[A](action: Action[A]) =
-          Action.async(action.parser) { request =>
-            action(request).map(_.withHeaders("X-UA-Compatible" -> "Chrome=1"))
-          }
+        def addUaHeader[A](action: Action[A]) = Action.async(action.parser) { request =>
+          action(request).map(_.withHeaders("X-UA-Compatible" -> "Chrome=1"))
+        }
         //#modify-result
 
         assertAction(addUaHeader(Action(Ok))) { result =>
@@ -188,8 +180,7 @@ package scalaguide.http.scalaactionscomposition {
             extends WrappedRequest[A](request)
 
         object UserAction
-            extends ActionBuilder[UserRequest]
-            with ActionTransformer[Request, UserRequest] {
+            extends ActionBuilder[UserRequest] with ActionTransformer[Request, UserRequest] {
           def transform[A](request: Request[A]) = Future.successful {
             new UserRequest(request.session.get("username"), request)
           }
@@ -220,15 +211,11 @@ package scalaguide.http.scalaactionscomposition {
         //#request-with-item
 
         //#item-action-builder
-        def ItemAction(itemId: String) =
-          new ActionRefiner[UserRequest, ItemRequest] {
-            def refine[A](input: UserRequest[A]) = Future.successful {
-              ItemDao
-                .findById(itemId)
-                .map(new ItemRequest(_, input))
-                .toRight(NotFound)
-            }
+        def ItemAction(itemId: String) = new ActionRefiner[UserRequest, ItemRequest] {
+          def refine[A](input: UserRequest[A]) = Future.successful {
+            ItemDao.findById(itemId).map(new ItemRequest(_, input)).toRight(NotFound)
           }
+        }
         //#item-action-builder
 
         //#permission-check-action
@@ -242,10 +229,9 @@ package scalaguide.http.scalaactionscomposition {
 
         //#item-action-use
         def tagItem(itemId: String, tag: String) =
-          (UserAction andThen ItemAction(itemId) andThen PermissionCheckAction) {
-            request =>
-              request.item.addTag(tag)
-              Ok("User " + request.username + " tagged " + request.item.id)
+          (UserAction andThen ItemAction(itemId) andThen PermissionCheckAction) { request =>
+            request.item.addTag(tag)
+            Ok("User " + request.username + " tagged " + request.item.id)
           }
         //#item-action-use
 

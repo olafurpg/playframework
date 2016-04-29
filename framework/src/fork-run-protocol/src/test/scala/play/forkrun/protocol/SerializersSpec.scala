@@ -77,20 +77,16 @@ trait PicklingTestUtils extends Specification {
 
   import org.specs2.matcher._
 
-  private def addWhatWeWerePickling[T, U](t: T)(body: => U): U =
-    try body catch {
-      case e: Throwable =>
-        e.printStackTrace()
-        throw new AssertionError(
-            s"Crash round-tripping ${t.getClass.getName}: value was: ${t}", e)
-    }
+  private def addWhatWeWerePickling[T, U](t: T)(body: => U): U = try body catch {
+    case e: Throwable =>
+      e.printStackTrace()
+      throw new AssertionError(s"Crash round-tripping ${t.getClass.getName}: value was: ${t}", e)
+  }
 
   def roundTripArray[A](x: Array[A])(
-      implicit ev0: Pickler[Array[A]],
-      ev1: Unpickler[Array[A]]): MatchResult[Any] =
-    roundTripBase[Array[A]](x)((a, b) => (a.toList) must beEqualTo(b.toList)) {
-      (a, b) =>
-        a.getMessage must beEqualTo(b.getMessage)
+      implicit ev0: Pickler[Array[A]], ev1: Unpickler[Array[A]]): MatchResult[Any] =
+    roundTripBase[Array[A]](x)((a, b) => (a.toList) must beEqualTo(b.toList)) { (a, b) =>
+      a.getMessage must beEqualTo(b.getMessage)
     }
 
   def roundTrip[A : Pickler : Unpickler](x: A): MatchResult[Any] =
@@ -98,19 +94,17 @@ trait PicklingTestUtils extends Specification {
       a.getMessage must beEqualTo(b.getMessage)
     }
 
-  def roundTripBase[A : Pickler : Unpickler](
-      a: A)(f: (A, A) => MatchResult[Any])(
-      e: (Throwable, Throwable) => MatchResult[Any]): MatchResult[Any] =
-    addWhatWeWerePickling(a) {
-      val json = SerializedValue(a).toJsonString
-      //System.err.println(s"json: $json")
-      val parsed = SerializedValue
-        .fromJsonString(json)
-        .parse[A]
-        .get
-        (a, parsed) match {
-        case (a: Throwable, parsed: Throwable) => e(a, parsed)
-        case _ => f(a, parsed)
-      }
+  def roundTripBase[A : Pickler : Unpickler](a: A)(f: (A, A) => MatchResult[Any])(
+      e: (Throwable, Throwable) => MatchResult[Any]): MatchResult[Any] = addWhatWeWerePickling(a) {
+    val json = SerializedValue(a).toJsonString
+    //System.err.println(s"json: $json")
+    val parsed = SerializedValue
+      .fromJsonString(json)
+      .parse[A]
+      .get
+      (a, parsed) match {
+      case (a: Throwable, parsed: Throwable) => e(a, parsed)
+      case _ => f(a, parsed)
     }
+  }
 }

@@ -18,19 +18,15 @@ class PartialValidationSpec extends Specification {
     }
 
     "fail when a field in the group fails validation" in {
-      val form = Form
-        .form(classOf[SomeForm], classOf[Partial])
-        .bind(Map("prop3" -> "abc").asJava)
+      val form = Form.form(classOf[SomeForm], classOf[Partial]).bind(Map("prop3" -> "abc").asJava)
       form.hasErrors must_== true
     }
 
     "support multiple validations for the same group" in {
-      val form1 =
-        Form.form(classOf[SomeForm]).bind(Map("prop2" -> "Hello").asJava)
+      val form1 = Form.form(classOf[SomeForm]).bind(Map("prop2" -> "Hello").asJava)
       form1.hasErrors must_== true
-      val form2 = Form
-        .form(classOf[SomeForm])
-        .bind(Map("prop2" -> "Hello", "prop3" -> "abcd").asJava)
+      val form2 =
+        Form.form(classOf[SomeForm]).bind(Map("prop2" -> "Hello", "prop3" -> "abcd").asJava)
       form2.hasErrors must_== true
     }
   }

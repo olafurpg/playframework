@@ -47,13 +47,11 @@ private[play] abstract class ClosableLazy[T >: Null <: AnyRef, C] {
     if (currentValue != null) return currentValue
     synchronized {
       if (hasBeenClosed)
-        throw new IllegalStateException(
-            "Can't get ClosableLazy value after it has been closed")
+        throw new IllegalStateException("Can't get ClosableLazy value after it has been closed")
       if (value == null) {
         val (v, cf): (T, CloseFunction) = create()
         if (v == null)
-          throw new IllegalStateException(
-              "Can't initialize ClosableLazy to a null value")
+          throw new IllegalStateException("Can't initialize ClosableLazy to a null value")
         if (cf == null)
           throw new IllegalStateException(
               "Can't initialize ClosableLazy's close function to a null value")

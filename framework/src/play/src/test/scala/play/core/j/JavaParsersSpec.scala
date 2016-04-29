@@ -13,8 +13,7 @@ object JavaParsersSpecs extends org.specs2.mutable.Specification {
 
   "JSON body" should {
     "be successfully parsed from integer value" in {
-      val jsonNode =
-        DefaultRequestBody(json = Some(JsNumber(new BigDecimal("50")))).asJson
+      val jsonNode = DefaultRequestBody(json = Some(JsNumber(new BigDecimal("50")))).asJson
 
       jsonNode.intValue must_== 50 and (jsonNode.asText must_== "50")
     }

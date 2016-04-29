@@ -12,8 +12,7 @@ object ScalaAsyncSpec extends PlaySpecification {
 
   "scala async" should {
     "allow returning a future" in new WithApplication() {
-      contentAsString(ScalaAsyncSamples.futureResult) must startWith(
-          "PI value computed: 3.14")
+      contentAsString(ScalaAsyncSamples.futureResult) must startWith("PI value computed: 3.14")
     }
 
     "allow dispatching an intensive computation" in new WithApplication() {
@@ -86,8 +85,7 @@ object ScalaAsyncSamples extends Controller {
 
     def index = Action.async {
       val futureInt = scala.concurrent.Future { intensiveComputation() }
-      val timeoutFuture =
-        play.api.libs.concurrent.Promise.timeout("Oops", 1.second)
+      val timeoutFuture = play.api.libs.concurrent.Promise.timeout("Oops", 1.second)
       Future.firstCompletedOf(Seq(futureInt, timeoutFuture)).map {
         case i: Int => Ok("Got result: " + i)
         case t: String => InternalServerError(t)

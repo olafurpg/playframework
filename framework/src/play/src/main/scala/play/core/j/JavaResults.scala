@@ -22,29 +22,22 @@ import scala.concurrent.duration._
 /**
   * Java compatible Results
   */
-object JavaResults
-    extends Results with DefaultWriteables with DefaultContentTypeOfs {
-  def writeContent(
-      mimeType: String)(implicit codec: Codec): Writeable[Content] =
+object JavaResults extends Results with DefaultWriteables with DefaultContentTypeOfs {
+  def writeContent(mimeType: String)(implicit codec: Codec): Writeable[Content] =
     Writeable((content: Content) => codec.encode(contentBody(content)),
               Some(ContentTypes.withCharset(mimeType)))(trampoline)
   def contentBody(content: Content): String = content match {
     case xml: play.twirl.api.Xml => xml.body.trim; case c => c.body
   }
   def writeString(mimeType: String)(implicit codec: Codec): Writeable[String] =
-    Writeable((s: String) => codec.encode(s),
-              Some(ContentTypes.withCharset(mimeType)))(trampoline)
-  def writeString(implicit codec: Codec): Writeable[String] =
-    writeString(MimeTypes.TEXT)
+    Writeable((s: String) => codec.encode(s), Some(ContentTypes.withCharset(mimeType)))(trampoline)
+  def writeString(implicit codec: Codec): Writeable[String] = writeString(MimeTypes.TEXT)
   def writeJson(implicit codec: Codec): Writeable[JsonNode] =
-    Writeable((json: JsonNode) => codec.encode(json.toString),
-              Some(ContentTypes.JSON))(trampoline)
+    Writeable((json: JsonNode) => codec.encode(json.toString), Some(ContentTypes.JSON))(trampoline)
   def writeBytes: Writeable[Array[Byte]] = Writeable.wBytes
   def writeBytes(contentType: String): Writeable[Array[Byte]] =
-    Writeable((bs: Array[Byte]) => bs)(
-        contentTypeOfBytes(contentType), trampoline)
-  def writeEmptyContent: Writeable[Results.EmptyContent] =
-    writeableOf_EmptyContent
+    Writeable((bs: Array[Byte]) => bs)(contentTypeOfBytes(contentType), trampoline)
+  def writeEmptyContent: Writeable[Results.EmptyContent] = writeableOf_EmptyContent
   def contentTypeOfBytes(mimeType: String): ContentTypeOf[Array[Byte]] =
     ContentTypeOf(Option(mimeType).orElse(Some("application/octet-stream")))
   def emptyHeaders = Map.empty[String, String]
@@ -58,8 +51,7 @@ object JavaResults
     )(internalContext)
   }
   //play.api.libs.iteratee.Enumerator.imperative[A](onComplete = onDisconnected)
-  def chunked(
-      stream: java.io.InputStream, chunkSize: Int): Enumerator[Array[Byte]] =
+  def chunked(stream: java.io.InputStream, chunkSize: Int): Enumerator[Array[Byte]] =
     Enumerator.fromStream(stream, chunkSize)(internalContext)
   def chunked(file: java.io.File, chunkSize: Int) =
     Enumerator.fromFile(file, chunkSize)(internalContext)
@@ -102,8 +94,7 @@ object JavaResultExtractor {
   def getSession(result: JResult): JSession =
     new JSession(Session
           .decodeFromCookie(
-              Cookies(headers(result).get(HeaderNames.SET_COOKIE))
-                .get(Session.COOKIE_NAME)
+              Cookies(headers(result).get(HeaderNames.SET_COOKIE)).get(Session.COOKIE_NAME)
           )
           .data
           .asJava)
@@ -111,18 +102,15 @@ object JavaResultExtractor {
   def getFlash(result: JResult): JFlash =
     new JFlash(Flash
           .decodeFromCookie(
-              Cookies(headers(result).get(HeaderNames.SET_COOKIE))
-                .get(Flash.COOKIE_NAME)
+              Cookies(headers(result).get(HeaderNames.SET_COOKIE)).get(Flash.COOKIE_NAME)
           )
           .data
           .asJava)
 
-  def getHeaders(result: JResult): java.util.Map[String, String] =
-    headers(result).asJava
+  def getHeaders(result: JResult): java.util.Map[String, String] = headers(result).asJava
 
   def getBody(result: JResult, timeout: Long): Array[Byte] =
-    Await.result(result.toScala.body |>>> Iteratee.consume[Array[Byte]](),
-                 timeout.millis)
+    Await.result(result.toScala.body |>>> Iteratee.consume[Array[Byte]](), timeout.millis)
 
   private def headers(result: JResult) = result.toScala.header.headers
 }

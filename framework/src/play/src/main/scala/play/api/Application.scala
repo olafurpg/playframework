@@ -74,9 +74,7 @@ trait Application {
     * @throws Error if no plugins of type `T` are loaded by this application
     */
   def plugin[T](pluginClass: Class[T]): Option[T] =
-    plugins
-      .find(p => pluginClass.isAssignableFrom(p.getClass))
-      .map(_.asInstanceOf[T])
+    plugins.find(p => pluginClass.isAssignableFrom(p.getClass)).map(_.asInstanceOf[T])
 
   /**
     * Retrieves a plugin of type `T`.
@@ -108,8 +106,7 @@ trait Application {
   /**
     * The router used by this application.
     */
-  @deprecated(
-      "Either use HttpRequestHandler, or have the router injected", "2.4.0")
+  @deprecated("Either use HttpRequestHandler, or have the router injected", "2.4.0")
   def routes: Router = {
     // Use a cached value because the injector might be slow
     if (cachedRoutes != null) cachedRoutes
@@ -249,15 +246,14 @@ object Application {
 class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])
 
 @Singleton
-class DefaultApplication @Inject()(
-    environment: Environment,
-    applicationLifecycle: DefaultApplicationLifecycle,
-    override val injector: Injector,
-    override val configuration: Configuration,
-    override val requestHandler: HttpRequestHandler,
-    override val errorHandler: HttpErrorHandler,
-    override val actorSystem: ActorSystem,
-    override val plugins: Plugins) extends Application {
+class DefaultApplication @Inject()(environment: Environment,
+                                   applicationLifecycle: DefaultApplicationLifecycle,
+                                   override val injector: Injector,
+                                   override val configuration: Configuration,
+                                   override val requestHandler: HttpRequestHandler,
+                                   override val errorHandler: HttpErrorHandler,
+                                   override val actorSystem: ActorSystem,
+                                   override val plugins: Plugins) extends Application {
 
   def path = environment.rootPath
 
@@ -280,34 +276,29 @@ trait BuiltInComponents {
   def router: Router
 
   lazy val injector: Injector =
-    new SimpleInjector(NewInstanceInjector) + router + crypto +
-    httpConfiguration
+    new SimpleInjector(NewInstanceInjector) + router + crypto + httpConfiguration
 
   lazy val httpConfiguration: HttpConfiguration =
     HttpConfiguration.fromConfiguration(configuration)
-  lazy val httpRequestHandler: HttpRequestHandler =
-    new DefaultHttpRequestHandler(
-        router, httpErrorHandler, httpConfiguration, httpFilters:_*)
+  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(
+      router, httpErrorHandler, httpConfiguration, httpFilters:_*)
   lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(
       environment, configuration, sourceMapper, Some(router))
   lazy val httpFilters: Seq[EssentialFilter] = Nil
 
-  lazy val applicationLifecycle: DefaultApplicationLifecycle =
-    new DefaultApplicationLifecycle
-  lazy val application: Application = new DefaultApplication(
-      environment,
-      applicationLifecycle,
-      injector,
-      configuration,
-      httpRequestHandler,
-      httpErrorHandler,
-      actorSystem,
-      Plugins.empty)
+  lazy val applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle
+  lazy val application: Application = new DefaultApplication(environment,
+                                                             applicationLifecycle,
+                                                             injector,
+                                                             configuration,
+                                                             httpRequestHandler,
+                                                             httpErrorHandler,
+                                                             actorSystem,
+                                                             Plugins.empty)
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(
       environment, configuration, applicationLifecycle).get
 
-  lazy val cryptoConfig: CryptoConfig = new CryptoConfigParser(
-      environment, configuration).get
+  lazy val cryptoConfig: CryptoConfig = new CryptoConfigParser(environment, configuration).get
   lazy val crypto: Crypto = new Crypto(cryptoConfig)
 }

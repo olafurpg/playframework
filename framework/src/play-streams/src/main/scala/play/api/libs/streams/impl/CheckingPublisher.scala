@@ -16,23 +16,20 @@ private[streams] abstract class CheckingPublisher[T] extends Publisher[T] {
   /**
     * The list of handles to currently active Subscriptions.
     */
-  private val subscriptions =
-    new AtomicReference[List[SubscriptionHandle[_]]](Nil)
+  private val subscriptions = new AtomicReference[List[SubscriptionHandle[_]]](Nil)
 
   // Streams method
   final override def subscribe(subr: Subscriber[_ >: T]): Unit = {
-    val handle: SubscriptionHandle[_] = createSubscription(
-        subr, removeSubscription)
+    val handle: SubscriptionHandle[_] = createSubscription(subr, removeSubscription)
 
     @tailrec
     def addSubscription(): Unit = {
       val oldSubscriptions = subscriptions.get
       if (oldSubscriptions.exists(s => (s.subscriber eq subr) && s.isActive)) {
-        subr.onError(new IllegalStateException(
-                "Subscriber is already subscribed to this Publisher"))
+        subr.onError(
+            new IllegalStateException("Subscriber is already subscribed to this Publisher"))
       } else {
-        val newSubscriptions: List[SubscriptionHandle[_]] =
-          handle :: oldSubscriptions
+        val newSubscriptions: List[SubscriptionHandle[_]] = handle :: oldSubscriptions
         if (subscriptions.compareAndSet(oldSubscriptions, newSubscriptions)) {
           handle.start()
         } else addSubscription()
@@ -44,8 +41,7 @@ private[streams] abstract class CheckingPublisher[T] extends Publisher[T] {
   @tailrec
   private def removeSubscription(subscription: SubscriptionHandle[_]): Unit = {
     val oldSubscriptions = subscriptions.get
-    val newSubscriptions =
-      oldSubscriptions.filterNot(_.subscriber eq subscription.subscriber)
+    val newSubscriptions = oldSubscriptions.filterNot(_.subscriber eq subscription.subscriber)
     if (subscriptions.compareAndSet(oldSubscriptions, newSubscriptions)) ()
     else removeSubscription(subscription)
   }

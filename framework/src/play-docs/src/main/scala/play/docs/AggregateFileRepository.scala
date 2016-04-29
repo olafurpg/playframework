@@ -12,8 +12,7 @@ import play.doc.{FileHandle, FileRepository}
   *
   * @param repos The repositories to aggregate
   */
-class AggregateFileRepository(repos: Seq[FileRepository])
-    extends FileRepository {
+class AggregateFileRepository(repos: Seq[FileRepository]) extends FileRepository {
 
   def this(repos: Array[FileRepository]) = this(repos.toSeq)
 

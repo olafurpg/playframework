@@ -16,13 +16,11 @@ import xsbti.Position
 import scala.language.implicitConversions
 
 object RoutesKeys {
-  val routesCompilerTasks = TaskKey[Seq[RoutesCompilerTask]](
-      "playRoutesTasks", "The routes files to compile")
+  val routesCompilerTasks =
+    TaskKey[Seq[RoutesCompilerTask]]("playRoutesTasks", "The routes files to compile")
   val routes = TaskKey[Seq[File]]("playRoutes", "Compile the routes files")
-  val routesImport =
-    SettingKey[Seq[String]]("playRoutesImports", "Imports for the router")
-  val routesGenerator =
-    SettingKey[RoutesGenerator]("playRoutesGenerator", "The routes generator")
+  val routesImport = SettingKey[Seq[String]]("playRoutesImports", "Imports for the router")
+  val routesGenerator = SettingKey[RoutesGenerator]("playRoutesGenerator", "The routes generator")
   val generateReverseRouter = SettingKey[Boolean](
       "playGenerateReverseRouter",
       "Whether the reverse router should be generated. Setting to false may reduce compile times if it's not needed.")
@@ -39,8 +37,7 @@ object RoutesKeys {
   }
 
   object LazyProjectReference {
-    implicit def fromProjectReference(
-        ref: => ProjectReference): LazyProjectReference =
+    implicit def fromProjectReference(ref: => ProjectReference): LazyProjectReference =
       new LazyProjectReference(ref)
     implicit def fromProject(project: => Project): LazyProjectReference =
       new LazyProjectReference(project)
@@ -64,8 +61,7 @@ object RoutesCompiler extends AutoPlugin {
   val autoImport = RoutesKeys
 
   override def projectSettings =
-    defaultSettings ++ inConfig(Compile)(routesSettings) ++ inConfig(Test)(
-        routesSettings)
+    defaultSettings ++ inConfig(Compile)(routesSettings) ++ inConfig(Test)(routesSettings)
 
   def routesSettings =
     Seq(
@@ -83,21 +79,21 @@ object RoutesCompiler extends AutoPlugin {
               }
 
               // Find the routes compile tasks for this project
-              val thisProjectTasks = (sources in routes).value.map { file =>
-                RoutesCompilerTask(
-                    file,
-                    routesImport.value,
-                    forwardsRouter = true,
-                    reverseRouter = generateReverseRouter.value,
-                    namespaceReverseRouter = namespaceReverseRouter.value)
+              val thisProjectTasks = (sources in routes).value.map {
+                file =>
+                  RoutesCompilerTask(file,
+                                     routesImport.value,
+                                     forwardsRouter = true,
+                                     reverseRouter = generateReverseRouter.value,
+                                     namespaceReverseRouter = namespaceReverseRouter.value)
               }
 
               thisProjectTasks ++ reverseRouterTasks
           }
         },
         watchSources in Defaults.ConfigGlobal <++= sources in routes,
-        target in routes := crossTarget.value / "routes" / Defaults
-          .nameForSrc(configuration.value.name),
+        target in routes :=
+          crossTarget.value / "routes" / Defaults.nameForSrc(configuration.value.name),
         routes <<= compileRoutesFiles,
         sourceGenerators <+= routes,
         managedSourceDirectories <+= target in routes
@@ -112,14 +108,12 @@ object RoutesCompiler extends AutoPlugin {
         // reverse router for it.
         generateReverseRouter <<= Def.settingDyn {
           val projectRef = thisProjectRef.value
-          val dependencies =
-            buildDependencies.value.classpathTransitiveRefs(projectRef)
+          val dependencies = buildDependencies.value.classpathTransitiveRefs(projectRef)
 
           // Go through each dependency of this project
           dependencies.map { dep =>
             // Get the aggregated reverse routes projects for the dependency, if defined
-            Def.optional(aggregateReverseRoutes in dep)(
-                _.map(_.map(_.project)).getOrElse(Nil))
+            Def.optional(aggregateReverseRoutes in dep)(_.map(_.map(_.project)).getOrElse(Nil))
           }.join.apply { aggregated: Seq[Seq[ProjectReference]] =>
             val localProject = LocalProject(projectRef.project)
             // Return false if this project is aggregated by one of our dependencies
@@ -144,13 +138,11 @@ object RoutesCompiler extends AutoPlugin {
                     generatedDir: File,
                     cacheDirectory: File,
                     log: Logger): Seq[File] = {
-    val ops = tasks.map(
-        task => RoutesCompilerOp(task, generator.id, PlayVersion.current))
+    val ops = tasks.map(task => RoutesCompilerOp(task, generator.id, PlayVersion.current))
     val (products, errors) = syncIncremental(cacheDirectory, ops) {
       opsToRun: Seq[RoutesCompilerOp] =>
         val results = opsToRun.map { op =>
-          op -> play.routes.compiler.RoutesCompiler
-            .compile(op.task, generator, generatedDir)
+          op -> play.routes.compiler.RoutesCompiler.compile(op.task, generator, generatedDir)
         }
         val opResults = results.map {
           case (op, Right(inputs)) =>
@@ -166,9 +158,9 @@ object RoutesCompiler extends AutoPlugin {
     if (errors.nonEmpty) {
       val exceptions = errors.map {
         case RoutesCompilationError(source, message, line, column) =>
-          reportCompilationError(log,
-                                 RoutesCompilationException(
-                                     source, message, line, column.map(_ - 1)))
+          reportCompilationError(
+              log,
+              RoutesCompilationException(source, message, line, column.map(_ - 1)))
       }
       throw exceptions.head
     }
@@ -176,24 +168,21 @@ object RoutesCompiler extends AutoPlugin {
     products.to[Seq]
   }
 
-  private def reportCompilationError(
-      log: Logger, error: PlayException.ExceptionSource) = {
+  private def reportCompilationError(log: Logger, error: PlayException.ExceptionSource) = {
     // log the source file and line number with the error message
     log.error(Option(error.sourceName).getOrElse("") +
-        Option(error.line).map(":" + _).getOrElse("") + ": " +
-        error.getMessage)
-    Option(error.interestingLines(0)).map(_.focus).flatMap(_.headOption) map {
-      line =>
-        // log the line
-        log.error(line)
-        Option(error.position).map { pos =>
-          // print a carat under the offending character
-          val spaces = (line: Seq[Char]).take(pos).map {
-            case '\t' => '\t'
-            case x => ' '
-          }
-          log.error(spaces.mkString + "^")
+        Option(error.line).map(":" + _).getOrElse("") + ": " + error.getMessage)
+    Option(error.interestingLines(0)).map(_.focus).flatMap(_.headOption) map { line =>
+      // log the line
+      log.error(line)
+      Option(error.position).map { pos =>
+        // print a carat under the offending character
+        val spaces = (line: Seq[Char]).take(pos).map {
+          case '\t' => '\t'
+          case x => ' '
         }
+        log.error(spaces.mkString + "^")
+      }
     }
     error
   }
@@ -206,8 +195,7 @@ object RoutesCompiler extends AutoPlugin {
               lazy val line = {
                 position.line
                   .flatMap(l => generatedSource.mapLine(l.asInstanceOf[Int]))
-                  .map(l =>
-                        xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer]))
+                  .map(l => xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer]))
                   .getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
               }
               lazy val lineContent = {
@@ -221,8 +209,7 @@ object RoutesCompiler extends AutoPlugin {
               val pointer = xsbti.Maybe.nothing[java.lang.Integer]
               val pointerSpace = xsbti.Maybe.nothing[String]
               val sourceFile = xsbti.Maybe.just(generatedSource.source.get)
-              val sourcePath =
-                xsbti.Maybe.just(sourceFile.get.getCanonicalPath)
+              val sourcePath = xsbti.Maybe.just(sourceFile.get.getCanonicalPath)
             }
           }
       }

@@ -15,8 +15,7 @@ trait RequestExtractors extends AcceptExtractors {
     * }}}
     */
   object & {
-    def unapply(
-        request: RequestHeader): Option[(RequestHeader, RequestHeader)] =
+    def unapply(request: RequestHeader): Option[(RequestHeader, RequestHeader)] =
       Some((request, request))
   }
 }
@@ -60,6 +59,5 @@ trait AcceptExtractors {
   */
 case class Accepting(mimeType: String) {
   def unapply(request: RequestHeader): Boolean = request.accepts(mimeType)
-  def unapply(mediaRange: play.api.http.MediaRange): Boolean =
-    mediaRange.accepts(mimeType)
+  def unapply(mediaRange: play.api.http.MediaRange): Boolean = mediaRange.accepts(mimeType)
 }

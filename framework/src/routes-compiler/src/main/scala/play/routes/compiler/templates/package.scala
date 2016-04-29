@@ -23,14 +23,13 @@ package object templates {
     * Generate a base identifier for the given route
     */
   def baseIdentifier(route: Route, index: Int): String =
-    route.call.packageName.replace(".", "_") + "_" +
-    route.call.controller.replace(".", "_") + "_" + route.call.method + index
+    route.call.packageName.replace(".", "_") + "_" + route.call.controller.replace(".", "_") +
+    "_" + route.call.method + index
 
   /**
     * Generate a route object identifier for the given route
     */
-  def routeIdentifier(route: Route, index: Int): String =
-    baseIdentifier(route, index) + "_route"
+  def routeIdentifier(route: Route, index: Int): String = baseIdentifier(route, index) + "_route"
 
   /**
     * Generate a invoker object identifier for the given route
@@ -57,8 +56,7 @@ package object templates {
   /**
     * Generate a controller method call for the given route
     */
-  def controllerMethodCall(
-      r: Route, paramFormat: Parameter => String): String = {
+  def controllerMethodCall(r: Route, paramFormat: Parameter => String): String = {
     val methodPart =
       if (r.call.instantiate) {
         s"$Injector.instanceOf(classOf[${r.call.packageName}.${r.call.controller}]).${r.call.method}"
@@ -97,12 +95,10 @@ package object templates {
       .map { params =>
         params.map { p =>
           p.fixed.map { v =>
-            """Param[""" + p.typeName + """]("""" + p.name + """", Right(""" +
-            v + """))"""
+            """Param[""" + p.typeName + """]("""" + p.name + """", Right(""" + v + """))"""
           }.getOrElse {
-            """params.""" +
-            (if (route.path.has(p.name)) "fromPath" else "fromQuery") +
-            """[""" + p.typeName + """]("""" + p.name + """", """ +
+            """params.""" + (if (route.path.has(p.name)) "fromPath" else "fromQuery") + """[""" +
+            p.typeName + """]("""" + p.name + """", """ +
             p.default.map("Some(" + _ + ")").getOrElse("None") + """)"""
           }
         }.mkString(", ")
@@ -197,8 +193,7 @@ package object templates {
   /**
     * Reverse parameters for matching
     */
-  def reverseMatchParameters(
-      params: Seq[(Parameter, Int)], annotateUnchecked: Boolean) = {
+  def reverseMatchParameters(params: Seq[(Parameter, Int)], annotateUnchecked: Boolean) = {
     val annotation = if (annotateUnchecked) ": @unchecked" else ""
     params.map(x => safeKeyword(x._1.name) + annotation).mkString(", ")
   }
@@ -209,8 +204,7 @@ package object templates {
     * In routes like /dummy controllers.Application.dummy(foo = "bar")
     * foo = "bar" is a constraint
     */
-  def reverseParameterConstraints(
-      route: Route, localNames: Map[String, String]) = {
+  def reverseParameterConstraints(route: Route, localNames: Map[String, String]) = {
     route.call.parameters
       .getOrElse(Nil)
       .filter { p =>
@@ -227,8 +221,7 @@ package object templates {
   /**
     * Calculate the local names that need to be matched
     */
-  def reverseLocalNames(
-      route: Route, params: Seq[(Parameter, Int)]): Map[String, String] = {
+  def reverseLocalNames(route: Route, params: Seq[(Parameter, Int)]): Map[String, String] = {
     params.map {
       case (lp, i) => route.call.parameters.get(i).name -> lp.name
     }.toMap
@@ -237,10 +230,8 @@ package object templates {
   /**
     * Calculate the unique reverse constraints, and generate them using the given block
     */
-  def reverseUniqueConstraints(
-      routes: Seq[Route], params: Seq[(Parameter, Int)])(
-      block: (Route, String, String,
-      Map[String, String]) => ScalaContent): Seq[ScalaContent] = {
+  def reverseUniqueConstraints(routes: Seq[Route], params: Seq[(Parameter, Int)])(
+      block: (Route, String, String, Map[String, String]) => ScalaContent): Seq[ScalaContent] = {
     ListMap(routes.reverse.map { route =>
       val localNames = reverseLocalNames(route, params)
       val parameters = reverseMatchParameters(params, false)
@@ -261,8 +252,7 @@ package object templates {
     if (fixedParams.isEmpty) {
       "import ReverseRouteContext.empty"
     } else {
-      "implicit val _rrc = new ReverseRouteContext(Map(%s))".format(
-          fixedParams.mkString(", "))
+      "implicit val _rrc = new ReverseRouteContext(Map(%s))".format(fixedParams.mkString(", "))
     }
   }
 
@@ -299,15 +289,12 @@ package object templates {
             .find(_.name == name)
             .map { param =>
               if (encode && encodeable(param.typeName))
-                """implicitly[PathBindable[""" + param.typeName +
-                """]].unbind("""" + param.name + """", dynamicString(""" +
-                safeKeyword(localNames.get(param.name).getOrElse(param.name)) +
-                """))"""
+                """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + param.name +
+                """", dynamicString(""" +
+                safeKeyword(localNames.get(param.name).getOrElse(param.name)) + """))"""
               else
-                """implicitly[PathBindable[""" + param.typeName +
-                """]].unbind("""" + param.name + """", """ +
-                safeKeyword(localNames.get(param.name).getOrElse(param.name)) +
-                """)"""
+                """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + param.name +
+                """", """ + safeKeyword(localNames.get(param.name).getOrElse(param.name)) + """)"""
             }
             .getOrElse {
               throw new Error("missing key " + name)
@@ -325,9 +312,8 @@ package object templates {
         ""
       } else {
         """ + queryString(List(%s))""".format(queryParams.map { p =>
-          ("""implicitly[QueryStringBindable[""" + p.typeName +
-              """]].unbind("""" + p.name + """", """ + safeKeyword(
-                  localNames.get(p.name).getOrElse(p.name)) + """)""") -> p
+          ("""implicitly[QueryStringBindable[""" + p.typeName + """]].unbind("""" + p.name +
+              """", """ + safeKeyword(localNames.get(p.name).getOrElse(p.name)) + """)""") -> p
         }.map {
           case (u, Parameter(name, typeName, None, Some(default))) =>
             """if(""" + safeKeyword(localNames.getOrElse(name, name)) +
@@ -401,12 +387,11 @@ package object templates {
                 if (encode && encodeable(param.typeName))
                   " + (\"\"\" + implicitly[PathBindable[" + param.typeName +
                   "]].javascriptUnbind + \"\"\")" + """("""" + param.name +
-                  """", encodeURIComponent(""" +
-                  localNames.get(param.name).getOrElse(param.name) + """))"""
+                  """", encodeURIComponent(""" + localNames.get(param.name).getOrElse(param.name) +
+                  """))"""
                 else
                   " + (\"\"\" + implicitly[PathBindable[" + param.typeName +
-                  "]].javascriptUnbind + \"\"\")" + """("""" + param.name +
-                  """", """ +
+                  "]].javascriptUnbind + \"\"\")" + """("""" + param.name + """", """ +
                   localNames.get(param.name).getOrElse(param.name) + """)"""
               }
               .getOrElse {
@@ -426,19 +411,17 @@ package object templates {
         ""
       } else {
         """ + _qS([%s])""".format(queryParams.map { p =>
-          ("(\"\"\" + implicitly[QueryStringBindable[" + p.typeName +
-              "]].javascriptUnbind + \"\"\")" + """("""" + p.name + """", """ +
-              localNames.get(p.name).getOrElse(p.name) + """)""") -> p
+          ("(\"\"\" + implicitly[QueryStringBindable[" +
+              p.typeName + "]].javascriptUnbind + \"\"\")" + """("""" +
+              p.name + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
         }.map {
           case (u, Parameter(name, typeName, None, Some(default))) =>
-            """(""" + localNames.get(name).getOrElse(name) +
-            " == null ? null : " + u + ")"
+            """(""" + localNames.get(name).getOrElse(name) + " == null ? null : " + u + ")"
           case (u, Parameter(name, typeName, None, None)) => u
         }.mkString(", "))
       }
 
-    "return _wA({method:\"%s\", url:%s%s})".format(
-        route.verb.value, path, queryString)
+    "return _wA({method:\"%s\", url:%s%s})".format(route.verb.value, path, queryString)
   }
 
   /**
@@ -470,10 +453,8 @@ package object templates {
     routes.groupBy(_.call.packageName)
   def groupRoutesByController(routes: Seq[Route]): Map[String, Seq[Route]] =
     routes.groupBy(_.call.controller)
-  def groupRoutesByMethod(
-      routes: Seq[Route]): Map[(String, Seq[String]), Seq[Route]] =
-    routes.groupBy(
-        r => (r.call.method, r.call.parameters.getOrElse(Nil).map(_.typeName)))
+  def groupRoutesByMethod(routes: Seq[Route]): Map[(String, Seq[String]), Seq[Route]] =
+    routes.groupBy(r => (r.call.method, r.call.parameters.getOrElse(Nil).map(_.typeName)))
 
   val ob = "{"
   val cb = "}"

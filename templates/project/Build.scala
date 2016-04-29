@@ -8,8 +8,7 @@ import sbt.complete.{Parsers, Parser}
 object Templates {
 
   val templates = SettingKey[Seq[File]]("activatorTemplates")
-  val templateParameters =
-    SettingKey[Map[String, String]]("templateParameters")
+  val templateParameters = SettingKey[Map[String, String]]("templateParameters")
   val gitHash = TaskKey[String]("gitHash")
   val nonce = TaskKey[Long]("nonce")
 
@@ -48,8 +47,7 @@ object Templates {
           val params: Map[String, String] = templateParameters.value
           val outDir: File = target.value / "prepared-templates"
 
-          streams.value.log
-            .info("Preparing templates for Play " + params("PLAY_VERSION") +
+          streams.value.log.info("Preparing templates for Play " + params("PLAY_VERSION") +
               " with Scala " + params("SCALA_VERSION"))
 
           // Don't sync directories or .gitkeep files. We can remove
@@ -85,8 +83,7 @@ object Templates {
         testTemplates := {
           val preparedTemplates = syncTemplates.value
           val testDir = target.value / "template-tests"
-          val build =
-            (baseDirectory.value.getParentFile / "framework" / "build").getCanonicalPath
+          val build = (baseDirectory.value.getParentFile / "framework" / "build").getCanonicalPath
           preparedTemplates.foreach {
             template =>
               val templateDir = testDir / template.getName
@@ -94,14 +91,12 @@ object Templates {
               IO.copyDirectory(template, templateDir)
               streams.value.log.info("Testing template: " + template.getName)
               @volatile var out = List.empty[String]
-              val rc = Process(build + " test", templateDir).!(StdOutLogger {
-                s =>
-                  out = s :: out
+              val rc = Process(build + " test", templateDir).!(StdOutLogger { s =>
+                out = s :: out
               })
               if (rc != 0) {
                 out.reverse.foreach(println)
-                streams.value.log
-                  .error("Template " + template.getName + " failed to build")
+                streams.value.log.error("Template " + template.getName + " failed to build")
                 throw new TemplateBuildFailed(template.getName)
               }
           }
@@ -112,8 +107,7 @@ object Templates {
           val distDir = target.value / "dist-templates"
           preparedTemplates.map { template =>
             val zipFile = distDir / (template.getName + ".zip")
-            val files =
-              template.***.filter(!_.isDirectory) x relativeTo(template)
+            val files = template.***.filter(!_.isDirectory) x relativeTo(template)
             IO.zip(files, zipFile)
             zipFile
           }
@@ -148,8 +142,7 @@ object Templates {
             sys.error("Could not find credentials for host: " + host)
           }
           val upload = S3.upload.value // Ignore result
-          val uploaded =
-            (mappings in S3.upload).value.map(m => m._1.getName -> m._2)
+          val uploaded = (mappings in S3.upload).value.map(m => m._1.getName -> m._2)
           val logger = streams.value.log
 
           logger.info("Publishing templates...")
@@ -182,8 +175,7 @@ object Templates {
             }
 
             def waitUntilNotPending(uuid: String,
-                                    statusUrl: String
-            ): Future[Either[String, String]] = {
+                                    statusUrl: String): Future[Either[String, String]] = {
               val status: Future[TemplateStatus] = for {
                 _ <- timeout(2.seconds)
                 resp <- clientCall(statusUrl)
@@ -202,17 +194,12 @@ object Templates {
                   case _ =>
                     val body = resp.body
                     body match {
-                      case pending
-                          if body.contains(
-                              "This template is being processed.") =>
+                      case pending if body.contains("This template is being processed.") =>
                         TemplatePending(uuid)
                       case validated
-                          if body.contains(
-                              "This template was published successfully!") =>
+                          if body.contains("This template was published successfully!") =>
                         TemplateValidated(uuid)
-                      case failed
-                          if body.contains(
-                              "This template failed to publish.") =>
+                      case failed if body.contains("This template failed to publish.") =>
                         TemplateFailed(uuid, extractErrors(body))
                     }
                 }
@@ -227,33 +214,29 @@ object Templates {
               }
             }
 
-            val futures: Seq[Future[(String, String, Either[String, String])]] =
-              uploaded.map {
-                case (name, key) =>
-                  clientCall("/activator/template/publish")
-                    .post(s"url=http://downloads.typesafe.com/$key")
-                    .flatMap {
-                      resp =>
-                        if (resp.status != 200) {
-                          logger.error("Error publishing template " + name)
-                          logger.error("Status code was: " + resp.status)
-                          logger.error("Body was: " + resp.body)
-                          throw new RuntimeException(
-                              "Error publishing template")
-                        }
-                        val js = resp.json
-                        val uuid = (js \ "uuid").as[String]
-                        val statusUrl = (for {
-                          links <- (js \ "_links").asOpt[JsObject]
-                          status <- (links \ "activator/templates/status")
-                            .asOpt[JsObject]
-                          url <- (status \ "href").asOpt[String]
-                        } yield
-                          url).getOrElse(s"/activator/template/status/$uuid")
-                        waitUntilNotPending(uuid, statusUrl)
-                    }
-                    .map(result => (name, key, result))
-              }
+            val futures: Seq[Future[(String, String, Either[String, String])]] = uploaded.map {
+              case (name, key) =>
+                clientCall("/activator/template/publish")
+                  .post(s"url=http://downloads.typesafe.com/$key")
+                  .flatMap {
+                    resp =>
+                      if (resp.status != 200) {
+                        logger.error("Error publishing template " + name)
+                        logger.error("Status code was: " + resp.status)
+                        logger.error("Body was: " + resp.body)
+                        throw new RuntimeException("Error publishing template")
+                      }
+                      val js = resp.json
+                      val uuid = (js \ "uuid").as[String]
+                      val statusUrl = (for {
+                        links <- (js \ "_links").asOpt[JsObject]
+                        status <- (links \ "activator/templates/status").asOpt[JsObject]
+                        url <- (status \ "href").asOpt[String]
+                      } yield url).getOrElse(s"/activator/template/status/$uuid")
+                      waitUntilNotPending(uuid, statusUrl)
+                  }
+                  .map(result => (name, key, result))
+            }
 
             val results = Await.result(Future.sequence(futures), 1.hour)
 
@@ -265,8 +248,7 @@ object Templates {
                     logger.error(error)
                     false
                   case (name, key, Right(uuid)) =>
-                    logger.info("Template " + name +
-                        " published successfully with uuid: " + uuid)
+                    logger.info("Template " + name + " published successfully with uuid: " + uuid)
                     overall
                 }
             }
@@ -275,28 +257,26 @@ object Templates {
             client.close()
           }
         },
-        publishTemplates <<= (doPublishTemplates, S3.delete, streams).apply {
-          (dpt, s3delete, s) =>
-            for {
-              streams <- s
-              result <- dpt
-              _ <- {
-                streams.log.info("Cleaning up S3...")
-                s3delete
-              }
-            } yield
-              result match {
-                case true => ()
-                case false => throw new TemplatePublishFailed
-              }
+        publishTemplates <<= (doPublishTemplates, S3.delete, streams).apply { (dpt, s3delete, s) =>
+          for {
+            streams <- s
+            result <- dpt
+            _ <- {
+              streams.log.info("Cleaning up S3...")
+              s3delete
+            }
+          } yield
+            result match {
+              case true => ()
+              case false => throw new TemplatePublishFailed
+            }
         },
         commands += templatesCommand
     )
 
   val templatesCommand =
     Command("templates",
-            Help.more("templates",
-                      "Execute the given command for the given templates"))(
+            Help.more("templates", "Execute the given command for the given templates"))(
         templatesParser) { (state, args) =>
       val (templateDirs, command) = args
       val extracted = Project.extract(state)
@@ -304,8 +284,7 @@ object Templates {
       def createSetCommand(dirs: Seq[File]): String = {
         dirs
           .map("file(\"" + _.getAbsolutePath + "\")")
-          .mkString(
-              "set play.sbt.activator.Templates.templates := Seq(", ",", ")")
+          .mkString("set play.sbt.activator.Templates.templates := Seq(", ",", ")")
       }
 
       val setCommand = createSetCommand(templateDirs)
@@ -334,8 +313,7 @@ object Templates {
 
   private class TemplateBuildFailed(template: String)
       extends RuntimeException(template) with FeedbackProvidedException
-  private class TemplatePublishFailed
-      extends RuntimeException with FeedbackProvidedException
+  private class TemplatePublishFailed extends RuntimeException with FeedbackProvidedException
 
   private object StdOutLogger {
     def apply(log: String => Unit) = new ProcessLogger {
@@ -347,8 +325,7 @@ object Templates {
 
   private sealed trait TemplateStatus
   private case class TemplateValidated(uuid: String) extends TemplateStatus
-  private case class TemplateFailed(uuid: String, errors: Seq[String])
-      extends TemplateStatus
+  private case class TemplateFailed(uuid: String, errors: Seq[String]) extends TemplateStatus
   private case class TemplatePending(uuid: String) extends TemplateStatus
 
   private def extractErrors(body: String) =

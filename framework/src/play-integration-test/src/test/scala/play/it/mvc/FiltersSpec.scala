@@ -17,12 +17,9 @@ import scala.concurrent.duration.Duration
 import scala.concurrent._
 import play.api.libs.concurrent.Execution.{defaultContext => ec}
 
-object NettyDefaultFiltersSpec
-    extends DefaultFiltersSpec with NettyIntegrationSpecification
-object NettyGlobalFiltersSpec
-    extends GlobalFiltersSpec with NettyIntegrationSpecification
-object AkkaDefaultHttpFiltersSpec
-    extends DefaultFiltersSpec with AkkaHttpIntegrationSpecification
+object NettyDefaultFiltersSpec extends DefaultFiltersSpec with NettyIntegrationSpecification
+object NettyGlobalFiltersSpec extends GlobalFiltersSpec with NettyIntegrationSpecification
+object AkkaDefaultHttpFiltersSpec extends DefaultFiltersSpec with AkkaHttpIntegrationSpecification
 
 trait DefaultFiltersSpec extends FiltersSpec {
   def withServer[T](settings: Map[String, String] = Map.empty,
@@ -36,8 +33,7 @@ trait DefaultFiltersSpec extends FiltersSpec {
       lazy val router = testRouter
       override lazy val httpFilters: Seq[EssentialFilter] = filters
       override lazy val httpErrorHandler = errorHandler.getOrElse(
-          new DefaultHttpErrorHandler(
-              environment, configuration, sourceMapper, Some(router))
+          new DefaultHttpErrorHandler(environment, configuration, sourceMapper, Some(router))
       )
     }.application
 
@@ -60,8 +56,8 @@ trait GlobalFiltersSpec extends FiltersSpec {
       .global(
           new WithFilters(filters:_*) {
             override def onHandlerNotFound(request: RequestHeader) = {
-              errorHandler.fold(super.onHandlerNotFound(request))(
-                  _.onClientError(request, 404, ""))
+              errorHandler
+                .fold(super.onHandlerNotFound(request))(_.onClientError(request, 404, ""))
             }
           }
       )
@@ -88,8 +84,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
 
       "ErrorHandlingFilter has no effect on a POST that returns a 200 OK" in withServer(
           )(ErrorHandlingFilter) { ws =>
-        val response =
-          Await.result(ws.url("/ok").post(expectedOkText), Duration.Inf)
+        val response = Await.result(ws.url("/ok").post(expectedOkText), Duration.Inf)
         response.status must_== 200
         response.body must_== expectedOkText
       }
@@ -110,41 +105,35 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
 
       "ErrorHandlingFilter recovers from a POST that throws a synchronous exception" in withServer(
           )(ErrorHandlingFilter) { ws =>
-        val response =
-          Await.result(ws.url("/error").post(expectedOkText), Duration.Inf)
+        val response = Await.result(ws.url("/error").post(expectedOkText), Duration.Inf)
         response.status must_== 500
         response.body must_== expectedOkText
       }
 
       "ErrorHandlingFilter recovers from a POST that throws an asynchronous exception" in withServer(
           )(ErrorHandlingFilter) { ws =>
-        val response =
-          Await.result(ws.url("/error-async").post(expectedOkText),
-                       Duration.Inf)
+        val response = Await.result(ws.url("/error-async").post(expectedOkText), Duration.Inf)
         response.status must_== 500
         response.body must_== expectedOkText
       }
     }
 
     "Filters are not applied when the request is outside the application.context" in withServer(
-        Map("play.http.context" -> "/foo"))(ErrorHandlingFilter,
-                                            ThrowExceptionFilter) { ws =>
-      val response =
-        Await.result(ws.url("/ok").post(expectedOkText), Duration.Inf)
+        Map("play.http.context" -> "/foo"))(ErrorHandlingFilter, ThrowExceptionFilter) { ws =>
+      val response = Await.result(ws.url("/ok").post(expectedOkText), Duration.Inf)
       response.status must_== 200
       response.body must_== expectedOkText
     }
 
     "Filters are applied on the root of the application context" in withServer(
         Map("play.http.context" -> "/foo"))(SkipNextFilter) { ws =>
-      val response =
-        Await.result(ws.url("/foo").post(expectedOkText), Duration.Inf)
+      val response = Await.result(ws.url("/foo").post(expectedOkText), Duration.Inf)
       response.status must_== 200
       response.body must_== SkipNextFilter.expectedText
     }
 
-    "Filters work even if one of them does not call next" in withServer()(
-        ErrorHandlingFilter, SkipNextFilter) { ws =>
+    "Filters work even if one of them does not call next" in withServer()(ErrorHandlingFilter,
+                                                                          SkipNextFilter) { ws =>
       val response = Await.result(ws.url("/ok").get(), Duration.Inf)
       response.status must_== 200
       response.body must_== SkipNextFilter.expectedText
@@ -168,22 +157,18 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
     val filterAddedHeaderVal = "custom header val"
 
     object CustomHeaderFilter extends Filter {
-      def apply(next: RequestHeader => Future[Result])(
-          request: RequestHeader): Future[Result] = {
+      def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
         next(request.copy(headers = addCustomHeader(request.headers)))
       }
       def addCustomHeader(originalHeaders: Headers): Headers = {
-        FakeHeaders(originalHeaders.headers :+
-            (filterAddedHeaderKey -> filterAddedHeaderVal))
+        FakeHeaders(originalHeaders.headers :+ (filterAddedHeaderKey -> filterAddedHeaderVal))
       }
     }
 
     object CustomErrorHandler extends HttpErrorHandler {
-      def onClientError(
-          request: RequestHeader, statusCode: Int, message: String) = {
-        Future.successful(Results.NotFound(request.headers
-                  .get(filterAddedHeaderKey)
-                  .getOrElse("undefined header")))
+      def onClientError(request: RequestHeader, statusCode: Int, message: String) = {
+        Future.successful(Results.NotFound(
+                request.headers.get(filterAddedHeaderKey).getOrElse("undefined header")))
       }
       def onServerError(request: RequestHeader, exception: Throwable) =
         Future.successful(Results.InternalServerError)
@@ -191,16 +176,14 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
 
     "requests not matching a route should receive a RequestHeader modified by upstream filters" in withServer(
         errorHandler = Some(CustomErrorHandler))(CustomHeaderFilter) { ws =>
-      val response =
-        Await.result(ws.url("/not-a-real-route").get(), Duration.Inf)
+      val response = Await.result(ws.url("/not-a-real-route").get(), Duration.Inf)
       response.status must_== 404
       response.body must_== filterAddedHeaderVal
     }
   }
 
   object ErrorHandlingFilter extends Filter {
-    def apply(next: RequestHeader => Future[Result])(
-        request: RequestHeader): Future[Result] = {
+    def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
       try {
         next(request).recover {
           case t: Throwable =>
@@ -216,8 +199,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
   object SkipNextFilter extends Filter {
     val expectedText = "This filter does not call next"
 
-    def apply(next: RequestHeader => Future[Result])(
-        request: RequestHeader): Future[Result] = {
+    def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
       Future.successful(Results.Ok(expectedText))
     }
   }
@@ -225,15 +207,13 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
   object SkipNextWithErrorFilter extends Filter {
     val expectedText = "This filter does not call next and throws an exception"
 
-    def apply(next: RequestHeader => Future[Result])(
-        request: RequestHeader): Future[Result] = {
+    def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
       Future.failed(new RuntimeException(expectedText))
     }
   }
 
   object ThrowExceptionFilter extends Filter {
-    val expectedText =
-      "This filter calls next and throws an exception afterwords"
+    val expectedText = "This filter calls next and throws an exception afterwords"
 
     override def apply(next: (RequestHeader) => Future[Result])(
         rh: RequestHeader): Future[Result] = {
@@ -281,6 +261,6 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
   }
 
   def withServer[T](settings: Map[String, String] = Map.empty,
-                    errorHandler: Option[HttpErrorHandler] = None)(
-      filters: EssentialFilter*)(block: WSClient => T): T
+                    errorHandler: Option[HttpErrorHandler] = None)(filters: EssentialFilter*)(
+      block: WSClient => T): T
 }

@@ -66,9 +66,7 @@ case class RouteParams(path: Map[String, Either[Throwable, String]],
             .get(key)
             .map(v => v.fold(t => Left(t.getMessage), binder.bind(key, _)))
             .getOrElse {
-              default
-                .map(d => Right(d))
-                .getOrElse(Left("Missing parameter: " + key))
+              default.map(d => Right(d)).getOrElse(Left("Missing parameter: " + key))
             })
   }
 
@@ -78,9 +76,7 @@ case class RouteParams(path: Map[String, Either[Throwable, String]],
           binder
             .bind(key, queryString)
             .getOrElse {
-              default
-                .map(d => Right(d))
-                .getOrElse(Left("Missing parameter: " + key))
+              default.map(d => Right(d)).getOrElse(Left("Missing parameter: " + key))
             })
   }
 }
@@ -106,8 +102,7 @@ abstract class GeneratedRouter extends Router {
   def errorHandler: HttpErrorHandler
 
   def badRequest(error: String) = Action.async { request =>
-    errorHandler.onClientError(
-        request, play.api.http.Status.BAD_REQUEST, error)
+    errorHandler.onClientError(request, play.api.http.Status.BAD_REQUEST, error)
   }
 
   def call(generator: => Handler): Handler = {
@@ -120,8 +115,9 @@ abstract class GeneratedRouter extends Router {
 
   def call[A1, A2](pa1: Param[A1], pa2: Param[A2])(
       generator: Function2[A1, A2, Handler]): Handler = {
-    (for (a1 <- pa1.value.right; a2 <- pa2.value.right) yield
-      (a1, a2)).fold(badRequest, { case (a1, a2) => generator(a1, a2) })
+    (for (a1 <- pa1.value.right; a2 <- pa2.value.right) yield (a1, a2)).fold(badRequest, {
+      case (a1, a2) => generator(a1, a2)
+    })
   }
 
   def call[A1, A2, A3](pa1: Param[A1], pa2: Param[A2], pa3: Param[A3])(
@@ -132,8 +128,7 @@ abstract class GeneratedRouter extends Router {
     })
   }
 
-  def call[A1, A2, A3, A4](
-      pa1: Param[A1], pa2: Param[A2], pa3: Param[A3], pa4: Param[A4])(
+  def call[A1, A2, A3, A4](pa1: Param[A1], pa2: Param[A2], pa3: Param[A3], pa4: Param[A4])(
       generator: Function4[A1, A2, A3, A4, Handler]): Handler = {
     (for (a1 <- pa1.value.right; a2 <- pa2.value.right; a3 <- pa3.value.right;
     a4 <- pa4.value.right) yield (a1, a2, a3, a4)).fold(badRequest, {
@@ -148,8 +143,7 @@ abstract class GeneratedRouter extends Router {
                                pa5: Param[A5])(
       generator: Function5[A1, A2, A3, A4, A5, Handler]): Handler = {
     (for (a1 <- pa1.value.right; a2 <- pa2.value.right; a3 <- pa3.value.right;
-    a4 <- pa4.value.right; a5 <- pa5.value.right) yield
-      (a1, a2, a3, a4, a5)).fold(badRequest, {
+    a4 <- pa4.value.right; a5 <- pa5.value.right) yield (a1, a2, a3, a4, a5)).fold(badRequest, {
       case (a1, a2, a3, a4, a5) => generator(a1, a2, a3, a4, a5)
     })
   }
@@ -178,8 +172,7 @@ abstract class GeneratedRouter extends Router {
       generator: Function7[A1, A2, A3, A4, A5, A6, A7, Handler]): Handler = {
     (for (a1 <- pa1.value.right; a2 <- pa2.value.right; a3 <- pa3.value.right;
     a4 <- pa4.value.right; a5 <- pa5.value.right; a6 <- pa6.value.right;
-    a7 <- pa7.value.right) yield
-      (a1, a2, a3, a4, a5, a6, a7)).fold(badRequest, {
+    a7 <- pa7.value.right) yield (a1, a2, a3, a4, a5, a6, a7)).fold(badRequest, {
       case (a1, a2, a3, a4, a5, a6, a7) =>
         generator(a1, a2, a3, a4, a5, a6, a7)
     })
@@ -194,7 +187,7 @@ abstract class GeneratedRouter extends Router {
                                            pa7: Param[A7],
                                            pa8: Param[A8])(
       generator: Function8[A1, A2, A3, A4, A5, A6, A7, A8, Handler]
-      ): Handler = {
+  ): Handler = {
     (for (a1 <- pa1.value.right; a2 <- pa2.value.right; a3 <- pa3.value.right;
     a4 <- pa4.value.right; a5 <- pa5.value.right; a6 <- pa6.value.right;
     a7 <- pa7.value.right; a8 <- pa8.value.right) yield
@@ -214,7 +207,7 @@ abstract class GeneratedRouter extends Router {
                                                pa8: Param[A8],
                                                pa9: Param[A9])(
       generator: Function9[A1, A2, A3, A4, A5, A6, A7, A8, A9, Handler]
-      ): Handler = {
+  ): Handler = {
     (for (a1 <- pa1.value.right; a2 <- pa2.value.right; a3 <- pa3.value.right;
     a4 <- pa4.value.right; a5 <- pa5.value.right; a6 <- pa6.value.right;
     a7 <- pa7.value.right; a8 <- pa8.value.right; a9 <- pa9.value.right) yield
@@ -235,12 +228,11 @@ abstract class GeneratedRouter extends Router {
                                                     pa9: Param[A9],
                                                     pa10: Param[A10])(
       generator: Function10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, Handler]
-      ): Handler = {
+  ): Handler = {
     (for (a1 <- pa1.value.right; a2 <- pa2.value.right; a3 <- pa3.value.right;
     a4 <- pa4.value.right; a5 <- pa5.value.right; a6 <- pa6.value.right;
     a7 <- pa7.value.right; a8 <- pa8.value.right; a9 <- pa9.value.right;
-    a10 <- pa10.value.right) yield
-      (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)).fold(badRequest, {
+    a10 <- pa10.value.right) yield (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)).fold(badRequest, {
       case (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) =>
         generator(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
     })
@@ -257,8 +249,7 @@ abstract class GeneratedRouter extends Router {
                                                          pa9: Param[A9],
                                                          pa10: Param[A10],
                                                          pa11: Param[A11])(
-      generator: Function11[
-          A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, Handler]): Handler = {
+      generator: Function11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, Handler]): Handler = {
     (for (a1 <- pa1.value.right; a2 <- pa2.value.right; a3 <- pa3.value.right;
     a4 <- pa4.value.right; a5 <- pa5.value.right; a6 <- pa6.value.right;
     a7 <- pa7.value.right; a8 <- pa8.value.right; a9 <- pa9.value.right;
@@ -269,22 +260,20 @@ abstract class GeneratedRouter extends Router {
     })
   }
 
-  def call[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
-      pa1: Param[A1],
-      pa2: Param[A2],
-      pa3: Param[A3],
-      pa4: Param[A4],
-      pa5: Param[A5],
-      pa6: Param[A6],
-      pa7: Param[A7],
-      pa8: Param[A8],
-      pa9: Param[A9],
-      pa10: Param[A10],
-      pa11: Param[A11],
-      pa12: Param[A12])(
-      generator: Function12[
-          A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, Handler]
-      ): Handler = {
+  def call[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](pa1: Param[A1],
+                                                              pa2: Param[A2],
+                                                              pa3: Param[A3],
+                                                              pa4: Param[A4],
+                                                              pa5: Param[A5],
+                                                              pa6: Param[A6],
+                                                              pa7: Param[A7],
+                                                              pa8: Param[A8],
+                                                              pa9: Param[A9],
+                                                              pa10: Param[A10],
+                                                              pa11: Param[A11],
+                                                              pa12: Param[A12])(
+      generator: Function12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, Handler]
+  ): Handler = {
     (for (a1 <- pa1.value.right; a2 <- pa2.value.right; a3 <- pa3.value.right;
     a4 <- pa4.value.right; a5 <- pa5.value.right; a6 <- pa6.value.right;
     a7 <- pa7.value.right; a8 <- pa8.value.right; a9 <- pa9.value.right;
@@ -295,60 +284,54 @@ abstract class GeneratedRouter extends Router {
     })
   }
 
-  def call[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
-      pa1: Param[A1],
-      pa2: Param[A2],
-      pa3: Param[A3],
-      pa4: Param[A4],
-      pa5: Param[A5],
-      pa6: Param[A6],
-      pa7: Param[A7],
-      pa8: Param[A8],
-      pa9: Param[A9],
-      pa10: Param[A10],
-      pa11: Param[A11],
-      pa12: Param[A12],
-      pa13: Param[A13])(
-      generator: Function13[
-          A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, Handler]
-      ): Handler = {
+  def call[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](pa1: Param[A1],
+                                                                   pa2: Param[A2],
+                                                                   pa3: Param[A3],
+                                                                   pa4: Param[A4],
+                                                                   pa5: Param[A5],
+                                                                   pa6: Param[A6],
+                                                                   pa7: Param[A7],
+                                                                   pa8: Param[A8],
+                                                                   pa9: Param[A9],
+                                                                   pa10: Param[A10],
+                                                                   pa11: Param[A11],
+                                                                   pa12: Param[A12],
+                                                                   pa13: Param[A13])(
+      generator: Function13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, Handler]
+  ): Handler = {
     (for (a1 <- pa1.value.right; a2 <- pa2.value.right; a3 <- pa3.value.right;
     a4 <- pa4.value.right; a5 <- pa5.value.right; a6 <- pa6.value.right;
     a7 <- pa7.value.right; a8 <- pa8.value.right; a9 <- pa9.value.right;
     a10 <- pa10.value.right; a11 <- pa11.value.right; a12 <- pa12.value.right;
     a13 <- pa13.value.right) yield
-      (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13))
-      .fold(badRequest, {
+      (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)).fold(badRequest, {
       case (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13) =>
         generator(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)
     })
   }
 
-  def call[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
-      pa1: Param[A1],
-      pa2: Param[A2],
-      pa3: Param[A3],
-      pa4: Param[A4],
-      pa5: Param[A5],
-      pa6: Param[A6],
-      pa7: Param[A7],
-      pa8: Param[A8],
-      pa9: Param[A9],
-      pa10: Param[A10],
-      pa11: Param[A11],
-      pa12: Param[A12],
-      pa13: Param[A13],
-      pa14: Param[A14])(
-      generator: Function14[
-          A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, Handler]
-      ): Handler = {
+  def call[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](pa1: Param[A1],
+                                                                        pa2: Param[A2],
+                                                                        pa3: Param[A3],
+                                                                        pa4: Param[A4],
+                                                                        pa5: Param[A5],
+                                                                        pa6: Param[A6],
+                                                                        pa7: Param[A7],
+                                                                        pa8: Param[A8],
+                                                                        pa9: Param[A9],
+                                                                        pa10: Param[A10],
+                                                                        pa11: Param[A11],
+                                                                        pa12: Param[A12],
+                                                                        pa13: Param[A13],
+                                                                        pa14: Param[A14])(
+      generator: Function14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, Handler]
+  ): Handler = {
     (for (a1 <- pa1.value.right; a2 <- pa2.value.right; a3 <- pa3.value.right;
     a4 <- pa4.value.right; a5 <- pa5.value.right; a6 <- pa6.value.right;
     a7 <- pa7.value.right; a8 <- pa8.value.right; a9 <- pa9.value.right;
     a10 <- pa10.value.right; a11 <- pa11.value.right; a12 <- pa12.value.right;
     a13 <- pa13.value.right; a14 <- pa14.value.right) yield
-      (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14))
-      .fold(badRequest, {
+      (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)).fold(badRequest, {
       case (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14) =>
         generator(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)
     })
@@ -390,17 +373,13 @@ abstract class GeneratedRouter extends Router {
     a7 <- pa7.value.right; a8 <- pa8.value.right; a9 <- pa9.value.right;
     a10 <- pa10.value.right; a11 <- pa11.value.right; a12 <- pa12.value.right;
     a13 <- pa13.value.right; a14 <- pa14.value.right; a15 <- pa15.value.right) yield
-      (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15))
-      .fold(badRequest, {
-      case (
-          a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15) =>
-        generator(
-            a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)
+      (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)).fold(badRequest, {
+      case (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15) =>
+        generator(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)
     })
   }
 
-  def call[
-      A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+  def call[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
       pa1: Param[A1],
       pa2: Param[A2],
       pa3: Param[A3],
@@ -439,8 +418,7 @@ abstract class GeneratedRouter extends Router {
     a10 <- pa10.value.right; a11 <- pa11.value.right; a12 <- pa12.value.right;
     a13 <- pa13.value.right; a14 <- pa14.value.right; a15 <- pa15.value.right;
     a16 <- pa16.value.right) yield
-      (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16))
-      .fold(badRequest, {
+      (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)).fold(badRequest, {
       case (a1,
             a2,
             a3,
@@ -1089,8 +1067,7 @@ abstract class GeneratedRouter extends Router {
     })
   }
 
-  def fakeValue[A]: A =
-    throw new UnsupportedOperationException("Can't get a fake value")
+  def fakeValue[A]: A = throw new UnsupportedOperationException("Can't get a fake value")
 
   /**
     * Create a HandlerInvoker for a route by simulating a call to the

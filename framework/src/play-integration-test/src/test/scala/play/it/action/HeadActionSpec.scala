@@ -17,10 +17,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import play.api.test.TestServer
 import play.api.test.FakeApplication
 
-object NettyHeadActionSpec
-    extends HeadActionSpec with NettyIntegrationSpecification
-object AkkaHttpHeadActionSpec
-    extends HeadActionSpec with AkkaHttpIntegrationSpecification
+object NettyHeadActionSpec extends HeadActionSpec with NettyIntegrationSpecification
+object AkkaHttpHeadActionSpec extends HeadActionSpec with AkkaHttpIntegrationSpecification
 
 trait HeadActionSpec
     extends PlaySpecification with WsTestClient with Results with HeaderNames
@@ -36,8 +34,7 @@ trait HeadActionSpec
 
     val manualContentSize = route("GET", "/manualContentSize") {
       Action { request =>
-        Ok("The Itsy Bitsy Spider Went Up the Water Spout")
-          .withHeaders(CONTENT_LENGTH -> "5")
+        Ok("The Itsy Bitsy Spider Went Up the Water Spout").withHeaders(CONTENT_LENGTH -> "5")
       }
     }
 
@@ -110,8 +107,7 @@ trait HeadActionSpec
       val wasCalled = new AtomicBoolean()
 
       val action = Action {
-        Ok.chunked(
-            Enumerator("a", "b", "c").onDoneEnumerating(wasCalled.set(true)))
+        Ok.chunked(Enumerator("a", "b", "c").onDoneEnumerating(wasCalled.set(true)))
       }
       serverWithAction(action) {
         await(wsUrl("/get").head())

@@ -13,8 +13,8 @@ object AnyContentBodyParserSpec extends PlaySpecification {
   "The anyContent body parser" should {
 
     def parse(method: String, contentType: Option[String], body: Array[Byte]) = {
-      val request = FakeRequest(method, "/x")
-        .withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq:_*)
+      val request =
+        FakeRequest(method, "/x").withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq:_*)
       await(Enumerator(body) |>>> BodyParsers.parse.anyContent(request))
     }
 
@@ -59,9 +59,7 @@ object AnyContentBodyParserSpec extends PlaySpecification {
     }
 
     "parse JSON bodies for PUT requests" in new WithApplication() {
-      parse("PUT",
-            Some("application/json"),
-            """{"foo":"bar"}""".getBytes("utf-8")) must beRight.like {
+      parse("PUT", Some("application/json"), """{"foo":"bar"}""".getBytes("utf-8")) must beRight.like {
         case AnyContentAsJson(json) => (json \ "foo").as[String] must_== "bar"
       }
     }

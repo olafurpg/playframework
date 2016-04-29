@@ -47,15 +47,13 @@ object ReflectSpec extends Specification {
       }
 
       "throw an exception if a configured class doesn't implement either of the interfaces" in {
-        doQuack(bindings[CustomDuck](classOf[NotADuck].getName)) must throwA[
-            PlayException]
+        doQuack(bindings[CustomDuck](classOf[NotADuck].getName)) must throwA[PlayException]
       }
     }
   }
 
   def bindings(configured: String, defaultClassName: String): Seq[Binding[_]] = {
-    Reflect
-      .bindingsFromConfiguration[Duck, JavaDuck, JavaDuckAdapter, DefaultDuck](
+    Reflect.bindingsFromConfiguration[Duck, JavaDuck, JavaDuckAdapter, DefaultDuck](
         Environment.simple(),
         PlayConfig(Configuration.from(Map("duck" -> configured))),
         "duck",
@@ -93,10 +91,6 @@ object ReflectSpec extends Specification {
   class NotADuck
 
   def doQuack(bindings: Seq[Binding[_]]): String = {
-    new GuiceInjectorBuilder()
-      .bindings(bindings)
-      .injector
-      .instanceOf[Duck]
-      .quack
+    new GuiceInjectorBuilder().bindings(bindings).injector.instanceOf[Duck].quack
   }
 }

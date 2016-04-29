@@ -8,13 +8,10 @@ import play.api.libs.ws.{WSCookie, WSResponse, WS}
 import play.api.Logger
 import play.it._
 
-object NettyFlashCookieSpec
-    extends FlashCookieSpec with NettyIntegrationSpecification
-object AkkaHttpFlashCookieSpec
-    extends FlashCookieSpec with AkkaHttpIntegrationSpecification
+object NettyFlashCookieSpec extends FlashCookieSpec with NettyIntegrationSpecification
+object AkkaHttpFlashCookieSpec extends FlashCookieSpec with AkkaHttpIntegrationSpecification
 
-trait FlashCookieSpec
-    extends PlaySpecification with ServerIntegrationSpecification {
+trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   sequential
 
@@ -33,19 +30,14 @@ trait FlashCookieSpec
     })
 
   def appWithSecureCookie(secure: Boolean = false) =
-    FakeApplication(
-        additionalConfiguration = Map("play.http.flash.secure" -> secure))
+    FakeApplication(additionalConfiguration = Map("play.http.flash.secure" -> secure))
 
   def readFlashCookie(response: WSResponse): Option[WSCookie] =
     response.cookies.find(_.name.exists(_ == Flash.COOKIE_NAME))
 
   "the flash cookie" should {
-    "can be set for one request" in new WithServer(app = appWithRedirect,
-                                                   port = 3333) {
-      val response = await(WS
-            .url("http://localhost:3333/flash")
-            .withFollowRedirects(false)
-            .get())
+    "can be set for one request" in new WithServer(app = appWithRedirect, port = 3333) {
+      val response = await(WS.url("http://localhost:3333/flash").withFollowRedirects(false).get())
       response.status must equalTo(SEE_OTHER)
       val flashCookie = readFlashCookie(response)
       flashCookie must beSome.like {
@@ -55,8 +47,7 @@ trait FlashCookieSpec
       }
     }
 
-    "be removed after a redirect" in new WithServer(app = appWithRedirect,
-                                                    port = 3333) {
+    "be removed after a redirect" in new WithServer(app = appWithRedirect, port = 3333) {
       val response = await(WS.url("http://localhost:3333/flash").get())
       response.status must equalTo(OK)
       val flashCookie = readFlashCookie(response)

@@ -89,8 +89,7 @@ private[play] final class NonBlockingMutex {
     val prevState = state.get
     val (newState, nextOp) = prevState match {
       case null =>
-        throw new IllegalStateException(
-            "When executing, must have a queue of pending elements")
+        throw new IllegalStateException("When executing, must have a queue of pending elements")
       case pending if pending.isEmpty => (null, None)
       case pending => (pending.tail, Some(pending.head))
     }

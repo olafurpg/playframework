@@ -189,8 +189,7 @@ object Logger extends LoggerLike {
     * @param clazz a class whose name will be used as logger name
     * @return a logger
     */
-  def apply[T](clazz: Class[T]): Logger =
-    new Logger(LoggerFactory.getLogger(clazz))
+  def apply[T](clazz: Class[T]): Logger = new Logger(LoggerFactory.getLogger(clazz))
 
   /**
     * Initialize the Logger when there's no application ClassLoader available.
@@ -200,8 +199,7 @@ object Logger extends LoggerLike {
     val resourceName =
       if (mode == Mode.Dev) "logback-play-dev.xml"
       else "logback-play-default.xml"
-    val resourceUrl = Option(
-        Logger.getClass.getClassLoader.getResource(resourceName))
+    val resourceUrl = Option(Logger.getClass.getClassLoader.getResource(resourceName))
     configure(properties, resourceUrl)
   }
 
@@ -218,8 +216,7 @@ object Logger extends LoggerLike {
     }
 
     // Get an explicitly configured file URL
-    def explicitFileUrl =
-      sys.props.get("logger.file").map(new File(_).toURI.toURL)
+    def explicitFileUrl = sys.props.get("logger.file").map(new File(_).toURI.toURL)
 
     // application-logger.xml and logger.xml are deprecated methods for supplying the configuration
     // logback.xml is the documented method, logback-play-default.xml is the fallback that Play uses
@@ -230,12 +227,10 @@ object Logger extends LoggerLike {
         .orElse(env.resource("logger.xml"))
         .orElse(env.resource("logback.xml"))
         .orElse(env.resource(
-                if (env.mode == Mode.Dev)
-                  "logback-play-dev.xml" else "logback-play-default.xml"
+                if (env.mode == Mode.Dev) "logback-play-dev.xml" else "logback-play-default.xml"
             ))
 
-    val configUrl =
-      explicitResourceUrl orElse explicitFileUrl orElse resourceUrl
+    val configUrl = explicitResourceUrl orElse explicitFileUrl orElse resourceUrl
 
     configure(properties, configUrl)
   }
@@ -243,65 +238,63 @@ object Logger extends LoggerLike {
   /**
     * Reconfigures the underlying logback infrastructure.
     */
-  def configure(properties: Map[String, String], config: Option[URL]): Unit =
-    synchronized {
-      // Redirect JUL -> SL4FJ
-      {
-        import org.slf4j.bridge._
-        import java.util.logging._
+  def configure(properties: Map[String, String], config: Option[URL]): Unit = synchronized {
+    // Redirect JUL -> SL4FJ
+    {
+      import org.slf4j.bridge._
+      import java.util.logging._
 
-        Option(java.util.logging.Logger.getLogger("")).map { root =>
-          root.setLevel(Level.FINEST)
-          root.getHandlers.foreach(root.removeHandler(_))
-        }
-
-        SLF4JBridgeHandler.install()
+      Option(java.util.logging.Logger.getLogger("")).map { root =>
+        root.setLevel(Level.FINEST)
+        root.getHandlers.foreach(root.removeHandler(_))
       }
 
-      // Configure logback
-      {
-        import org.slf4j._
+      SLF4JBridgeHandler.install()
+    }
 
-        import ch.qos.logback.classic.joran._
-        import ch.qos.logback.core.util._
-        import ch.qos.logback.classic._
+    // Configure logback
+    {
+      import org.slf4j._
+
+      import ch.qos.logback.classic.joran._
+      import ch.qos.logback.core.util._
+      import ch.qos.logback.classic._
+
+      try {
+        val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
+        val configurator = new JoranConfigurator
+        configurator.setContext(ctx)
+        ctx.reset()
+
+        // Ensure that play.Logger and play.api.Logger are ignored when detecting file name and line number for
+        // logging
+        val frameworkPackages = ctx.getFrameworkPackages
+        frameworkPackages.add(classOf[play.Logger].getName)
+        frameworkPackages.add(classOf[play.api.Logger].getName)
+
+        properties.foreach {
+          case (name, value) => ctx.putProperty(name, value)
+        }
 
         try {
-          val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
-          val configurator = new JoranConfigurator
-          configurator.setContext(ctx)
-          ctx.reset()
-
-          // Ensure that play.Logger and play.api.Logger are ignored when detecting file name and line number for
-          // logging
-          val frameworkPackages = ctx.getFrameworkPackages
-          frameworkPackages.add(classOf[play.Logger].getName)
-          frameworkPackages.add(classOf[play.api.Logger].getName)
-
-          properties.foreach {
-            case (name, value) => ctx.putProperty(name, value)
-          }
-
-          try {
-            config match {
-              case Some(url) => configurator.doConfigure(url)
-              case None =>
-                System.err.println(
-                    "Could not detect a logback configuration file, not configuring logback")
-            }
-          } catch {
-            case NonFatal(e) =>
+          config match {
+            case Some(url) => configurator.doConfigure(url)
+            case None =>
               System.err
-                .println("Error encountered while configuring logback:")
-              e.printStackTrace()
+                .println("Could not detect a logback configuration file, not configuring logback")
           }
-
-          StatusPrinter.printIfErrorsOccured(ctx)
         } catch {
-          case NonFatal(_) =>
+          case NonFatal(e) =>
+            System.err.println("Error encountered while configuring logback:")
+            e.printStackTrace()
         }
+
+        StatusPrinter.printIfErrorsOccured(ctx)
+      } catch {
+        case NonFatal(_) =>
       }
     }
+  }
 
   /**
     * Shutdown the logger infrastructure.

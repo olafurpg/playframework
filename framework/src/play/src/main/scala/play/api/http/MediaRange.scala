@@ -25,9 +25,7 @@ case class MediaType(mediaType: String,
         if (MediaRangeParser.token(new CharSequenceReader(value)).next.atEnd) {
           "=" + value
         } else {
-          "=\"" +
-          value.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\"") +
-          "\""
+          "=\"" + value.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\"") + "\""
         }
       }.getOrElse("")
     }.mkString("")
@@ -55,16 +53,14 @@ class MediaRange(mediaType: String,
     */
   def accepts(mimeType: String): Boolean =
     (mediaType + "/" + mediaSubType).equalsIgnoreCase(mimeType) ||
-    (mediaSubType == "*" &&
-        mediaType.equalsIgnoreCase(mimeType.takeWhile(_ != '/'))) ||
+    (mediaSubType == "*" && mediaType.equalsIgnoreCase(mimeType.takeWhile(_ != '/'))) ||
     (mediaType == "*" && mediaSubType == "*")
 
   override def toString = {
-    new MediaType(mediaType,
-                  mediaSubType,
-                  parameters ++ qValue
-                    .map(q => ("q", Some(q.toString())))
-                    .toSeq ++ acceptExtensions).toString
+    new MediaType(
+        mediaType,
+        mediaSubType,
+        parameters ++ qValue.map(q => ("q", Some(q.toString()))).toSeq ++ acceptExtensions).toString
   }
 }
 
@@ -84,8 +80,7 @@ object MediaType {
       MediaRangeParser.mediaType(new CharSequenceReader(mediaType)) match {
         case MediaRangeParser.Success(mt: MediaType, next) => {
             if (!next.atEnd) {
-              logger.debug(
-                  "Unable to parse part of media type '" + next.source + "'")
+              logger.debug("Unable to parse part of media type '" + next.source + "'")
             }
             Some(mt)
           }
@@ -111,13 +106,11 @@ object MediaRange {
       MediaRangeParser(new CharSequenceReader(mediaRanges)) match {
         case MediaRangeParser.Success(mrs: List [MediaRange], next) =>
           if (next.atEnd) {
-            logger.debug("Unable to parse part of media range header '" +
-                next.source + "'")
+            logger.debug("Unable to parse part of media range header '" + next.source + "'")
           }
           mrs.sorted
         case MediaRangeParser.NoSuccess(err, _) =>
-          logger.debug("Unable to parse media range header '" + mediaRanges +
-              "': " + err)
+          logger.debug("Unable to parse media range header '" + mediaRanges + "': " + err)
           Nil
       }
     }
@@ -151,8 +144,7 @@ object MediaRange {
 
       if (qCompare != 0) -qCompare
       else if (a.mediaType == b.mediaType) {
-        if (a.mediaSubType == b.mediaSubType)
-          b.parameters.size - a.parameters.size
+        if (a.mediaSubType == b.mediaSubType) b.parameters.size - a.parameters.size
         else if (a.mediaSubType == "*") 1
         else if (b.mediaSubType == "*") -1
         else 0
@@ -192,31 +184,26 @@ object MediaRange {
     val char = acceptIf(_ < 0x80)(_ => "Expected an ascii character")
     val text = not(ctl) ~> any
     val separators = {
-      acceptIf(c => separatorBitSet(c))(
-          _ => "Expected one of " + separatorChars)
+      acceptIf(c => separatorBitSet(c))(_ => "Expected one of " + separatorChars)
     }
 
     val token = rep1(not(separators | ctl) ~> any) ^^ charSeqToString
 
-    def badPart(p: Char => Boolean, msg: => String) =
-      rep1(acceptIf(p)(ignoreErrors)) ^^ {
-        case chars =>
-          logger.debug(msg + ": " + charSeqToString(chars))
-          None
-      }
-    val badParameter = badPart(
-        c => c != ',' && c != ';', "Bad media type parameter")
+    def badPart(p: Char => Boolean, msg: => String) = rep1(acceptIf(p)(ignoreErrors)) ^^ {
+      case chars =>
+        logger.debug(msg + ": " + charSeqToString(chars))
+        None
+    }
+    val badParameter = badPart(c => c != ',' && c != ';', "Bad media type parameter")
     val badMediaType = badPart(c => c != ',', "Bad media type")
 
-    def tolerant[T](p: Parser[T], bad: Parser[Option[T]]) =
-      p.map(Some.apply) | bad
+    def tolerant[T](p: Parser[T], bad: Parser[Option[T]]) = p.map(Some.apply) | bad
 
     // The spec is really vague about what a quotedPair means. We're going to assume that it's just to quote quotes,
     // which means all we have to do for the result of it is ignore the slash.
     val quotedPair = '\\' ~> char
     val qdtext = not('"') ~> text
-    val quotedString =
-      '"' ~> rep(quotedPair | qdtext) <~ '"' ^^ charSeqToString
+    val quotedString = '"' ~> rep(quotedPair | qdtext) <~ '"' ^^ charSeqToString
 
     /*
      * RFC 2616 section 3.7
@@ -227,8 +214,7 @@ object MediaRange {
       }
 
     // Either it's a valid parameter followed immediately by the end, a comma or a semicolon, or it's a bad parameter
-    val tolerantParameter = tolerant(
-        parameter <~ guard(end | ';' | ','), badParameter)
+    val tolerantParameter = tolerant(parameter <~ guard(end | ';' | ','), badParameter)
 
     val parameters = rep(';' ~> rep(' ') ~> tolerantParameter <~ rep(' '))
     val mediaType: Parser[MediaType] =
@@ -246,8 +232,7 @@ object MediaRange {
     // Some clients think that '*' is a valid media range.  Spec says it isn't, but it's used widely enough that we
     // need to support it.
     val mediaRange =
-      (mediaType |
-          ('*' ~> parameters.map(ps => MediaType("*", "*", ps.flatten)))) ^^ {
+      (mediaType | ('*' ~> parameters.map(ps => MediaType("*", "*", ps.flatten)))) ^^ {
         mediaType =>
           val (params, rest) = mediaType.parameters.span(_._1 != "q")
           val (qValueStr, acceptParams) = rest match {
@@ -277,11 +262,9 @@ object MediaRange {
       }
 
     // Either it's a valid media range followed immediately by the end or a comma, or it's a bad media type
-    val tolerantMediaRange = tolerant(
-        mediaRange <~ guard(end | ','), badMediaType)
+    val tolerantMediaRange = tolerant(mediaRange <~ guard(end | ','), badMediaType)
 
-    val mediaRanges =
-      rep1sep(tolerantMediaRange, ',' ~ rep(' ')).map(_.flatten)
+    val mediaRanges = rep1sep(tolerantMediaRange, ',' ~ rep(' ')).map(_.flatten)
 
     def apply(in: Input): ParseResult[List[MediaRange]] = mediaRanges(in)
 

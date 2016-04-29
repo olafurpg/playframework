@@ -61,12 +61,10 @@ object EvolutionsSpec extends Specification {
       val broken = evolutions.scripts(Seq(c1, a2, a3))
       val fixed = evolutions.scripts(Seq(a1, a2, a3))
 
-      evolutions.evolve(broken, autocommit = true) must throwAn[
-          InconsistentDatabase]
+      evolutions.evolve(broken, autocommit = true) must throwAn[InconsistentDatabase]
 
       // inconsistent until resolved
-      evolutions.evolve(fixed, autocommit = true) must throwAn[
-          InconsistentDatabase]
+      evolutions.evolve(fixed, autocommit = true) must throwAn[InconsistentDatabase]
 
       evolutions.resolve(1)
 
@@ -89,8 +87,7 @@ object EvolutionsSpec extends Specification {
     }
 
     "provide a helper for testing" in new WithEvolutions {
-      Evolutions.withEvolutions(
-          database, SimpleEvolutionsReader.forDefault(a1, a2, a3)) {
+      Evolutions.withEvolutions(database, SimpleEvolutionsReader.forDefault(a1, a2, a3)) {
         // Check that there's data in the database
         val resultSet = executeQuery("select * from test")
         resultSet.next must beTrue
@@ -109,8 +106,7 @@ object EvolutionsSpec extends Specification {
 
     lazy val connection = database.getConnection()
 
-    def executeQuery(sql: String): ResultSet =
-      connection.createStatement.executeQuery(sql)
+    def executeQuery(sql: String): ResultSet = connection.createStatement.executeQuery(sql)
 
     def after = {
       connection.close()

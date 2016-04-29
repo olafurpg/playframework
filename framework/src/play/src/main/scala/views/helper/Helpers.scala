@@ -21,8 +21,8 @@ package views.html.helper {
                case Some(false) => false
                case _ => true
              }) {
-           field.constraints.map(c => messages(c._1, c._2:_*)) ++ field.format
-             .map(f => messages(f._1, f._2:_*))
+           field.constraints.map(c => messages(c._1, c._2:_*)) ++ field.format.map(
+               f => messages(f._1, f._2:_*))
          } else Nil)
       }
     }
@@ -63,18 +63,15 @@ package views.html.helper {
 
   object FieldConstructor {
 
-    implicit val defaultField = FieldConstructor(
-        views.html.helper.defaultFieldConstructor.f)
+    implicit val defaultField = FieldConstructor(views.html.helper.defaultFieldConstructor.f)
 
-    def apply(f: FieldElements => Html): FieldConstructor =
-      new FieldConstructor {
-        def apply(elts: FieldElements) = f(elts)
-      }
+    def apply(f: FieldElements => Html): FieldConstructor = new FieldConstructor {
+      def apply(elts: FieldElements) = f(elts)
+    }
 
-    implicit def inlineFieldConstructor(f: (FieldElements) => Html) =
-      FieldConstructor(f)
-    implicit def templateAsFieldConstructor(
-        t: Template1[FieldElements, Html]) = FieldConstructor(t.render)
+    implicit def inlineFieldConstructor(f: (FieldElements) => Html) = FieldConstructor(f)
+    implicit def templateAsFieldConstructor(t: Template1[FieldElements, Html]) =
+      FieldConstructor(t.render)
   }
 
   object repeat {
@@ -111,8 +108,7 @@ package views.html.helper {
     def apply(options: Map[String, String]) = options.toSeq
     def apply(options: java.util.Map[String, String]) = options.asScala.toSeq
     def apply(options: List[String]) = options.map(v => v -> v)
-    def apply(options: java.util.List[String]) =
-      options.asScala.map(v => v -> v)
+    def apply(options: java.util.List[String]) = options.asScala.map(v => v -> v)
   }
 
   object Implicits {

@@ -35,10 +35,8 @@ object ForkRun {
 
     val log = Logger(logLevel)
     val system = ActorSystem("play-fork-run", akkaNoLogging)
-    val sbt = system.actorOf(
-        SbtClient.props(new File(baseDirectory), log, logEvents), "sbt")
-    val forkRun =
-      system.actorOf(props(sbt, configKey, runArgs, log), "fork-run")
+    val sbt = system.actorOf(SbtClient.props(new File(baseDirectory), log, logEvents), "sbt")
+    val forkRun = system.actorOf(props(sbt, configKey, runArgs, log), "fork-run")
 
     log.info("Setting up Play fork run ... (use Ctrl+D to cancel)")
     registerShutdownHook(log, system, forkRun)
@@ -59,8 +57,7 @@ object ForkRun {
     }
   }
 
-  def registerShutdownHook(
-      log: Logger, system: ActorSystem, forkRun: ActorRef): Unit = {
+  def registerShutdownHook(log: Logger, system: ActorSystem, forkRun: ActorRef): Unit = {
     Runtime
       .getRuntime()
       .addShutdownHook(new Thread {
@@ -77,14 +74,12 @@ object ForkRun {
                   reloadCompile: () => CompileResult,
                   log: Logger): PlayDevServer = {
     val notifyStartHook = new RunHook {
-      override def afterStarted(address: InetSocketAddress): Unit =
-        notifyStart(address)
+      override def afterStarted(address: InetSocketAddress): Unit = notifyStart(address)
     }
 
     val watchService = config.watchService match {
       case ForkConfig.DefaultWatchService =>
-        FileWatchService.defaultWatchService(
-            config.targetDirectory, config.pollInterval, log)
+        FileWatchService.defaultWatchService(config.targetDirectory, config.pollInterval, log)
       case ForkConfig.JDK7WatchService => FileWatchService.jdk7(log)
       case ForkConfig.JNotifyWatchService =>
         FileWatchService.jnotify(config.targetDirectory)
@@ -93,8 +88,7 @@ object ForkRun {
     }
 
     val runSbtTask = (s: String) =>
-      throw new UnsupportedOperationException(
-          "BuildLink.runTask is not supported in fork run")
+      throw new UnsupportedOperationException("BuildLink.runTask is not supported in fork run")
 
     val server = Reloader.startDevMode(
         runHooks = Seq(notifyStartHook),
@@ -104,8 +98,7 @@ object ForkRun {
         reloadCompile = reloadCompile,
         reloaderClassLoader = Reloader.createDelegatedResourcesClassLoader,
         assetsClassLoader = Reloader.assetsClassLoader(config.allAssets),
-        commonClassLoader = Reloader
-            .commonClassLoader(config.dependencyClasspath),
+        commonClassLoader = Reloader.commonClassLoader(config.dependencyClasspath),
         monitoredFiles = config.monitoredFiles,
         fileWatchService = watchService,
         docsClasspath = config.docsClasspath,
@@ -120,19 +113,16 @@ object ForkRun {
     )
 
     println()
-    println(Colors.green(
-            "(Server started, use Ctrl+D to stop and go back to the console...)"))
+    println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
     println()
 
     server
   }
 
-  def sendStart(sbt: ActorRef,
-                config: ForkConfig,
-                args: Seq[String]): InetSocketAddress => Unit = { address =>
-    val url = serverUrl(
-        args, config.defaultHttpPort, config.defaultHttpAddress, address)
-    sbt ! SbtClient.Execute(s"${config.notifyKey} $url")
+  def sendStart(sbt: ActorRef, config: ForkConfig, args: Seq[String]): InetSocketAddress => Unit = {
+    address =>
+      val url = serverUrl(args, config.defaultHttpPort, config.defaultHttpAddress, address)
+      sbt ! SbtClient.Execute(s"${config.notifyKey} $url")
   }
 
   // reparse args to support https urls
@@ -148,8 +138,7 @@ object ForkRun {
     else s"http://$host:${address.getPort}"
   }
 
-  def askForReload(actor: ActorRef)(
-      implicit timeout: Timeout): () => CompileResult =
+  def askForReload(actor: ActorRef)(implicit timeout: Timeout): () => CompileResult =
     () =>
       {
         val future = (actor ? ForkRun.Reload).mapTo[CompileResult]
@@ -175,14 +164,11 @@ object ForkRun {
     """)
   }
 
-  def props(sbt: ActorRef,
-            configKey: String,
-            args: Seq[String],
-            log: Logger): Props = Props(new ForkRun(sbt, configKey, args, log))
+  def props(sbt: ActorRef, configKey: String, args: Seq[String], log: Logger): Props =
+    Props(new ForkRun(sbt, configKey, args, log))
 }
 
-class ForkRun(sbt: ActorRef, configKey: String, args: Seq[String], log: Logger)
-    extends Actor {
+class ForkRun(sbt: ActorRef, configKey: String, args: Seq[String], log: Logger) extends Actor {
   import SbtClient._
   import Serializers._
 
@@ -206,10 +192,8 @@ class ForkRun(sbt: ActorRef, configKey: String, args: Seq[String], log: Logger)
   def run(config: ForkConfig): Unit = {
     try {
       val notifyStart = ForkRun.sendStart(sbt, config, args)
-      val reloadCompile =
-        ForkRun.askForReload(self)(Timeout(config.compileTimeout.millis))
-      val server =
-        ForkRun.startServer(config, args, notifyStart, reloadCompile, log)
+      val reloadCompile = ForkRun.askForReload(self)(Timeout(config.compileTimeout.millis))
+      val server = ForkRun.startServer(config, args, notifyStart, reloadCompile, log)
       context become running(server, config.reloadKey)
     } catch {
       case e: Exception => fail(e)
@@ -227,8 +211,7 @@ class ForkRun(sbt: ActorRef, configKey: String, args: Seq[String], log: Logger)
     context become reloading(server, reloadKey, replyTo)
   }
 
-  def reloading(
-      server: PlayDevServer, reloadKey: String, replyTo: ActorRef): Receive = {
+  def reloading(server: PlayDevServer, reloadKey: String, replyTo: ActorRef): Receive = {
     case Response(`reloadKey`, result) =>
       result.result[CompileResult] match {
         case Success(result) =>

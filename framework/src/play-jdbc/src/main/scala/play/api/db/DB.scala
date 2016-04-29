@@ -29,8 +29,7 @@ object DB {
     * @return a JDBC connection
     */
   def getConnection(name: String = "default", autocommit: Boolean = true)(
-      implicit app: Application): Connection =
-    db.database(name).getConnection(autocommit)
+      implicit app: Application): Connection = db.database(name).getConnection(autocommit)
 
   /**
     * Retrieves a JDBC connection (autocommit is set to true).
@@ -38,8 +37,8 @@ object DB {
     * @param name data source name
     * @return a JDBC connection
     */
-  def getDataSource(name: String = "default")(
-      implicit app: Application): DataSource = db.database(name).dataSource
+  def getDataSource(name: String = "default")(implicit app: Application): DataSource =
+    db.database(name).dataSource
 
   /**
     * Execute a block of code, providing a JDBC connection. The connection is
@@ -80,7 +79,6 @@ object DB {
     *
     * @param block Code block to execute.
     */
-  def withTransaction[A](block: Connection => A)(
-      implicit app: Application): A =
+  def withTransaction[A](block: Connection => A)(implicit app: Application): A =
     db.database("default").withTransaction(block)
 }

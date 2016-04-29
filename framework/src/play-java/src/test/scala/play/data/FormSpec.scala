@@ -60,8 +60,7 @@ object FormSpec extends Specification {
           "error.invalid.java.util.Date")
     }
     "have an error due to missing required value" in {
-      val req = dummyRequest(
-          Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
+      val req = dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
       Context.current.set(new Context(666,
                                       null,
                                       req,
@@ -71,8 +70,7 @@ object FormSpec extends Specification {
 
       val myForm = Form.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
-      myForm.errors.get("dueDate").get(0).messages().asScala must contain(
-          "error.required")
+      myForm.errors.get("dueDate").get(0).messages().asScala must contain("error.required")
     }
     "have an error due to bad value in Id field" in {
       val req = dummyRequest(Map("id" -> Array("1234567891x"),
@@ -87,8 +85,7 @@ object FormSpec extends Specification {
 
       val myForm = Form.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
-      myForm.errors.get("id").get(0).messages().asScala must contain(
-          "error.invalid")
+      myForm.errors.get("id").get(0).messages().asScala must contain("error.invalid")
     }
 
     "support repeated values for Java binding" in {
@@ -103,18 +100,16 @@ object FormSpec extends Specification {
       val user2 = Form
         .form(classOf[AnotherUser])
         .bindFromRequest(
-            dummyRequest(Map("name" -> Array("Kiki"),
-                             "emails[0]" -> Array("kiki@gmail.com"))))
+            dummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"))))
         .get
       user2.getName must beEqualTo("Kiki")
       user2.getEmails.size must beEqualTo(1)
 
       val user3 = Form
         .form(classOf[AnotherUser])
-        .bindFromRequest(
-            dummyRequest(Map("name" -> Array("Kiki"),
-                             "emails[0]" -> Array("kiki@gmail.com"),
-                             "emails[1]" -> Array("kiki@zen.com"))))
+        .bindFromRequest(dummyRequest(Map("name" -> Array("Kiki"),
+                                          "emails[0]" -> Array("kiki@gmail.com"),
+                                          "emails[1]" -> Array("kiki@zen.com"))))
         .get
       user3.getName must beEqualTo("Kiki")
       user3.getEmails.size must beEqualTo(2)
@@ -122,17 +117,15 @@ object FormSpec extends Specification {
       val user4 = Form
         .form(classOf[AnotherUser])
         .bindFromRequest(
-            dummyRequest(Map("name" -> Array("Kiki"),
-                             "emails[]" -> Array("kiki@gmail.com"))))
+            dummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com"))))
         .get
       user4.getName must beEqualTo("Kiki")
       user4.getEmails.size must beEqualTo(1)
 
       val user5 = Form
         .form(classOf[AnotherUser])
-        .bindFromRequest(dummyRequest(
-                Map("name" -> Array("Kiki"),
-                    "emails[]" -> Array("kiki@gmail.com", "kiki@zen.com"))))
+        .bindFromRequest(dummyRequest(Map("name" -> Array("Kiki"),
+                                          "emails[]" -> Array("kiki@gmail.com", "kiki@zen.com"))))
         .get
       user5.getName must beEqualTo("Kiki")
       user5.getEmails.size must beEqualTo(2)
@@ -147,8 +140,7 @@ object FormSpec extends Specification {
 
       val user2 = Form
         .form(classOf[AnotherUser])
-        .bindFromRequest(dummyRequest(
-                Map("name" -> Array("Kiki"), "company" -> Array("Acme"))))
+        .bindFromRequest(dummyRequest(Map("name" -> Array("Kiki"), "company" -> Array("Acme"))))
         .get
       user2.getCompany.get must beEqualTo("Acme")
     }
@@ -162,18 +154,9 @@ object FormSpec extends Specification {
 
     "support email validation" in {
       val userEmail = Form.form(classOf[UserEmail])
-      userEmail
-        .bind(Map("email" -> "john@example.com").asJava)
-        .errors()
-        .asScala must beEmpty
-      userEmail
-        .bind(Map("email" -> "o'flynn@example.com").asJava)
-        .errors()
-        .asScala must beEmpty
-      userEmail
-        .bind(Map("email" -> "john@ex'ample.com").asJava)
-        .errors()
-        .asScala must not beEmpty
+      userEmail.bind(Map("email" -> "john@example.com").asJava).errors().asScala must beEmpty
+      userEmail.bind(Map("email" -> "o'flynn@example.com").asJava).errors().asScala must beEmpty
+      userEmail.bind(Map("email" -> "john@ex'ample.com").asJava).errors().asScala must not beEmpty
     }
 
     "support custom validators" in {
@@ -222,8 +205,7 @@ object FormSpec extends Specification {
           .apply(form("foo"), min) { f =>
             val a = f("a")
             val b = f("b")
-            Html(
-                s"${a.name}=${a.value.getOrElse("")},${b.name}=${b.value.getOrElse("")}")
+            Html(s"${a.name}=${a.value.getOrElse("")},${b.name}=${b.value.getOrElse("")}")
           }
           .map(_.toString)
 
@@ -244,8 +226,7 @@ object FormSpec extends Specification {
 
       "render the right number of fields if there's multiple sub fields at a given index when filled from a value" in {
         render(
-            form.fill(
-                new JavaForm(List(new JavaSubForm("somea", "someb")).asJava))
+            form.fill(new JavaForm(List(new JavaSubForm("somea", "someb")).asJava))
         ) must exactly("foo[0].a=somea,foo[0].b=someb")
       }
 
@@ -279,10 +260,7 @@ object FormSpec extends Specification {
   }
 
   def dummyRequest(data: Map[String, Array[String]]): Request = {
-    new RequestBuilder()
-      .uri("http://localhost/test")
-      .bodyFormArrayValues(data.asJava)
-      .build()
+    new RequestBuilder().uri("http://localhost/test").bodyFormArrayValues(data.asJava).build()
   }
 }
 

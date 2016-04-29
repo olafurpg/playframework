@@ -23,9 +23,9 @@ import play.api.libs.iteratee.Execution.Implicits.trampoline
   */
 object Multipart {
 
-  def multipartParser[A](maxDataLength: Int,
-                         filePartHandler: PartHandler[FilePart[A]]
-  ): BodyParser[MultipartFormData[A]] =
+  def multipartParser[A](
+      maxDataLength: Int,
+      filePartHandler: PartHandler[FilePart[A]]): BodyParser[MultipartFormData[A]] =
     BodyParser("multipartFormData") { request =>
       val maybeBoundary = for {
         mt <- request.mediaType
@@ -40,8 +40,7 @@ object Multipart {
           _ <- Traversable.take[Array[Byte]](boundary.size - 2) transform Iteratee.ignore
           // We use the search enumeratee to turn the stream into a stream of data chunks that are either the boundary,
           // or not the boundary, and we parse that
-          result <- Parsing.search(boundary) transform parseParts(
-              maxDataLength, filePartHandler)
+          result <- Parsing.search(boundary) transform parseParts(maxDataLength, filePartHandler)
         } yield {
           result.right.map { reversed =>
             // We built the parts by prepending a list, so we need to reverse them
@@ -58,13 +57,12 @@ object Multipart {
           }
         }
       }.getOrElse {
-        Iteratee.flatten(createBadResult("Missing boundary header")(request)
-              .map(r => Done(Left(r))))
+        Iteratee.flatten(
+            createBadResult("Missing boundary header")(request).map(r => Done(Left(r))))
       }
     }
 
-  type PartHandler [A] = PartialFunction[
-      Map[String, String], Iteratee[Array[Byte], A]]
+  type PartHandler [A] = PartialFunction[Map[String, String], Iteratee[Array[Byte], A]]
 
   def handleFilePartAsTemporaryFile: PartHandler[FilePart[TemporaryFile]] = {
     handleFilePart {
@@ -72,10 +70,10 @@ object Multipart {
         val tempFile = TemporaryFile("multipartBody", "asTemporaryFile")
         import play.core.Execution.Implicits.internalContext
         Iteratee
-          .fold[Array[Byte], FileOutputStream](
-              new java.io.FileOutputStream(tempFile.file)) { (os, data) =>
-            os.write(data)
-            os
+          .fold[Array[Byte], FileOutputStream](new java.io.FileOutputStream(tempFile.file)) {
+            (os, data) =>
+              os.write(data)
+              os
           }(internalContext)
           .map { os =>
             os.close()
@@ -93,10 +91,9 @@ object Multipart {
   /**
     * Recursively parses the parts
     */
-  private def parseParts(
-      dataPartLimit: Int,
-      filePartHandler: PartHandler[Part],
-      parts: List[Part] = Nil): Parser[Either[Result, List[Part]]] = {
+  private def parseParts(dataPartLimit: Int,
+                         filePartHandler: PartHandler[Part],
+                         parts: List[Part] = Nil): Parser[Either[Result, List[Part]]] = {
     parsePart(dataPartLimit, filePartHandler).flatMap {
       // None, we've reached the end of the body
       case None => Done(Right(parts))
@@ -108,8 +105,7 @@ object Multipart {
         for {
           // Drop the boundary
           _ <- Iteratee.head
-          result <- parseParts(
-              dataPartLimit - value.length, filePartHandler, dp :: parts)
+          result <- parseParts(dataPartLimit - value.length, filePartHandler, dp :: parts)
         } yield result
       // All other parts
       case Some(other: Part) =>
@@ -122,25 +118,21 @@ object Multipart {
   }
 
   private def parsePart(
-      dataPartLimit: Int,
-      filePartHandler: PartHandler[Part]): Parser[Option[Part]] = {
+      dataPartLimit: Int, filePartHandler: PartHandler[Part]): Parser[Option[Part]] = {
 
     // Enumeratee that takes everything up to the boundary
     val takeUpToBoundary = Enumeratee.takeWhile[ParserInput](!_.isMatch)
 
     // Buffer the header
     val maxHeaderBuffer =
-      Traversable.takeUpTo[Array[Byte]](4 * 1024) transform Iteratee
-        .consume[Array[Byte]]()
+      Traversable.takeUpTo[Array[Byte]](4 * 1024) transform Iteratee.consume[Array[Byte]]()
 
     // Collect the headers, returns none if we got the last part, otherwise returns the headers, and the part of the
     // buffer that wasn't part of the headers
-    val collectHeaders: Iteratee[
-        Array[Byte], Option[(Map[String, String], Array[Byte])]] =
+    val collectHeaders: Iteratee[Array[Byte], Option[(Map[String, String], Array[Byte])]] =
       maxHeaderBuffer.map { buffer =>
         // The headers should be split from the part by a double crlf
-        val (headerBytes, rest) =
-          Option(buffer).map(b => b.splitAt(b.indexOfSlice(CRLFCRLF))).get
+        val (headerBytes, rest) = Option(buffer).map(b => b.splitAt(b.indexOfSlice(CRLFCRLF))).get
 
         val headerString = new String(headerBytes, "utf-8").trim
         if (headerString.startsWith("--") || headerString.isEmpty) {
@@ -174,9 +166,7 @@ object Multipart {
     // read the part
     takeUpToBoundary compose Enumeratee.map[MatchInfo[Array[Byte]]](_.content) transform collectHeaders.flatMap {
       case Some((headers, left)) =>
-        Iteratee
-          .flatten(readPart(headers).feed(Input.El(left)))
-          .map(Some.apply)
+        Iteratee.flatten(readPart(headers).feed(Input.El(left))).map(Some.apply)
       case _ => Done(None)
     }
   }
@@ -226,8 +216,7 @@ object Multipart {
       result.toList
     }
 
-    def unapply(headers: Map[String, String]
-        ): Option[(String, String, Option[String])] = {
+    def unapply(headers: Map[String, String]): Option[(String, String, Option[String])] = {
 
       val KeyValue = """^([a-zA-Z_0-9]+)="(.*)"$""".r
 
@@ -267,8 +256,7 @@ object Multipart {
     * Multipart.multipartParser[List[Int]](1024, handler)
     * }}}
     */
-  def handleFilePart[A](handler: FileInfo => Iteratee[Array[Byte], A]
-      ): PartHandler[FilePart[A]] = {
+  def handleFilePart[A](handler: FileInfo => Iteratee[Array[Byte], A]): PartHandler[FilePart[A]] = {
     case FileInfoMatcher(partName, fileName, contentType) =>
       val safeFileName = fileName.split('\\').takeRight(1).mkString
       handler(FileInfo(partName, safeFileName, contentType))
@@ -297,8 +285,7 @@ object Multipart {
   }
 
   private def handleDataPart(maxLength: Int): PartHandler[Part] = {
-    case headers@PartInfoMatcher(partName)
-        if !FileInfoMatcher.unapply(headers).isDefined =>
+    case headers@PartInfoMatcher(partName) if !FileInfoMatcher.unapply(headers).isDefined =>
       Traversable
         .takeUpTo[Array[Byte]](maxLength)
         .transform(Iteratee
@@ -313,10 +300,8 @@ object Multipart {
         }
   }
 
-  private def createBadResult(msg: String): RequestHeader => Future[Result] = {
-    request =>
-      Play.maybeApplication
-        .fold(Future.successful[Result](Results.BadRequest))(
-          _.errorHandler.onClientError(request, BAD_REQUEST, msg))
+  private def createBadResult(msg: String): RequestHeader => Future[Result] = { request =>
+    Play.maybeApplication.fold(Future.successful[Result](Results.BadRequest))(
+        _.errorHandler.onClientError(request, BAD_REQUEST, msg))
   }
 }

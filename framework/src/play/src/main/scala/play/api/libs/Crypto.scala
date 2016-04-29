@@ -32,8 +32,7 @@ object Crypto {
     * @param message The error message.
     * @param throwable The Throwable associated with the exception.
     */
-  class CryptoException(
-      val message: String = null, val throwable: Throwable = null)
+  class CryptoException(val message: String = null, val throwable: Throwable = null)
       extends RuntimeException(message, throwable)
 
   private val cryptoCache = Application.instanceCache[Crypto]
@@ -41,8 +40,7 @@ object Crypto {
     Play.maybeApplication.fold(
         new Crypto(new CryptoConfigParser(
                 Environment.simple(),
-                Configuration.from(
-                    Map("play.crypto.aes.transformation" -> "AES/CTR/NoPadding"))
+                Configuration.from(Map("play.crypto.aes.transformation" -> "AES/CTR/NoPadding"))
             ).get)
     )(cryptoCache)
   }
@@ -57,8 +55,7 @@ object Crypto {
     * @param key The private key to sign with.
     * @return A hexadecimal encoded signature.
     */
-  def sign(message: String, key: Array[Byte]): String =
-    crypto.sign(message, key)
+  def sign(message: String, key: Array[Byte]): String = crypto.sign(message, key)
 
   /**
     * Signs the given String with HMAC-SHA1 using the application’s secret key.
@@ -88,8 +85,7 @@ object Crypto {
     * @param token The signed token to extract.
     * @return The verified raw token, or None if the token isn't valid.
     */
-  def extractSignedToken(token: String): Option[String] =
-    crypto.extractSignedToken(token)
+  def extractSignedToken(token: String): Option[String] = crypto.extractSignedToken(token)
 
   /**
     * Generate a cryptographically secure token
@@ -164,8 +160,7 @@ object Crypto {
     * @param privateKey The key used to encrypt.
     * @return An hexadecimal encrypted string.
     */
-  def encryptAES(value: String, privateKey: String): String =
-    crypto.encryptAES(value, privateKey)
+  def encryptAES(value: String, privateKey: String): String = crypto.encryptAES(value, privateKey)
 
   /**
     * Decrypt a String with the AES encryption standard using the application's secret key.
@@ -198,13 +193,11 @@ object Crypto {
     * @param privateKey The key used to encrypt.
     * @return The decrypted String.
     */
-  def decryptAES(value: String, privateKey: String): String =
-    crypto.decryptAES(value, privateKey)
+  def decryptAES(value: String, privateKey: String): String = crypto.decryptAES(value, privateKey)
 }
 
 @Singleton
-class CryptoConfigParser @Inject()(
-    environment: Environment, configuration: Configuration)
+class CryptoConfigParser @Inject()(environment: Environment, configuration: Configuration)
     extends Provider[CryptoConfig] {
 
   private val Blank = """\s*""".r
@@ -240,30 +233,27 @@ class CryptoConfigParser @Inject()(
      *
      * To achieve 4, using the location of application.conf to generate the secret should ensure this.
      */
-    val secret = config.getOptionalDeprecated[String](
-        "play.crypto.secret", "application.secret") match {
-      case (Some("changeme") | Some(Blank()) | None)
-          if environment.mode == Mode.Prod =>
-        logger.error(
-            "The application secret has not been set, and we are in prod mode. Your application is not secure.")
-        logger.error(
-            "To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret")
-        throw new PlayException(
-            "Configuration error", "Application secret not set")
-      case Some("changeme") | Some(Blank()) | None =>
-        val appConfLocation = environment.resource("application.conf")
-        // Try to generate a stable secret. Security is not the issue here, since this is just for tests and dev mode.
-        val secret = appConfLocation.fold(
-            // No application.conf?  Oh well, just use something hard coded.
-            "she sells sea shells on the sea shore"
-        )(_.toString)
-        val md5Secret = DigestUtils.md5Hex(secret)
-        logger.debug(
-            s"Generated dev mode secret $md5Secret for app at ${appConfLocation
-          .getOrElse("unknown location")}")
-        md5Secret
-      case Some(s) => s
-    }
+    val secret =
+      config.getOptionalDeprecated[String]("play.crypto.secret", "application.secret") match {
+        case (Some("changeme") | Some(Blank()) | None) if environment.mode == Mode.Prod =>
+          logger.error(
+              "The application secret has not been set, and we are in prod mode. Your application is not secure.")
+          logger.error(
+              "To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret")
+          throw new PlayException("Configuration error", "Application secret not set")
+        case Some("changeme") | Some(Blank()) | None =>
+          val appConfLocation = environment.resource("application.conf")
+          // Try to generate a stable secret. Security is not the issue here, since this is just for tests and dev mode.
+          val secret = appConfLocation.fold(
+              // No application.conf?  Oh well, just use something hard coded.
+              "she sells sea shells on the sea shore"
+          )(_.toString)
+          val md5Secret = DigestUtils.md5Hex(secret)
+          logger.debug(
+              s"Generated dev mode secret $md5Secret for app at ${appConfLocation.getOrElse("unknown location")}")
+          md5Secret
+        case Some(s) => s
+      }
 
     val provider = config.getOptional[String]("play.crypto.provider")
     val transformation = config.get[String]("play.crypto.aes.transformation")
@@ -311,8 +301,8 @@ class Crypto @Inject()(config: CryptoConfig) {
     * @return A hexadecimal encoded signature.
     */
   def sign(message: String, key: Array[Byte]): String = {
-    val mac = config.provider
-      .fold(Mac.getInstance("HmacSHA1"))(p => Mac.getInstance("HmacSHA1", p))
+    val mac =
+      config.provider.fold(Mac.getInstance("HmacSHA1"))(p => Mac.getInstance("HmacSHA1", p))
     mac.init(new SecretKeySpec(key, "HmacSHA1"))
     Codecs.toHexString(mac.doFinal(message.getBytes("utf-8")))
   }

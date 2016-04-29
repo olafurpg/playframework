@@ -21,8 +21,7 @@ import java.security.interfaces.RSAPublicKey
 object FakeKeyStore {
   private val logger = Logger(FakeKeyStore.getClass)
   val GeneratedKeyStore = "conf/generated.keystore"
-  val DnName =
-    "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
+  val DnName = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
 
   def shouldGenerate(keyStoreFile: File): Boolean = {
     import scala.collection.JavaConverters._
@@ -56,8 +55,7 @@ object FakeKeyStore {
     val keyStoreFile = new File(appPath, GeneratedKeyStore)
     if (shouldGenerate(keyStoreFile)) {
 
-      logger
-        .info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath +
+      logger.info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath +
           " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
 
       // Generate the key pair
@@ -70,8 +68,7 @@ object FakeKeyStore {
 
       // Create the key store, first set the store pass
       keyStore.load(null, "".toCharArray)
-      keyStore.setKeyEntry(
-          "playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
+      keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
       keyStore.setCertificateEntry("playgeneratedtrusted", cert)
       val out = new FileOutputStream(keyStoreFile)
       try {
@@ -98,16 +95,13 @@ object FakeKeyStore {
     val certInfo = new X509CertInfo()
 
     // Serial number and version
-    certInfo.set(
-        X509CertInfo.SERIAL_NUMBER,
-        new CertificateSerialNumber(new BigInteger(64, new SecureRandom())))
-    certInfo.set(
-        X509CertInfo.VERSION, new CertificateVersion(CertificateVersion.V3))
+    certInfo.set(X509CertInfo.SERIAL_NUMBER,
+                 new CertificateSerialNumber(new BigInteger(64, new SecureRandom())))
+    certInfo.set(X509CertInfo.VERSION, new CertificateVersion(CertificateVersion.V3))
 
     // Validity
     val validFrom = new Date()
-    val validTo = new Date(
-        validFrom.getTime + 50l * 365l * 24l * 60l * 60l * 1000l)
+    val validTo = new Date(validFrom.getTime + 50l * 365l * 24l * 60l * 60l * 1000l)
     val validity = new CertificateValidity(validFrom, validTo)
     certInfo.set(X509CertInfo.VALIDITY, validity)
 
@@ -116,16 +110,13 @@ object FakeKeyStore {
     // and when setting the subject or issuer just the X500Name should be used.
     val owner = new X500Name(DnName)
     val justName = isJavaAtLeast("1.8")
-    certInfo.set(X509CertInfo.SUBJECT,
-                 if (justName) owner else new CertificateSubjectName(owner))
-    certInfo.set(X509CertInfo.ISSUER,
-                 if (justName) owner else new CertificateIssuerName(owner))
+    certInfo.set(X509CertInfo.SUBJECT, if (justName) owner else new CertificateSubjectName(owner))
+    certInfo.set(X509CertInfo.ISSUER, if (justName) owner else new CertificateIssuerName(owner))
 
     // Key and algorithm
     certInfo.set(X509CertInfo.KEY, new CertificateX509Key(keyPair.getPublic))
     val algorithm = new AlgorithmId(AlgorithmId.sha1WithRSAEncryption_oid)
-    certInfo.set(
-        X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algorithm))
+    certInfo.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algorithm))
 
     // Create a new certificate and sign it
     val cert = new X509CertImpl(certInfo)
@@ -133,11 +124,9 @@ object FakeKeyStore {
 
     // Since the SHA1withRSA provider may have a different algorithm ID to what we think it should be,
     // we need to reset the algorithm ID, and resign the certificate
-    val actualAlgorithm =
-      cert.get(X509CertImpl.SIG_ALG).asInstanceOf[AlgorithmId]
+    val actualAlgorithm = cert.get(X509CertImpl.SIG_ALG).asInstanceOf[AlgorithmId]
     certInfo.set(
-        CertificateAlgorithmId.NAME + "." + CertificateAlgorithmId.ALGORITHM,
-        actualAlgorithm)
+        CertificateAlgorithmId.NAME + "." + CertificateAlgorithmId.ALGORITHM, actualAlgorithm)
     val newCert = new X509CertImpl(certInfo)
     newCert.sign(keyPair.getPrivate, "SHA1withRSA")
     newCert

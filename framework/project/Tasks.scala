@@ -33,13 +33,11 @@ object Generators {
 object Tasks {
 
   def scalaTemplateSourceMappings =
-    (excludeFilter in unmanagedSources,
-     unmanagedSourceDirectories in Compile,
-     baseDirectory) map { (excludes, sdirs, base) =>
-      val scalaTemplateSources =
-        sdirs.descendantsExcept("*.scala.html", excludes)
-      ((scalaTemplateSources --- sdirs --- base) pair
-          (relativeTo(sdirs) | relativeTo(base) | flat)).toSeq
+    (excludeFilter in unmanagedSources, unmanagedSourceDirectories in Compile, baseDirectory) map {
+      (excludes, sdirs, base) =>
+        val scalaTemplateSources = sdirs.descendantsExcept("*.scala.html", excludes)
+        ((scalaTemplateSources --- sdirs --- base) pair
+            (relativeTo(sdirs) | relativeTo(base) | flat)).toSeq
     }
 }
 
@@ -59,8 +57,7 @@ object Commands {
 
     val filtered = session.mergeSettings.filter { setting =>
       setting.key match {
-        case Def.ScopedKey(Scope(_, Global, Global, Global), key)
-            if key == publishArtifact.key =>
+        case Def.ScopedKey(Scope(_, Global, Global, Global), key) if key == publishArtifact.key =>
           false
         case other => true
       }
@@ -72,14 +69,12 @@ object Commands {
       state.log.info("Turning on quick publish")
     }
 
-    val newStructure =
-      Load.reapply(filtered ++ Seq(
-                       publishArtifact in GlobalScope in packageDoc := toggle,
-                       publishArtifact in GlobalScope in packageSrc := toggle,
-                       publishArtifact in GlobalScope := true
-                   ),
-                   structure)
-    Project.setProject(
-        session, newStructure, state.put(quickPublishToggle, toggle))
+    val newStructure = Load.reapply(filtered ++ Seq(
+                                        publishArtifact in GlobalScope in packageDoc := toggle,
+                                        publishArtifact in GlobalScope in packageSrc := toggle,
+                                        publishArtifact in GlobalScope := true
+                                    ),
+                                    structure)
+    Project.setProject(session, newStructure, state.put(quickPublishToggle, toggle))
   }
 }

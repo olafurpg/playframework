@@ -11,8 +11,7 @@ import play.api.libs.iteratee._
 import scala.util.control.NonFatal
 
 /** Adapter that holds the Java `GlobalSettings` and acts as a Scala `GlobalSettings` for the framework. */
-class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings)
-    extends GlobalSettings {
+class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends GlobalSettings {
   require(underlying != null, "underlying cannot be null")
 
   override def beforeStart(app: Application) {
@@ -29,9 +28,7 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings)
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     val r = new play.mvc.Http.RequestImpl(request)
-    Option(underlying.onRouteRequest(r))
-      .map(Some(_))
-      .getOrElse(super.onRouteRequest(request))
+    Option(underlying.onRouteRequest(r)).map(Some(_)).getOrElse(super.onRouteRequest(request))
   }
 
   override def onError(request: RequestHeader, ex: Throwable): Future[Result] = {
@@ -46,11 +43,9 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings)
       .getOrElse(super.onHandlerNotFound(request))
   }
 
-  override def onBadRequest(
-      request: RequestHeader, error: String): Future[Result] = {
+  override def onBadRequest(request: RequestHeader, error: String): Future[Result] = {
     JavaHelpers
-      .invokeWithContextOpt(
-          request, req => underlying.onBadRequest(req, error))
+      .invokeWithContextOpt(request, req => underlying.onBadRequest(req, error))
       .getOrElse(super.onBadRequest(request, error))
   }
 
@@ -59,8 +54,7 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings)
                             classloader: ClassLoader,
                             mode: Mode.Mode) = {
     import JavaModeConverter.asJavaMode
-    Option(underlying.onLoadConfig(
-            new play.Configuration(config), path, classloader, mode))
+    Option(underlying.onLoadConfig(new play.Configuration(config), path, classloader, mode))
       .map(_.getWrappedConfiguration)
       .getOrElse(super.onLoadConfig(config, path, classloader, mode))
   }
@@ -68,14 +62,12 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings)
   override def doFilter(a: EssentialAction): EssentialAction = {
     try {
       Filters(super.doFilter(a),
-              underlying.filters
-                .map(_.newInstance: play.api.mvc.EssentialFilter):_*)
+              underlying.filters.map(_.newInstance: play.api.mvc.EssentialFilter):_*)
     } catch {
       case NonFatal(e) => {
           import play.api.libs.iteratee.Execution.Implicits.trampoline
-          EssentialAction(req =>
-                Iteratee.flatten(
-                    onError(req, e).map(result => Done(result, Input.Empty))))
+          EssentialAction(
+              req => Iteratee.flatten(onError(req, e).map(result => Done(result, Input.Empty))))
         }
     }
   }

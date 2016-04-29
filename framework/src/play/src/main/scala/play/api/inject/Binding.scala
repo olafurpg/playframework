@@ -37,8 +37,7 @@ final case class Binding[T](key: BindingKey[T],
   /**
     * Configure the scope for this binding.
     */
-  def in[A <: Annotation](scope: Class[A]): Binding[T] =
-    copy(scope = Some(scope))
+  def in[A <: Annotation](scope: Class[A]): Binding[T] = copy(scope = Some(scope))
 
   /**
     * Configure the scope for this binding.
@@ -53,8 +52,7 @@ final case class Binding[T](key: BindingKey[T],
 
   override def toString = {
     val eagerDesc = if (eager) " eagerly" else ""
-    s"$source:\nBinding($key to ${target.getOrElse("self")}${scope.fold("")(
-        " in " + _)}$eagerDesc)"
+    s"$source:\nBinding($key to ${target.getOrElse("self")}${scope.fold("")(" in " + _)}$eagerDesc)"
   }
 }
 
@@ -70,8 +68,7 @@ object BindingKey {
   * @param clazz The class to bind.
   * @param qualifier An optional qualifier.
   */
-final case class BindingKey[T](
-    clazz: Class[T], qualifier: Option[QualifierAnnotation]) {
+final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnotation]) {
 
   def this(clazz: Class[T]) = this(clazz, None)
 
@@ -160,8 +157,7 @@ final case class BindingKey[T](
     *
     * In the above example, the controller will get the cached `Foo` service.
     */
-  def qualifiedWith(name: String): BindingKey[T] =
-    qualifiedWith(new play.inject.NamedImpl(name))
+  def qualifiedWith(name: String): BindingKey[T] = qualifiedWith(new play.inject.NamedImpl(name))
 
   /**
     * Bind this binding key to the given implementation class.
@@ -198,15 +194,13 @@ final case class BindingKey[T](
   /**
     * Bind this binding key to the given instance.
     */
-  def to[A <: T](instance: => A): Binding[T] =
-    to(new Provider[A] { def get = instance })
+  def to[A <: T](instance: => A): Binding[T] = to(new Provider[A] { def get = instance })
 
   /**
     * Bind this binding key to another binding key.
     */
   def to(key: BindingKey[_ <: T]): Binding[T] =
-    Binding(
-        this, Some(BindingKeyTarget(key)), None, false, SourceLocator.source)
+    Binding(this, Some(BindingKeyTarget(key)), None, false, SourceLocator.source)
 
   /**
     * Bind this binding key to the given provider class.
@@ -238,8 +232,7 @@ final case class BindingKey[T](
   /**
     * Bind this binding key to itself.
     */
-  def toSelf: Binding[T] =
-    Binding(this, None, None, false, SourceLocator.source)
+  def toSelf: Binding[T] = Binding(this, None, None, false, SourceLocator.source)
 
   override def toString = {
     s"$clazz${qualifier.fold("")(" qualified with " + _)}"
@@ -256,26 +249,23 @@ sealed trait BindingTarget[T]
 /**
   * A binding target that is provided by a provider instance.
   */
-final case class ProviderTarget[T](provider: Provider[_ <: T])
-    extends BindingTarget[T]
+final case class ProviderTarget[T](provider: Provider[_ <: T]) extends BindingTarget[T]
 
 /**
   * A binding target that is provided by a provider class.
   */
-final case class ProviderConstructionTarget[T](
-    provider: Class[_ <: Provider[T]]) extends BindingTarget[T]
+final case class ProviderConstructionTarget[T](provider: Class[_ <: Provider[T]])
+    extends BindingTarget[T]
 
 /**
   * A binding target that is provided by a class.
   */
-final case class ConstructionTarget[T](implementation: Class[_ <: T])
-    extends BindingTarget[T]
+final case class ConstructionTarget[T](implementation: Class[_ <: T]) extends BindingTarget[T]
 
 /**
   * A binding target that is provided by another key - essentially an alias.
   */
-final case class BindingKeyTarget[T](key: BindingKey[_ <: T])
-    extends BindingTarget[T]
+final case class BindingKeyTarget[T](key: BindingKey[_ <: T]) extends BindingTarget[T]
 
 /**
   * A qualifier annotation.
@@ -288,18 +278,16 @@ sealed trait QualifierAnnotation
 /**
   * A qualifier annotation instance.
   */
-final case class QualifierInstance[T <: Annotation](instance: T)
-    extends QualifierAnnotation
+final case class QualifierInstance[T <: Annotation](instance: T) extends QualifierAnnotation
 
 /**
   * A qualifier annotation class.
   */
-final case class QualifierClass[T <: Annotation](clazz: Class[T])
-    extends QualifierAnnotation
+final case class QualifierClass[T <: Annotation](clazz: Class[T]) extends QualifierAnnotation
 
 private object SourceLocator {
-  val provider = SourceProvider.DEFAULT_INSTANCE.plusSkippedClasses(
-      this.getClass, classOf[BindingKey[_]], classOf[Binding[_]])
+  val provider = SourceProvider.DEFAULT_INSTANCE
+    .plusSkippedClasses(this.getClass, classOf[BindingKey[_]], classOf[Binding[_]])
 
   def source = provider.get()
 }

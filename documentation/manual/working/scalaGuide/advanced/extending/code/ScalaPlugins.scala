@@ -8,8 +8,7 @@ import play.api.test._
 object ScalaPlugins extends PlaySpecification {
   "scala plugins" should {
     "allow accessing plugins" in {
-      val app =
-        FakeApplication(additionalPlugins = Seq(classOf[MyPlugin].getName))
+      val app = FakeApplication(additionalPlugins = Seq(classOf[MyPlugin].getName))
       var mc: MyComponent = null
       running(app) {
         //#access-plugin
@@ -27,8 +26,7 @@ object ScalaPlugins extends PlaySpecification {
       mc.stopped must beTrue
     }
     "allow the actors example to work" in {
-      val app =
-        FakeApplication(additionalPlugins = Seq(classOf[Actors].getName))
+      val app = FakeApplication(additionalPlugins = Seq(classOf[Actors].getName))
       running(app) {
         import scala.concurrent.duration._
         import akka.pattern.ask

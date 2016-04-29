@@ -14,8 +14,7 @@ import sbt.{PathFinder, WatchState, SourceModificationWatch}
 object Reloader {
 
   sealed trait CompileResult
-  case class CompileSuccess(sources: SourceMap, classpath: Classpath)
-      extends CompileResult
+  case class CompileSuccess(sources: SourceMap, classpath: Classpath) extends CompileResult
   case class CompileFailure(exception: PlayException) extends CompileResult
 
   type SourceMap = Map[String, Source]
@@ -30,8 +29,7 @@ object Reloader {
   /**
     * Take all the options in javaOptions of the format "-Dfoo=bar" and return them as a Seq of key value pairs of the format ("foo" -> "bar")
     */
-  def extractSystemProperties(
-      javaOptions: Seq[String]): Seq[(String, String)] = {
+  def extractSystemProperties(javaOptions: Seq[String]): Seq[(String, String)] = {
     javaOptions.collect { case SystemProperty(key, value) => key -> value }
   }
 
@@ -44,18 +42,16 @@ object Reloader {
     }
   }
 
-  def filterArgs(args: Seq[String],
-                 defaultHttpPort: Int,
-                 defaultHttpAddress: String
-  ): (Seq[(String, String)], Option[Int], Option[Int], String) = {
+  def filterArgs(
+      args: Seq[String],
+      defaultHttpPort: Int,
+      defaultHttpAddress: String): (Seq[(String, String)], Option[Int], Option[Int], String) = {
     val (propertyArgs, otherArgs) = args.partition(_.startsWith("-D"))
 
-    val properties =
-      propertyArgs.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
+    val properties = propertyArgs.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
 
     val props = properties.toMap
-    def prop(key: String): Option[String] =
-      props.get(key) orElse sys.props.get(key)
+    def prop(key: String): Option[String] = props.get(key) orElse sys.props.get(key)
 
     // http port can be defined as the first non-property argument, or a -Dhttp.port argument or system property
     // the http port can be disabled (set to None) by setting any of the input methods to "disabled"
@@ -78,23 +74,18 @@ object Reloader {
 
   val createURLClassLoader: ClassLoaderCreator = (name, urls, parent) =>
     new java.net.URLClassLoader(urls, parent) {
-      override def toString =
-        name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
+      override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
   }
 
-  val createDelegatedResourcesClassLoader: ClassLoaderCreator = (name, urls,
-  parent) =>
+  val createDelegatedResourcesClassLoader: ClassLoaderCreator = (name, urls, parent) =>
     new java.net.URLClassLoader(urls, parent) {
       require(parent ne null)
-      override def getResources(
-          name: String): java.util.Enumeration[java.net.URL] =
+      override def getResources(name: String): java.util.Enumeration[java.net.URL] =
         getParent.getResources(name)
-      override def toString =
-        name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
+      override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
   }
 
-  def assetsClassLoader(allAssets: Seq[(String, File)])(
-      parent: ClassLoader): ClassLoader =
+  def assetsClassLoader(allAssets: Seq[(String, File)])(parent: ClassLoader): ClassLoader =
     new AssetsClassLoader(parent, allAssets)
 
   def commonClassLoader(classpath: Classpath) = {
@@ -103,11 +94,9 @@ object Reloader {
         jar.toURI.toURL
     }
 
-    new java.net.URLClassLoader(
-        classpath.collect(commonJars).toArray,
-        null /* important here, don't depend of the sbt classLoader! */ ) {
-      override def toString =
-        "Common ClassLoader: " + getURLs.map(_.toString).mkString(",")
+    new java.net.URLClassLoader(classpath.collect(commonJars).toArray,
+                                null /* important here, don't depend of the sbt classLoader! */ ) {
+      override def toString = "Common ClassLoader: " + getURLs.map(_.toString).mkString(",")
     }
   }
 
@@ -207,17 +196,12 @@ object Reloader {
       * to the applicationLoader, creating a full circle for resource loading.
       */
     lazy val delegatingLoader: ClassLoader = new DelegatingClassLoader(
-        commonClassLoader,
-        Build.sharedClasses,
-        buildLoader,
-        new ApplicationClassLoaderProvider {
-          def get: ClassLoader = { reloader.getClassLoader.orNull }
-        })
+        commonClassLoader, Build.sharedClasses, buildLoader, new ApplicationClassLoaderProvider {
+      def get: ClassLoader = { reloader.getClassLoader.orNull }
+    })
 
     lazy val applicationLoader = dependencyClassLoader(
-        "PlayDependencyClassLoader",
-        urls(dependencyClasspath),
-        delegatingLoader)
+        "PlayDependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
     lazy val assetsLoader = assetsClassLoader(applicationLoader)
 
     lazy val reloader = new Reloader(reloadCompile,
@@ -235,18 +219,16 @@ object Reloader {
 
       // Get a handler for the documentation. The documentation content lives in play/docs/content
       // within the play-docs JAR.
-      val docsLoader = new URLClassLoader(
-          urls(docsClasspath), applicationLoader)
+      val docsLoader = new URLClassLoader(urls(docsClasspath), applicationLoader)
       val maybeDocsJarFile =
         docsJar map { f =>
           new JarFile(f)
         }
-      val docHandlerFactoryClass =
-        docsLoader.loadClass("play.docs.BuildDocHandlerFactory")
+      val docHandlerFactoryClass = docsLoader.loadClass("play.docs.BuildDocHandlerFactory")
       val buildDocHandler = maybeDocsJarFile match {
         case Some(docsJarFile) =>
-          val factoryMethod = docHandlerFactoryClass.getMethod(
-              "fromJar", classOf[JarFile], classOf[String])
+          val factoryMethod =
+            docHandlerFactoryClass.getMethod("fromJar", classOf[JarFile], classOf[String])
           factoryMethod
             .invoke(null, docsJarFile, "play/docs/content")
             .asInstanceOf[BuildDocHandler]
@@ -335,8 +317,7 @@ class Reloader(reloadCompile: () => CompileResult,
                runSbtTask: String => AnyRef) extends BuildLink {
 
   // The current classloader for the application
-  @volatile private var currentApplicationClassLoader: Option[ClassLoader] =
-    None
+  @volatile private var currentApplicationClassLoader: Option[ClassLoader] = None
   // Flag to force a reload on the next request.
   // This is set if a compile error occurs, and also by the forceReload method on BuildLink, which is called for
   // example when evolutions have been applied.
@@ -355,8 +336,7 @@ class Reloader(reloadCompile: () => CompileResult,
                                                  {
                                                    changed = true
                                                })
-  private val classLoaderVersion =
-    new java.util.concurrent.atomic.AtomicInteger(0)
+  private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
 
   /**
     * Contrary to its name, this doesn't necessarily reload the app.  It is invoked on every request, and will only
@@ -393,14 +373,13 @@ class Reloader(reloadCompile: () => CompileResult,
             // We only want to reload if the classpath has changed.  Assets don't live on the classpath, so
             // they won't trigger a reload.
             // Use the SBT watch service, passing true as the termination to force it to break after one check
-            val (_, newState) = SourceModificationWatch.watch(
-                PathFinder.strict(classpath).***, 0, watchState)(true)
+            val (_, newState) =
+              SourceModificationWatch.watch(PathFinder.strict(classpath).***, 0, watchState)(true)
             // SBT has a quiet wait period, if that's set to true, sources were modified
             val triggered = newState.awaitingQuietPeriod
             watchState = newState
 
-            if (triggered || shouldReload ||
-                currentApplicationClassLoader.isEmpty) {
+            if (triggered || shouldReload || currentApplicationClassLoader.isEmpty) {
               // Create a new classloader
               val version = classLoaderVersion.incrementAndGet
               val name = "ReloadableClassLoader(v" + version + ")"
@@ -427,8 +406,7 @@ class Reloader(reloadCompile: () => CompileResult,
     forceReloadNextTime = true
   }
 
-  def findSource(
-      className: String, line: java.lang.Integer): Array[java.lang.Object] = {
+  def findSource(className: String, line: java.lang.Integer): Array[java.lang.Object] = {
     val topType = className.split('$').head
     currentSourceMap.flatMap { sources =>
       sources.get(topType).map { source =>

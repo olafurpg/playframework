@@ -21,15 +21,13 @@ import play.sbt.PlayImport.PlayKeys
 object Play extends AutoPlugin {
 
   override def requires =
-    SbtTwirl && SbtJsTask && SbtWebDriver && RoutesCompiler &&
-    JavaServerAppPackaging
+    SbtTwirl && SbtJsTask && SbtWebDriver && RoutesCompiler && JavaServerAppPackaging
 
   val autoImport = PlayImport
 
   override def projectSettings =
     PlaySettings.defaultSettings ++ Seq(
-        scalacOptions ++=
-          Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
+        scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
         javacOptions in Compile ++= Seq("-encoding", "utf8", "-g")
     )
 }
@@ -44,8 +42,7 @@ object Play extends AutoPlugin {
 object PlayJava extends AutoPlugin {
   override def requires = Play && PlayEnhancer
   override def projectSettings =
-    PlaySettings.defaultJavaSettings ++ Seq(
-        libraryDependencies += PlayImport.javaCore)
+    PlaySettings.defaultJavaSettings ++ Seq(libraryDependencies += PlayImport.javaCore)
 }
 
 /**

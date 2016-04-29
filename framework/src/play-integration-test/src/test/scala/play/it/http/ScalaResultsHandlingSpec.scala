@@ -19,8 +19,7 @@ object AkkaHttpScalaResultsHandlingSpec
     extends ScalaResultsHandlingSpec with AkkaHttpIntegrationSpecification
 
 trait ScalaResultsHandlingSpec
-    extends PlaySpecification with WsTestClient
-    with ServerIntegrationSpecification {
+    extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
   "scala body handling" should {
 
@@ -54,8 +53,7 @@ trait ScalaResultsHandlingSpec
 
     "revert to chunked encoding when enumerator contains more than one item" in makeRequest(
         Result(ResponseHeader(200, Map()),
-               Enumerator("abc", "def", "ghi") &> Enumeratee
-                 .map[String](_.getBytes)(ec))
+               Enumerator("abc", "def", "ghi") &> Enumeratee.map[String](_.getBytes)(ec))
     ) { response =>
       response.header(CONTENT_LENGTH) must beNone
       response.header(TRANSFER_ENCODING) must beSome("chunked")
@@ -63,16 +61,15 @@ trait ScalaResultsHandlingSpec
     }
 
     "truncate result body or close connection when body is larger than Content-Length" in tryRequest(
-        Results.Ok("Hello world").withHeaders(CONTENT_LENGTH -> "5")) {
-      tryResponse =>
-        tryResponse must beLike {
-          case Success(response) =>
-            response.header(CONTENT_LENGTH) must_== Some("5")
-            response.body must_== "Hello"
-          case Failure(t) =>
-            t must haveClass[IOException]
-            t.getMessage must_== "Remotely Closed"
-        }
+        Results.Ok("Hello world").withHeaders(CONTENT_LENGTH -> "5")) { tryResponse =>
+      tryResponse must beLike {
+        case Success(response) =>
+          response.header(CONTENT_LENGTH) must_== Some("5")
+          response.body must_== "Hello"
+        case Failure(t) =>
+          t must haveClass[IOException]
+          t.getMessage must_== "Remotely Closed"
+      }
     }
 
     "chunk results for chunked streaming strategy" in makeRequest(
@@ -125,8 +122,7 @@ trait ScalaResultsHandlingSpec
     ) { port =>
       BasicHttpClient
         .makeRequests(port, checkClosed = true)(
-            BasicRequest(
-                "GET", "/", "HTTP/1.1", Map("Connection" -> "close"), "")
+            BasicRequest("GET", "/", "HTTP/1.1", Map("Connection" -> "close"), "")
         )(0)
         .status must_== 200
     }
@@ -145,8 +141,7 @@ trait ScalaResultsHandlingSpec
         Results.Ok
     ) { port =>
       val responses = BasicHttpClient.makeRequests(port)(
-          BasicRequest(
-              "GET", "/", "HTTP/1.0", Map("Connection" -> "keep-alive"), ""),
+          BasicRequest("GET", "/", "HTTP/1.0", Map("Connection" -> "keep-alive"), ""),
           BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
       )
       responses(0).status must_== 200
@@ -173,8 +168,7 @@ trait ScalaResultsHandlingSpec
       // will timeout if not closed
       BasicHttpClient
         .makeRequests(port, checkClosed = true)(
-            BasicRequest(
-                "GET", "/", "HTTP/1.1", Map("Connection" -> "close"), "")
+            BasicRequest("GET", "/", "HTTP/1.1", Map("Connection" -> "close"), "")
         )(0)
         .status must_== 200
     }
@@ -191,15 +185,13 @@ trait ScalaResultsHandlingSpec
     }
 
     "allow sending trailers" in withServer(
-        Result(
-            ResponseHeader(
-                200, Map(TRANSFER_ENCODING -> CHUNKED, TRAILER -> "Chunks")),
-            Enumerator("aa", "bb", "cc") &> Enumeratee
-              .map[String](_.getBytes)(ec) &> Results.chunk(Some(
-                    Iteratee
-                      .fold[Array[Byte], Int](0)((count, in) => count + 1)(ec)
-                      .map(count => Seq("Chunks" -> count.toString))(ec)
-                  )))
+        Result(ResponseHeader(200, Map(TRANSFER_ENCODING -> CHUNKED, TRAILER -> "Chunks")),
+               Enumerator("aa", "bb", "cc") &> Enumeratee.map[String](_.getBytes)(ec) &> Results
+                 .chunk(Some(
+                       Iteratee
+                         .fold[Array[Byte], Int](0)((count, in) => count + 1)(ec)
+                         .map(count => Seq("Chunks" -> count.toString))(ec)
+                     )))
       ) { port =>
       val response = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
@@ -214,8 +206,7 @@ trait ScalaResultsHandlingSpec
 
     "fall back to simple streaming when more than one chunk is sent and protocol is HTTP 1.0" in withServer(
         Result(ResponseHeader(200, Map()),
-               Enumerator("abc", "def", "ghi") &> Enumeratee
-                 .map[String](_.getBytes)(ec))
+               Enumerator("abc", "def", "ghi") &> Enumeratee.map[String](_.getBytes)(ec))
     ) { port =>
       val response = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
@@ -292,21 +283,18 @@ trait ScalaResultsHandlingSpec
       } { response =>
         response.allHeaders.get(SET_COOKIE) must beSome.like {
           case rawCookieHeaders =>
-            val decodedCookieHeaders: Set[Set[Cookie]] = rawCookieHeaders.map {
-              headerValue =>
-                Cookies.decode(headerValue).to[Set]
+            val decodedCookieHeaders: Set[Set[Cookie]] = rawCookieHeaders.map { headerValue =>
+              Cookies.decode(headerValue).to[Set]
             }.to[Set]
-            decodedCookieHeaders must_==
-            (Set(Set(aCookie), Set(bCookie), Set(cCookie)))
+            decodedCookieHeaders must_== (Set(Set(aCookie), Set(bCookie), Set(cCookie)))
         }
       }
     }
 
     "not have a message body even when a 204 response with a non-empty body is returned" in withServer(
-        Result(
-            header = ResponseHeader(NO_CONTENT),
-            body = Enumerator("foo") &> Enumeratee.map[String](_.getBytes)(ec),
-            connection = HttpConnection.KeepAlive)
+        Result(header = ResponseHeader(NO_CONTENT),
+               body = Enumerator("foo") &> Enumeratee.map[String](_.getBytes)(ec),
+               connection = HttpConnection.KeepAlive)
     ) { port =>
       val response = BasicHttpClient.makeRequests(port)(
           BasicRequest("PUT", "/", "HTTP/1.1", Map(), "")
@@ -315,10 +303,9 @@ trait ScalaResultsHandlingSpec
     }
 
     "not have a message body even when a 304 response with a non-empty body is returned" in withServer(
-        Result(
-            header = ResponseHeader(NOT_MODIFIED),
-            body = Enumerator("foo") &> Enumeratee.map[String](_.getBytes)(ec),
-            connection = HttpConnection.KeepAlive)
+        Result(header = ResponseHeader(NOT_MODIFIED),
+               body = Enumerator("foo") &> Enumeratee.map[String](_.getBytes)(ec),
+               connection = HttpConnection.KeepAlive)
     ) { port =>
       val response = BasicHttpClient.makeRequests(port)(
           BasicRequest("PUT", "/", "HTTP/1.1", Map(), "")

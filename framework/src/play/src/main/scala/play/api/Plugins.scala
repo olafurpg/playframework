@@ -72,8 +72,7 @@ object Plugins {
 
     val PluginDeclaration = """([0-9_]+):(.*)""".r
 
-    val pluginFiles =
-      env.classLoader.getResources("play.plugins").asScala.toList
+    val pluginFiles = env.classLoader.getResources("play.plugins").asScala.toList
 
     pluginFiles.distinct.map { plugins =>
       PlayIO
@@ -91,12 +90,10 @@ object Plugins {
   /**
     * Load all the plugin classes from the given environment.
     */
-  def loadPlugins(classNames: Seq[String],
-                  env: Environment,
-                  injector: Injector): Seq[Plugin.Deprecated] = {
+  def loadPlugins(
+      classNames: Seq[String], env: Environment, injector: Injector): Seq[Plugin.Deprecated] = {
     classNames.map { className =>
-      val clazz =
-        Reflect.getClass[Plugin.Deprecated](className, env.classLoader)
+      val clazz = Reflect.getClass[Plugin.Deprecated](className, env.classLoader)
       injector.instanceOf(clazz)
     }.filter(_.enabled)
   }

@@ -27,8 +27,7 @@ trait Rendering {
       * @param f A partial function returning a `Result` for a given request media range
       * @return A result provided by `f`, if it is defined for the current request media ranges, otherwise NotAcceptable
       */
-    def apply(f: PartialFunction[MediaRange, Result])(
-        implicit request: RequestHeader): Result = {
+    def apply(f: PartialFunction[MediaRange, Result])(implicit request: RequestHeader): Result = {
       def _render(ms: Seq[MediaRange]): Result = ms match {
         case Nil => NotAcceptable
         case Seq(m, ms@_ *) =>
@@ -37,8 +36,7 @@ trait Rendering {
 
       // “If no Accept header field is present, then it is assumed that the client accepts all media types.”
       val result =
-        if (request.acceptedTypes.isEmpty)
-          _render(Seq(new MediaRange("*", "*", Nil, None, Nil)))
+        if (request.acceptedTypes.isEmpty) _render(Seq(new MediaRange("*", "*", Nil, None, Nil)))
         else _render(request.acceptedTypes)
       import play.api.libs.iteratee.Execution.Implicits.trampoline
       result.withHeaders(VARY -> ACCEPT)
@@ -71,8 +69,7 @@ trait Rendering {
 
       // “If no Accept header field is present, then it is assumed that the client accepts all media types.”
       val result =
-        if (request.acceptedTypes.isEmpty)
-          _render(Seq(new MediaRange("*", "*", Nil, None, Nil)))
+        if (request.acceptedTypes.isEmpty) _render(Seq(new MediaRange("*", "*", Nil, None, Nil)))
         else _render(request.acceptedTypes)
       import play.api.libs.iteratee.Execution.Implicits.trampoline
       result.map(_.withHeaders(VARY -> ACCEPT))

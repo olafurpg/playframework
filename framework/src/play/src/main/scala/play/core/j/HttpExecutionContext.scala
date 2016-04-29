@@ -33,8 +33,7 @@ object HttpExecutionContext {
   */
 class HttpExecutionContext(contextClassLoader: ClassLoader,
                            httpContext: Http.Context,
-                           delegate: ExecutionContext)
-    extends ExecutionContextExecutor {
+                           delegate: ExecutionContext) extends ExecutionContextExecutor {
   override def execute(runnable: Runnable) =
     delegate.execute(new Runnable {
       def run() {
@@ -59,8 +58,7 @@ class HttpExecutionContext(contextClassLoader: ClassLoader,
     if (delegatePrepared eq delegate) {
       this
     } else {
-      new HttpExecutionContext(
-          contextClassLoader, httpContext, delegatePrepared)
+      new HttpExecutionContext(contextClassLoader, httpContext, delegatePrepared)
     }
   }
 }

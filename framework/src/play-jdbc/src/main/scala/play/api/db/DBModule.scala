@@ -17,12 +17,10 @@ import play.db.NamedDatabaseImpl
   * DB runtime inject module.
   */
 class DBModule extends Module {
-  def bindings(environment: Environment,
-               configuration: Configuration): Seq[Binding[_]] = {
+  def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
     val dbKey = configuration.underlying.getString("play.db.config")
     val default = configuration.underlying.getString("play.db.default")
-    val dbs =
-      configuration.getConfig(dbKey).getOrElse(Configuration.empty).subKeys
+    val dbs = configuration.getConfig(dbKey).getOrElse(Configuration.empty).subKeys
     Seq(
         bind[DBApi].toProvider[DBApiProvider]
     ) ++ namedDatabaseBindings(dbs) ++ defaultDatabaseBinding(default, dbs)
@@ -32,13 +30,11 @@ class DBModule extends Module {
     bind[Database].qualifiedWith(new NamedDatabaseImpl(name))
   }
 
-  def namedDatabaseBindings(dbs: Set[String]): Seq[Binding[_]] =
-    dbs.toSeq.map { db =>
-      bindNamed(db).to(new NamedDatabaseProvider(db))
-    }
+  def namedDatabaseBindings(dbs: Set[String]): Seq[Binding[_]] = dbs.toSeq.map { db =>
+    bindNamed(db).to(new NamedDatabaseProvider(db))
+  }
 
-  def defaultDatabaseBinding(
-      default: String, dbs: Set[String]): Seq[Binding[_]] = {
+  def defaultDatabaseBinding(default: String, dbs: Set[String]): Seq[Binding[_]] = {
     if (dbs.contains(default)) Seq(bind[Database].to(bindNamed(default)))
     else Nil
   }
@@ -65,8 +61,7 @@ class DBApiProvider @Inject()(environment: Environment,
                               configuration: Configuration,
                               defaultConnectionPool: ConnectionPool,
                               lifecycle: ApplicationLifecycle,
-                              injector: Injector = NewInstanceInjector)
-    extends Provider[DBApi] {
+                              injector: Injector = NewInstanceInjector) extends Provider[DBApi] {
 
   lazy val get: DBApi = {
     val config = configuration.underlying
@@ -77,9 +72,7 @@ class DBApiProvider @Inject()(environment: Environment,
                                          defaultConnectionPool)
     val configs =
       if (config.hasPath(dbKey)) {
-        PlayConfig(config)
-          .getPrototypedMap(dbKey, "play.db.prototype")
-          .mapValues(_.underlying)
+        PlayConfig(config).getPrototypedMap(dbKey, "play.db.prototype").mapValues(_.underlying)
       } else Map.empty[String, Config]
     val db = new DefaultDBApi(configs, pool, environment)
     lifecycle.addStopHook { () =>

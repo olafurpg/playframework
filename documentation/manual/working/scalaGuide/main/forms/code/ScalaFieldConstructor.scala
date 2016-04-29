@@ -11,8 +11,7 @@ package scalaguide.forms.scalafieldconstructor {
 
     val conf = Configuration.reference
     implicit val messages: Messages = new DefaultMessagesApi(
-        Environment.simple(), conf, new DefaultLangs(conf))
-      .preferred(Seq.empty)
+        Environment.simple(), conf, new DefaultLangs(conf)).preferred(Seq.empty)
 
     "field constructors" should {
 
@@ -40,8 +39,7 @@ package scalaguide.forms.scalafieldconstructor {
 //#form-myfield-helper
     object MyHelpers {
       import views.html.helper.FieldConstructor
-      implicit val myFields = FieldConstructor(
-          html.myFieldConstructorTemplate.f)
+      implicit val myFields = FieldConstructor(html.myFieldConstructorTemplate.f)
     }
 //#form-myfield-helper
   }

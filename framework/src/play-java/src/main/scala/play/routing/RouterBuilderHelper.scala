@@ -47,14 +47,13 @@ private[routing] object RouterBuilderHelper {
                 routeParam.pathBindable.bind(routeParam.name, rawParam)
             }
 
-            val maybeParams =
-              params.foldLeft[Either[String, Seq[AnyRef]]](Right(Nil)) {
-                case (error@Left(_), _) => error
-                case (_, Left(error)) => Left(error)
-                case (Right(values), Right(value: AnyRef)) =>
-                  Right(values :+ value)
-                case (values, _) => values
-              }
+            val maybeParams = params.foldLeft[Either[String, Seq[AnyRef]]](Right(Nil)) {
+              case (error@Left(_), _) => error
+              case (_, Left(error)) => Left(error)
+              case (Right(values), Right(value: AnyRef)) =>
+                Right(values :+ value)
+              case (values, _) => values
+            }
 
             val action = maybeParams match {
               case Left(error) => Action(Results.BadRequest(error))

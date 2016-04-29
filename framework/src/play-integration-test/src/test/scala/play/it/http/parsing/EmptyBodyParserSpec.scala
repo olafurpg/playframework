@@ -11,11 +11,9 @@ object EmptyBodyParserSpec extends PlaySpecification {
 
   "The empty body parser" should {
 
-    def parse(
-        bytes: Seq[Byte], contentType: Option[String], encoding: String) = {
+    def parse(bytes: Seq[Byte], contentType: Option[String], encoding: String) = {
       await(Enumerator(bytes.to[Array]) |>>> BodyParsers.parse
-            .empty(FakeRequest()
-                .withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq:_*)))
+            .empty(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq:_*)))
     }
 
     "parse empty bodies" in new WithApplication() {

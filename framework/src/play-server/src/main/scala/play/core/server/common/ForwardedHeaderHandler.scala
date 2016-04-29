@@ -34,22 +34,20 @@ import ForwardedHeaderHandler._
   *   </dd>
   * </dl>
   */
-private[server] class ForwardedHeaderHandler(
-    configuration: ForwardedHeaderHandlerConfig) {
+private[server] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandlerConfig) {
 
   def remoteProtocol(headers: Headers): Option[String] = {
-    firstUntrustedForwarded(configuration.forwardedHeaders(headers),
-                            configuration.trustedProxies).get("proto")
+    firstUntrustedForwarded(configuration.forwardedHeaders(headers), configuration.trustedProxies)
+      .get("proto")
   }
 
   def remoteAddress(headers: Headers): Option[String] = {
-    firstUntrustedForwarded(configuration.forwardedHeaders(headers),
-                            configuration.trustedProxies).get("for")
+    firstUntrustedForwarded(configuration.forwardedHeaders(headers), configuration.trustedProxies)
+      .get("for")
   }
 
-  private def firstUntrustedForwarded(
-      forwardedHeaders: Seq[Map[String, String]],
-      trustedProxies: Seq[Subnet]): Map[String, String] =
+  private def firstUntrustedForwarded(forwardedHeaders: Seq[Map[String, String]],
+                                      trustedProxies: Seq[Subnet]): Map[String, String] =
     forwardedHeaders.reverse
       .dropWhile(m =>
             {
@@ -73,48 +71,41 @@ private[server] object ForwardedHeaderHandler {
   case object Rfc7239 extends Version
   case object Xforwarded extends Version
 
-  case class ForwardedHeaderHandlerConfig(
-      version: Version, trustedProxies: List[Subnet]) {
-    def forwardedHeaders: (Headers) => Seq[Map[String, String]] =
-      version match {
-        case Rfc7239 => rfc7239Headers
-        case Xforwarded => xforwardedHeaders
-      }
-
-    private val rfc7239Headers: (Headers) => Seq[Map[String, String]] = {
-      (headers: Headers) =>
-        (for {
-          fhs <- headers.getAll("Forwarded")
-          fh <- fhs.split(",\\s*")
-        } yield fh).map(_.split(";")
-              .map(s =>
-                    {
-              val splitted = s.split("=", 2)
-              splitted(0).toLowerCase -> splitted(1)
-          })
-              .toMap)
+  case class ForwardedHeaderHandlerConfig(version: Version, trustedProxies: List[Subnet]) {
+    def forwardedHeaders: (Headers) => Seq[Map[String, String]] = version match {
+      case Rfc7239 => rfc7239Headers
+      case Xforwarded => xforwardedHeaders
     }
 
-    private val xforwardedHeaders: (Headers) => Seq[Map[String, String]] = {
-      (headers: Headers) =>
-        def h(h: Headers, key: String) =
-          h.getAll(key).flatMap(s => s.split(",\\s*"))
-        h(headers, "X-Forwarded-For")
-          .zipAll(h(headers, "X-Forwarded-Proto"), "", "")
-          .map { case (f, p) => Map("for" -> f, "proto" -> p) }
+    private val rfc7239Headers: (Headers) => Seq[Map[String, String]] = { (headers: Headers) =>
+      (for {
+        fhs <- headers.getAll("Forwarded")
+        fh <- fhs.split(",\\s*")
+      } yield fh).map(_.split(";")
+            .map(s =>
+                  {
+            val splitted = s.split("=", 2)
+            splitted(0).toLowerCase -> splitted(1)
+        })
+            .toMap)
+    }
+
+    private val xforwardedHeaders: (Headers) => Seq[Map[String, String]] = { (headers: Headers) =>
+      def h(h: Headers, key: String) = h.getAll(key).flatMap(s => s.split(",\\s*"))
+      h(headers, "X-Forwarded-For").zipAll(h(headers, "X-Forwarded-Proto"), "", "").map {
+        case (f, p) => Map("for" -> f, "proto" -> p)
+      }
     }
   }
 
   object ForwardedHeaderHandlerConfig {
-    def apply(
-        configuration: Option[Configuration]): ForwardedHeaderHandlerConfig =
+    def apply(configuration: Option[Configuration]): ForwardedHeaderHandlerConfig =
       configuration.map { c =>
         ForwardedHeaderHandlerConfig(
             c
-              .getString("play.http.forwarded.version",
-                         Some(Set("x-forwarded", "rfc7239")))
-              .fold(Xforwarded: Version)(version =>
-                    if (version == "rfc7239") Rfc7239 else Xforwarded),
+              .getString("play.http.forwarded.version", Some(Set("x-forwarded", "rfc7239")))
+              .fold(Xforwarded: Version)(
+                  version => if (version == "rfc7239") Rfc7239 else Xforwarded),
             c
               .getStringSeq("play.http.forwarded.trustedProxies")
               .getOrElse(List("::1", "127.0.0.1"))

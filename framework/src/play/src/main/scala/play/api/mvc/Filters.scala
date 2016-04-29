@@ -24,8 +24,7 @@ trait EssentialFilter {
   */
 trait Filter extends EssentialFilter { self =>
 
-  def apply(f: RequestHeader => Future[Result])(
-      rh: RequestHeader): Future[Result]
+  def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result]
 
   def apply(next: EssentialAction): EssentialAction = {
     new EssentialAction {
@@ -49,8 +48,7 @@ trait Filter extends EssentialFilter { self =>
           // It is possible that the delegate function (the next filter in the chain) was never invoked by this Filter. 
           // Therefore, as a fallback, we try to redeem the bodyIteratee Promise here with an iteratee that consumes 
           // the request body.
-          bodyIteratee.tryComplete(
-              resultTry.map(simpleResult => Done(simpleResult)))
+          bodyIteratee.tryComplete(resultTry.map(simpleResult => Done(simpleResult)))
         })
 
         Iteratee.flatten(bodyIteratee.future.map { it =>
@@ -74,11 +72,11 @@ trait Filter extends EssentialFilter { self =>
 }
 
 object Filter {
-  def apply(filter: (RequestHeader => Future[Result],
-      RequestHeader) => Future[Result]): Filter = new Filter {
-    def apply(f: RequestHeader => Future[Result])(
-        rh: RequestHeader): Future[Result] = filter(f, rh)
-  }
+  def apply(filter: (RequestHeader => Future[Result], RequestHeader) => Future[Result]): Filter =
+    new Filter {
+      def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] =
+        filter(f, rh)
+    }
 }
 
 /**
@@ -101,8 +99,7 @@ class WithFilters(filters: EssentialFilter*) extends GlobalSettings {
   * Compose the action and the Filters to create a new Action
   */
 object FilterChain {
-  def apply[A](action: EssentialAction,
-               filters: List[EssentialFilter]): EssentialAction =
+  def apply[A](action: EssentialAction, filters: List[EssentialFilter]): EssentialAction =
     new EssentialAction {
       def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = {
         val chain = filters.reverse.foldLeft(action) { (a, i) =>

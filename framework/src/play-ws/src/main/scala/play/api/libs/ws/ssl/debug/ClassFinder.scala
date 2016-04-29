@@ -52,8 +52,7 @@ trait ClassFinder {
       var je: JarEntry = jis.getNextJarEntry
       while (je != null) {
         if (!je.isDirectory) {
-          var className: String =
-            je.getName.substring(0, je.getName.length - 6)
+          var className: String = je.getName.substring(0, je.getName.length - 6)
           className = className.replace('/', '.')
           if (isValidClass(className)) {
             //logger.debug(s"findClasses: adding valid class ${className}")

@@ -48,6 +48,5 @@ object Codecs {
   /**
     * Transform an hexadecimal String to a byte array.
     */
-  def hexStringToByte(hexString: String): Array[Byte] =
-    Hex.decodeHex(hexString.toCharArray)
+  def hexStringToByte(hexString: String): Array[Byte] = Hex.decodeHex(hexString.toCharArray)
 }

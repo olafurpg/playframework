@@ -12,12 +12,11 @@ import play.api.i18n.Messages.MessageSource
 import play.core.test.FakeRequest
 
 object MessagesSpec extends Specification {
-  val testMessages = Map(
-      "default" -> Map("title" -> "English Title",
-                       "foo" -> "English foo",
-                       "bar" -> "English pub"),
-      "fr" -> Map("title" -> "Titre francais", "foo" -> "foo francais"),
-      "fr-CH" -> Map("title" -> "Titre suisse"))
+  val testMessages = Map("default" -> Map("title" -> "English Title",
+                                          "foo" -> "English foo",
+                                          "bar" -> "English pub"),
+                         "fr" -> Map("title" -> "Titre francais", "foo" -> "foo francais"),
+                         "fr-CH" -> Map("title" -> "Titre suisse"))
   val api = new DefaultMessagesApi(
       new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
       Configuration.reference,
@@ -60,36 +59,24 @@ object MessagesSpec extends Specification {
     }
 
     "support setting the language on a result" in {
-      val cookie = Cookies
-        .decode(api
-              .setLang(Results.Ok, Lang("en-AU"))
-              .header
-              .headers("Set-Cookie"))
-        .head
+      val cookie =
+        Cookies.decode(api.setLang(Results.Ok, Lang("en-AU")).header.headers("Set-Cookie")).head
       cookie.name must_== "PLAY_LANG"
       cookie.value must_== "en-AU"
     }
 
     "support getting a preferred lang from a Scala request" in {
       "when an accepted lang is available" in {
-        api
-          .preferred(FakeRequest().withHeaders("Accept-Language" -> "fr"))
-          .lang must_== Lang("fr")
+        api.preferred(FakeRequest().withHeaders("Accept-Language" -> "fr")).lang must_== Lang("fr")
       }
       "when an accepted lang is not available" in {
-        api
-          .preferred(FakeRequest().withHeaders("Accept-Language" -> "de"))
-          .lang must_== Lang("en")
+        api.preferred(FakeRequest().withHeaders("Accept-Language" -> "de")).lang must_== Lang("en")
       }
       "when the lang cookie available" in {
-        api
-          .preferred(FakeRequest().withCookies(Cookie("PLAY_LANG", "fr")))
-          .lang must_== Lang("fr")
+        api.preferred(FakeRequest().withCookies(Cookie("PLAY_LANG", "fr"))).lang must_== Lang("fr")
       }
       "when the lang cookie is not available" in {
-        api
-          .preferred(FakeRequest().withCookies(Cookie("PLAY_LANG", "de")))
-          .lang must_== Lang("en")
+        api.preferred(FakeRequest().withCookies(Cookie("PLAY_LANG", "de"))).lang must_== Lang("en")
       }
       "when a cookie and an acceptable lang are available" in {
         api
@@ -122,8 +109,7 @@ backslash.dummy=\a\b\c\e\f
         def read = testMessageFile
       }, "messages")
 
-      val messages =
-        parser.parse.right.toSeq.flatten.map(x => x.key -> x.pattern).toMap
+      val messages = parser.parse.right.toSeq.flatten.map(x => x.key -> x.pattern).toMap
 
       messages("simplekey") must ===("value")
       messages("key.with.dots") must ===("value")

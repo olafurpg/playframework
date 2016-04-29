@@ -22,14 +22,11 @@ import org.jboss.netty.buffer.ChannelBuffers
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object NettyWebSocketSpec
-    extends WebSocketSpec with NettyIntegrationSpecification
-object AkkaHttpWebSocketSpec
-    extends WebSocketSpec with AkkaHttpIntegrationSpecification
+object NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
+object AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
 
 trait WebSocketSpec
-    extends PlaySpecification with WsTestClient
-    with ServerIntegrationSpecification {
+    extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
   sequential
 
@@ -44,14 +41,13 @@ trait WebSocketSpec
     running(TestServer(testServerPort, app))(block)
   }
 
-  def runWebSocket[A](handler: (Enumerator[WebSocketFrame],
-      Iteratee[WebSocketFrame, _]) => Future[A]): A = {
+  def runWebSocket[A](
+      handler: (Enumerator[WebSocketFrame], Iteratee[WebSocketFrame, _]) => Future[A]): A = {
     val innerResult = Promise[A]()
     WebSocketClient { client =>
-      await(client.connect(
-              URI.create("ws://localhost:" + testServerPort + "/stream")) {
-        (in, out) =>
-          innerResult.completeWith(handler(in, out))
+      await(
+          client.connect(URI.create("ws://localhost:" + testServerPort + "/stream")) { (in, out) =>
+        innerResult.completeWith(handler(in, out))
       })
     }
     await(innerResult.future)
@@ -70,14 +66,12 @@ trait WebSocketSpec
     case close: CloseWebSocketFrame => close.getStatusCode must_== status
   }
 
-  def binaryBuffer(text: String) =
-    ChannelBuffers.wrappedBuffer(text.getBytes("utf-8"))
+  def binaryBuffer(text: String) = ChannelBuffers.wrappedBuffer(text.getBytes("utf-8"))
 
   /**
     * Iteratee getChunks that invokes a callback as soon as it's done.
     */
-  def getChunks[A](
-      chunks: List[A], onDone: List[A] => _): Iteratee[A, List[A]] = Cont {
+  def getChunks[A](chunks: List[A], onDone: List[A] => _): Iteratee[A, List[A]] = Cont {
     case Input.El(c) => getChunks(c :: chunks, onDone)
     case Input.EOF =>
       val result = chunks.reverse
@@ -89,8 +83,7 @@ trait WebSocketSpec
   /*
    * Shared tests
    */
-  def allowConsumingMessages(
-      webSocket: Application => Promise[List[String]] => Handler) = {
+  def allowConsumingMessages(webSocket: Application => Promise[List[String]] => Handler) = {
     val consumed = Promise[List[String]]()
     withServer(app => webSocket(app)(consumed)) {
       val result = runWebSocket { (in, out) =>
@@ -116,8 +109,7 @@ trait WebSocketSpec
     }
   }
 
-  def cleanUpWhenClosed(
-      webSocket: Application => Promise[Boolean] => Handler) = {
+  def cleanUpWhenClosed(webSocket: Application => Promise[Boolean] => Handler) = {
     val cleanedUp = Promise[Boolean]()
     withServer(app => webSocket(app)(cleanedUp)) {
       runWebSocket { (in, out) =>
@@ -139,8 +131,7 @@ trait WebSocketSpec
     }
   }
 
-  def allowRejectingTheWebSocketWithAResult(
-      webSocket: Application => Int => Handler) = {
+  def allowRejectingTheWebSocketWithAResult(webSocket: Application => Int => Handler) = {
     withServer(app => webSocket(app)(FORBIDDEN)) {
       implicit val port = testServerPort
       await(wsUrl("/stream")
@@ -173,8 +164,7 @@ trait WebSocketSpec
 
     "clean up when closed" in cleanUpWhenClosed { _ => cleanedUp =>
       WebSocket.using[String] { req =>
-        (Iteratee.ignore,
-         Enumerator.empty[String].onDoneEnumerating(cleanedUp.success(true)))
+        (Iteratee.ignore, Enumerator.empty[String].onDoneEnumerating(cleanedUp.success(true)))
       }
     }.pendingUntilAkkaHttpFixed
 
@@ -212,13 +202,12 @@ trait WebSocketSpec
           (getChunks[Array[Byte]](Nil, consumed.success _), Enumerator.empty)
       }) {
         val result = runWebSocket { (in, out) =>
-          Enumerator(
-              new BinaryWebSocketFrame(binaryBuffer("first")),
-              new BinaryWebSocketFrame(false, 0, binaryBuffer("se")),
-              new ContinuationWebSocketFrame(false, 0, binaryBuffer("co")),
-              new ContinuationWebSocketFrame(true, 0, binaryBuffer("nd")),
-              new BinaryWebSocketFrame(binaryBuffer("third")),
-              new CloseWebSocketFrame(1000, "")) |>>> out
+          Enumerator(new BinaryWebSocketFrame(binaryBuffer("first")),
+                     new BinaryWebSocketFrame(false, 0, binaryBuffer("se")),
+                     new ContinuationWebSocketFrame(false, 0, binaryBuffer("co")),
+                     new ContinuationWebSocketFrame(true, 0, binaryBuffer("nd")),
+                     new BinaryWebSocketFrame(binaryBuffer("third")),
+                     new CloseWebSocketFrame(1000, "")) |>>> out
           consumed.future
         }
         result.map(b => b.toSeq) must_== Seq("first".getBytes("utf-8").toSeq,
@@ -235,8 +224,9 @@ trait WebSocketSpec
         val frames = runWebSocket { (in, out) =>
           Enumerator[WebSocketFrame](
               new TextWebSocketFrame(false, 0, "first frame"),
-              new ContinuationWebSocketFrame(
-                  true, 0, new String(Array.range(1, 65530).map(_ => 'a')))
+              new ContinuationWebSocketFrame(true,
+                                             0,
+                                             new String(Array.range(1, 65530).map(_ => 'a')))
           ) |>> out
           in |>>> Iteratee.getChunks[WebSocketFrame]
         }
@@ -252,9 +242,8 @@ trait WebSocketSpec
           (Iteratee.ignore, Enumerator.empty)
       }) {
         val frames = runWebSocket { (in, out) =>
-          Enumerator[WebSocketFrame](
-              new BinaryWebSocketFrame(binaryBuffer("first")),
-              new TextWebSocketFrame("foo")) |>> out
+          Enumerator[WebSocketFrame](new BinaryWebSocketFrame(binaryBuffer("first")),
+                                     new TextWebSocketFrame("foo")) |>> out
           in |>>> Iteratee.getChunks[WebSocketFrame]
         }
         frames must contain(exactly(
@@ -302,55 +291,51 @@ trait WebSocketSpec
 
     "allow handling a WebSocket with an actor" in {
 
-      "allow consuming messages" in allowConsumingMessages {
-        implicit app => consumed =>
-          WebSocket.acceptWithActor[String, String] { req => out =>
-            Props(new Actor() {
-              var messages = List.empty[String]
-              def receive = {
-                case msg: String =>
-                  messages = msg :: messages
-              }
-              override def postStop() = {
-                consumed.success(messages.reverse)
-              }
-            })
-          }
+      "allow consuming messages" in allowConsumingMessages { implicit app => consumed =>
+        WebSocket.acceptWithActor[String, String] { req => out =>
+          Props(new Actor() {
+            var messages = List.empty[String]
+            def receive = {
+              case msg: String =>
+                messages = msg :: messages
+            }
+            override def postStop() = {
+              consumed.success(messages.reverse)
+            }
+          })
+        }
       }.pendingUntilAkkaHttpFixed
 
-      "allow sending messages" in allowSendingMessages {
-        implicit app => messages =>
-          WebSocket.acceptWithActor[String, String] { req => out =>
-            Props(new Actor() {
-              messages.foreach { msg =>
-                out ! msg
-              }
-              out ! PoisonPill
-              def receive = PartialFunction.empty
-            })
-          }
+      "allow sending messages" in allowSendingMessages { implicit app => messages =>
+        WebSocket.acceptWithActor[String, String] { req => out =>
+          Props(new Actor() {
+            messages.foreach { msg =>
+              out ! msg
+            }
+            out ! PoisonPill
+            def receive = PartialFunction.empty
+          })
+        }
       }.pendingUntilAkkaHttpFixed
 
-      "close when the consumer is done" in closeWhenTheConsumerIsDone {
-        implicit app =>
-          WebSocket.acceptWithActor[String, String] { req => out =>
-            Props(new Actor() {
-              out ! PoisonPill
-              def receive = PartialFunction.empty
-            })
-          }
+      "close when the consumer is done" in closeWhenTheConsumerIsDone { implicit app =>
+        WebSocket.acceptWithActor[String, String] { req => out =>
+          Props(new Actor() {
+            out ! PoisonPill
+            def receive = PartialFunction.empty
+          })
+        }
       }.pendingUntilAkkaHttpFixed
 
-      "clean up when closed" in cleanUpWhenClosed {
-        implicit app => cleanedUp =>
-          WebSocket.acceptWithActor[String, String] { req => out =>
-            Props(new Actor() {
-              def receive = PartialFunction.empty
-              override def postStop() = {
-                cleanedUp.success(true)
-              }
-            })
-          }
+      "clean up when closed" in cleanUpWhenClosed { implicit app => cleanedUp =>
+        WebSocket.acceptWithActor[String, String] { req => out =>
+          Props(new Actor() {
+            def receive = PartialFunction.empty
+            override def postStop() = {
+              cleanedUp.success(true)
+            }
+          })
+        }
       }.pendingUntilAkkaHttpFixed
 
       "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult {
@@ -424,19 +409,18 @@ trait WebSocketSpec
           JWebSocket.reject[String](JResults.status(statusCode))
       }.pendingUntilAkkaHttpFixed
 
-      "allow handling a websocket with an actor" in allowSendingMessages {
-        _ => messages =>
-          JWebSocket.withActor[String](new F.Function[ActorRef, Props]() {
-            def apply(out: ActorRef) = {
-              Props(new Actor() {
-                messages.foreach { msg =>
-                  out ! msg
-                }
-                out ! PoisonPill
-                def receive = PartialFunction.empty
-              })
-            }
-          })
+      "allow handling a websocket with an actor" in allowSendingMessages { _ => messages =>
+        JWebSocket.withActor[String](new F.Function[ActorRef, Props]() {
+          def apply(out: ActorRef) = {
+            Props(new Actor() {
+              messages.foreach { msg =>
+                out ! msg
+              }
+              out ! PoisonPill
+              def receive = PartialFunction.empty
+            })
+          }
+        })
       }.pendingUntilAkkaHttpFixed
     }
   }

@@ -23,13 +23,12 @@ object JavaParsers extends BodyParsers {
 
   import play.mvc.Http.RequestBody
 
-  case class DefaultRequestBody(
-      urlFormEncoded: Option[Map[String, Seq[String]]] = None,
-      raw: Option[RawBuffer] = None,
-      text: Option[String] = None,
-      json: Option[JsValue] = None,
-      xml: Option[NodeSeq] = None,
-      multipart: Option[MultipartFormData[TemporaryFile]] = None)
+  case class DefaultRequestBody(urlFormEncoded: Option[Map[String, Seq[String]]] = None,
+                                raw: Option[RawBuffer] = None,
+                                text: Option[String] = None,
+                                json: Option[JsValue] = None,
+                                xml: Option[NodeSeq] = None,
+                                multipart: Option[MultipartFormData[TemporaryFile]] = None)
       extends RequestBody {
 
     override lazy val asFormUrlEncoded = {
@@ -65,11 +64,10 @@ object JavaParsers extends BodyParsers {
 
         lazy val getFiles = {
           multipart.files.map { file =>
-            new play.mvc.Http.MultipartFormData.FilePart(
-                file.key,
-                file.filename,
-                file.contentType.orNull,
-                file.ref.file)
+            new play.mvc.Http.MultipartFormData.FilePart(file.key,
+                                                         file.filename,
+                                                         file.contentType.orNull,
+                                                         file.ref.file)
           }.asJava
         }
       }
@@ -82,8 +80,7 @@ object JavaParsers extends BodyParsers {
   def anyContent(maxLength: Long): BodyParser[RequestBody] =
     anyContent(parse.anyContent(Some(maxLength).filter(_ >= 0)))
 
-  private def anyContent(
-      parser: BodyParser[AnyContent]): BodyParser[RequestBody] =
+  private def anyContent(parser: BodyParser[AnyContent]): BodyParser[RequestBody] =
     parser.map { anyContent =>
       DefaultRequestBody(anyContent.asFormUrlEncoded,
                          anyContent.asRaw,
@@ -146,8 +143,7 @@ object JavaParsers extends BodyParsers {
     val maxLengthOrDefault =
       if (maxLength < 0) BodyParsers.parse.DefaultMaxDiskLength else maxLength
     parse
-      .multipartFormData(Multipart.handleFilePartAsTemporaryFile,
-                         maxLengthOrDefault)
+      .multipartFormData(Multipart.handleFilePartAsTemporaryFile, maxLengthOrDefault)
       .map { multipart =>
         DefaultRequestBody(multipart = Some(multipart))
       }(trampoline)

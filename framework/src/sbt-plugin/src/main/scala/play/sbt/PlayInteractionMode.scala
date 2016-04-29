@@ -90,8 +90,7 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
   * Simple implementation of the non blocking interaction mode that simply stores the current application in a static
   * variable.
   */
-object StaticPlayNonBlockingInteractionMode
-    extends PlayNonBlockingInteractionMode {
+object StaticPlayNonBlockingInteractionMode extends PlayNonBlockingInteractionMode {
   private var current: Option[Closeable] = None
 
   /**

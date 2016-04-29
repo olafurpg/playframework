@@ -19,10 +19,8 @@ class EvolutionsModule extends Module {
         bind[EvolutionsConfig].toProvider[DefaultEvolutionsConfigParser],
         bind[EvolutionsReader].to[EnvironmentEvolutionsReader],
         bind[EvolutionsApi].to[DefaultEvolutionsApi],
-        bind[ApplicationEvolutions]
-          .toProvider[ApplicationEvolutionsProvider]
-          .eagerly
-      )
+        bind[ApplicationEvolutions].toProvider[ApplicationEvolutionsProvider].eagerly
+    )
   }
 }
 
@@ -38,17 +36,16 @@ trait EvolutionsComponents {
 
   lazy val evolutionsConfig: EvolutionsConfig =
     new DefaultEvolutionsConfigParser(configuration).parse
-  lazy val evolutionsReader: EvolutionsReader =
-    new EnvironmentEvolutionsReader(environment)
+  lazy val evolutionsReader: EvolutionsReader = new EnvironmentEvolutionsReader(environment)
   lazy val evolutionsApi: EvolutionsApi = new DefaultEvolutionsApi(dbApi)
-  lazy val applicationEvolutions: ApplicationEvolutions =
-    new ApplicationEvolutions(evolutionsConfig,
-                              evolutionsReader,
-                              evolutionsApi,
-                              dynamicEvolutions,
-                              dbApi,
-                              environment,
-                              webCommands)
+  lazy val applicationEvolutions: ApplicationEvolutions = new ApplicationEvolutions(
+      evolutionsConfig,
+      evolutionsReader,
+      evolutionsApi,
+      dynamicEvolutions,
+      dbApi,
+      environment,
+      webCommands)
 }
 
 @Singleton
@@ -61,12 +58,11 @@ class ApplicationEvolutionsProvider @Inject()(config: EvolutionsConfig,
                                               injector: Injector)
     extends Provider[ApplicationEvolutions] {
 
-  lazy val get = new ApplicationEvolutions(
-      config,
-      reader,
-      evolutions,
-      injector.instanceOf[DynamicEvolutions],
-      dbApi,
-      environment,
-      webCommands)
+  lazy val get = new ApplicationEvolutions(config,
+                                           reader,
+                                           evolutions,
+                                           injector.instanceOf[DynamicEvolutions],
+                                           dbApi,
+                                           environment,
+                                           webCommands)
 }

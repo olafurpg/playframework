@@ -9,21 +9,18 @@ object UserInfoSpec extends Specification {
 
   val claimedId = "http://example.com/openid?id=C123"
   val identity = "http://example.com/openid?id=C123&id"
-  val defaultSigned =
-    "op_endpoint,claimed_id,identity,return_to,response_nonce,assoc_handle"
+  val defaultSigned = "op_endpoint,claimed_id,identity,return_to,response_nonce,assoc_handle"
 
   "UserInfo" should {
     "successfully be created using the value of the openid.claimed_id field" in {
-      val userInfo =
-        UserInfo(createDefaultResponse(claimedId, identity, defaultSigned))
+      val userInfo = UserInfo(createDefaultResponse(claimedId, identity, defaultSigned))
       userInfo.id must be equalTo claimedId
       userInfo.attributes must beEmpty
     }
     "successfully be created using the value of the openid.identity field" in {
       // For testing the claimed_id is removed to check that id contains the identity value.
       val userInfo =
-        UserInfo(createDefaultResponse(claimedId, identity, defaultSigned) -
-            "openid.claimed_id")
+        UserInfo(createDefaultResponse(claimedId, identity, defaultSigned) - "openid.claimed_id")
       userInfo.id must be equalTo identity
       userInfo.attributes must beEmpty
     }
@@ -46,8 +43,7 @@ object UserInfoSpec extends Specification {
             "openid.ext1.type.email" -> "http://schema.openid.net/contact/email",
             "openid.ext1.value.email" -> "user@example.com", // the email attribute *is* in the list of signed fields
             "openid.signed" ->
-            (defaultSigned +
-                "ns.ext1,ext1.mode,ext1.type.email,ext1.value.email"))
+            (defaultSigned + "ns.ext1,ext1.mode,ext1.type.email,ext1.value.email"))
       val userInfo = UserInfo(requestParams)
       userInfo.attributes.get("email") must beSome("user@example.com")
     }

@@ -14,8 +14,7 @@ import play.utils.PlayIO
 /**
   * This class calls sslContext.createSSLEngine() with no parameters and returns the result.
   */
-class DefaultSSLEngineProvider(
-    serverConfig: ServerConfig, appProvider: ApplicationProvider)
+class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: ApplicationProvider)
     extends SSLEngineProvider {
 
   import DefaultSSLEngineProvider._
@@ -27,8 +26,7 @@ class DefaultSSLEngineProvider(
   }
 
   def createSSLContext(applicationProvider: ApplicationProvider): SSLContext = {
-    val httpsConfig =
-      serverConfig.configuration.underlying.getConfig("play.server.https")
+    val httpsConfig = serverConfig.configuration.underlying.getConfig("play.server.https")
     val keyStoreConfig = httpsConfig.getConfig("keyStore")
     val keyManagerFactory: KeyManagerFactory =
       if (keyStoreConfig.hasPath("path")) {
@@ -37,8 +35,7 @@ class DefaultSSLEngineProvider(
         val keyStore = KeyStore.getInstance(keyStoreConfig.getString("type"))
         val password = keyStoreConfig.getString("password").toCharArray
         val algorithm =
-          if (keyStoreConfig.hasPath("algorithm"))
-            keyStoreConfig.getString("algorithm")
+          if (keyStoreConfig.hasPath("algorithm")) keyStoreConfig.getString("algorithm")
           else KeyManagerFactory.getDefaultAlgorithm
         val file = new File(path)
         if (file.isFile) {
@@ -51,16 +48,14 @@ class DefaultSSLEngineProvider(
             kmf
           } catch {
             case NonFatal(e) => {
-                throw new Exception("Error loading HTTPS keystore from " +
-                                    file.getAbsolutePath,
+                throw new Exception("Error loading HTTPS keystore from " + file.getAbsolutePath,
                                     e)
               }
           } finally {
             PlayIO.closeQuietly(in)
           }
         } else {
-          throw new Exception("Unable to find HTTPS keystore at \"" +
-              file.getAbsolutePath + "\"")
+          throw new Exception("Unable to find HTTPS keystore at \"" + file.getAbsolutePath + "\"")
         }
       } else {
         // Load a generated key store
@@ -77,8 +72,7 @@ class DefaultSSLEngineProvider(
             "side CA verification. Requires http://webid.info/ for client certificate verification.")
         Array[TrustManager](noCATrustManager)
       } else {
-        logger.debug(
-            "Using default trust store for client side CA verification")
+        logger.debug("Using default trust store for client side CA verification")
         null
       }
 

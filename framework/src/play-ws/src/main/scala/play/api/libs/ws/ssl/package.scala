@@ -12,13 +12,11 @@ package object ssl {
 
   import scala.language.implicitConversions
 
-  implicit def certificate2X509Certificate(
-      cert: java.security.cert.Certificate): X509Certificate = {
+  implicit def certificate2X509Certificate(cert: java.security.cert.Certificate): X509Certificate = {
     cert.asInstanceOf[X509Certificate]
   }
 
-  implicit def arrayCertsToListCerts(
-      chain: Array[Certificate]): java.util.List[Certificate] = {
+  implicit def arrayCertsToListCerts(chain: Array[Certificate]): java.util.List[Certificate] = {
     import scala.collection.JavaConverters._
     chain.toList.asJava
   }

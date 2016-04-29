@@ -16,6 +16,5 @@ case class ValidationError(messages: Seq[String], args: Any*) {
 
 object ValidationError {
 
-  def apply(message: String, args: Any*) =
-    new ValidationError(Seq(message), args:_*)
+  def apply(message: String, args: Any*) = new ValidationError(Seq(message), args:_*)
 }

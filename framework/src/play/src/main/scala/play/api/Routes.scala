@@ -22,10 +22,8 @@ object Routes {
   val ROUTE_COMMENTS = Router.Tags.RouteComments
 
   @deprecated("Use play.api.routing.JavaScriptReverseRouter instead", "2.4.0")
-  def javascriptRouter(name: String = "Router",
-                       ajaxMethod: Option[String] = Some("jQuery.ajax"))(
-      routes: JavaScriptReverseRoute*)(
-      implicit request: RequestHeader): JavaScript = {
+  def javascriptRouter(name: String = "Router", ajaxMethod: Option[String] = Some("jQuery.ajax"))(
+      routes: JavaScriptReverseRoute*)(implicit request: RequestHeader): JavaScript = {
     JavaScriptReverseRouter(name, ajaxMethod)(routes:_*)
   }
 

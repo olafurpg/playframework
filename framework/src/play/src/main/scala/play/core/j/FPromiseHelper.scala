@@ -26,15 +26,13 @@ private[play] object FPromiseHelper {
 
   def pure[A](a: A): F.Promise[A] = F.Promise.wrap(Future.successful(a))
 
-  def throwing[A](t: Throwable): F.Promise[A] =
-    F.Promise.wrap(Future.failed(t))
+  def throwing[A](t: Throwable): F.Promise[A] = F.Promise.wrap(Future.failed(t))
 
   // For deprecated method in play.libs.Akka
   def promise[A](callable: Callable[A], ec: ExecutionContext): F.Promise[A] =
     F.Promise.wrap(Future(callable.call())(ec.prepare()))
 
-  def promise[A](
-      function: F.Function0[A], ec: ExecutionContext): F.Promise[A] =
+  def promise[A](function: F.Function0[A], ec: ExecutionContext): F.Promise[A] =
     F.Promise.wrap(Future(function.apply())(ec.prepare()))
 
   private def delayedWith[A](f: => A,
@@ -70,8 +68,7 @@ private[play] object FPromiseHelper {
     }
   }
 
-  def or[A, B](
-      left: F.Promise[A], right: F.Promise[B]): F.Promise[F.Either[A, B]] = {
+  def or[A, B](left: F.Promise[A], right: F.Promise[B]): F.Promise[F.Either[A, B]] = {
     import Execution.Implicits.trampoline
     val p = Promise[F.Either[A, B]]
     left.wrapped.onComplete {
@@ -85,13 +82,11 @@ private[play] object FPromiseHelper {
 
   def zip[A, B](pa: F.Promise[A], pb: F.Promise[B]): F.Promise[F.Tuple[A, B]] = {
     import Execution.Implicits.trampoline
-    val future =
-      pa.wrapped.zip(pb.wrapped).map { case (a, b) => new F.Tuple(a, b) }
+    val future = pa.wrapped.zip(pb.wrapped).map { case (a, b) => new F.Tuple(a, b) }
     F.Promise.wrap(future)
   }
 
-  def sequence[A](promises: JIterable[F.Promise[A]],
-                  ec: ExecutionContext): F.Promise[JList[A]] = {
+  def sequence[A](promises: JIterable[F.Promise[A]], ec: ExecutionContext): F.Promise[JList[A]] = {
     val futures = JavaConverters
       .iterableAsScalaIterableConverter(promises)
       .asScala
@@ -99,13 +94,11 @@ private[play] object FPromiseHelper {
       .map((_: F.Promise[A]).wrapped)
     implicit val pec =
       ec.prepare() // Easiest to provide implicitly so don't need to provide other implicit arg to sequence method
-    F.Promise.wrap(Future
-          .sequence(futures)
-          .map(az => JavaConverters.bufferAsJavaListConverter(az).asJava))
+    F.Promise.wrap(
+        Future.sequence(futures).map(az => JavaConverters.bufferAsJavaListConverter(az).asJava))
   }
 
-  private def timeoutWith[A](
-      result: Try[A], delay: Long, unit: TimeUnit): F.Promise[A] = {
+  private def timeoutWith[A](result: Try[A], delay: Long, unit: TimeUnit): F.Promise[A] = {
     val p = Promise[A]()
     timer.schedule(new TimerTask {
       def run() { p.complete(result) }
@@ -121,23 +114,19 @@ private[play] object FPromiseHelper {
                 delay,
                 unit)
 
-  def onRedeem[A](promise: F.Promise[A],
-                  action: F.Callback[A],
-                  ec: ExecutionContext): Unit =
+  def onRedeem[A](promise: F.Promise[A], action: F.Callback[A], ec: ExecutionContext): Unit =
     promise.wrapped().onSuccess { case a => action.invoke(a) }(ec.prepare())
 
   def map[A, B, T >: A](promise: F.Promise[A],
                         function: F.Function[T, B],
                         ec: ExecutionContext): F.Promise[B] =
-    F.Promise.wrap[B](
-        promise.wrapped().map((a: A) => function.apply(a))(ec.prepare()))
+    F.Promise.wrap[B](promise.wrapped().map((a: A) => function.apply(a))(ec.prepare()))
 
   def flatMap[A, B, T >: A](promise: F.Promise[A],
                             function: F.Function[T, F.Promise[B]],
                             ec: ExecutionContext): F.Promise[B] =
-    F.Promise.wrap[B](promise
-          .wrapped()
-          .flatMap((a: A) => function.apply(a).wrapped())(ec.prepare()))
+    F.Promise
+      .wrap[B](promise.wrapped().flatMap((a: A) => function.apply(a).wrapped())(ec.prepare()))
 
   def filter[A, T >: A](promise: F.Promise[A],
                         predicate: F.Predicate[T],
@@ -147,19 +136,15 @@ private[play] object FPromiseHelper {
   def recover[A](promise: F.Promise[A],
                  function: F.Function[Throwable, A],
                  ec: ExecutionContext): F.Promise[A] =
-    F.Promise.wrap[A](promise
-          .wrapped()
-          .recover { case t => function.apply(t) }(ec.prepare()))
+    F.Promise.wrap[A](promise.wrapped().recover { case t => function.apply(t) }(ec.prepare()))
 
   def recoverWith[A](promise: F.Promise[A],
                      function: F.Function[Throwable, F.Promise[A]],
                      ec: ExecutionContext): F.Promise[A] =
-    F.Promise.wrap[A](promise
-          .wrapped()
-          .recoverWith { case t => function.apply(t).wrapped() }(ec.prepare()))
+    F.Promise.wrap[A](
+        promise.wrapped().recoverWith { case t => function.apply(t).wrapped() }(ec.prepare()))
 
-  def fallbackTo[A](
-      promise: F.Promise[A], fallback: F.Promise[A]): F.Promise[A] =
+  def fallbackTo[A](promise: F.Promise[A], fallback: F.Promise[A]): F.Promise[A] =
     F.Promise.wrap[A](promise.wrapped.fallbackTo(fallback.wrapped))
 
   def onFailure[A](promise: F.Promise[A],
@@ -172,8 +157,7 @@ private[play] object FPromiseHelper {
                               s: F.Function[T, B],
                               f: F.Function[Throwable, Throwable],
                               ec: ExecutionContext): F.Promise[B] =
-    F.Promise
-      .wrap[B](promise.wrapped.transform(s.apply, f.apply)(ec.prepare()))
+    F.Promise.wrap[B](promise.wrapped.transform(s.apply, f.apply)(ec.prepare()))
 
   def empty[A]() = {
     Promise[A]()

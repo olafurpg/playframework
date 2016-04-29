@@ -15,8 +15,7 @@ object PlayImport {
 
   val Production = config("production")
 
-  def component(id: String) =
-    "com.typesafe.play" %% id % play.core.PlayVersion.current
+  def component(id: String) = "com.typesafe.play" %% id % play.core.PlayVersion.current
 
   def movedExternal(msg: String): ModuleID = {
     System.err.println(msg)
@@ -28,18 +27,16 @@ object PlayImport {
   val jdbc = component("play-jdbc")
 
   def anorm =
-    movedExternal(
-        """Anorm has been moved to an external module.
-          |See https://playframework.com/documentation/2.4.x/Migration24 for details.""".stripMargin)
+    movedExternal("""Anorm has been moved to an external module.
+                    |See https://playframework.com/documentation/2.4.x/Migration24 for details.""".stripMargin)
 
   val javaCore = component("play-java")
 
   val javaJdbc = component("play-java-jdbc")
 
   def javaEbean =
-    movedExternal(
-        """Play ebean module has been replaced with an external Play ebean plugin.
-          |See https://playframework.com/documentation/2.4.x/Migration24 for details.""".stripMargin)
+    movedExternal("""Play ebean module has been replaced with an external Play ebean plugin.
+                    |See https://playframework.com/documentation/2.4.x/Migration24 for details.""".stripMargin)
 
   val javaJpa = component("play-java-jpa")
 
@@ -83,8 +80,7 @@ object PlayImport {
                 case _ => filtered
               }
             }
-            def log(level: Level.Value, message: => String) =
-              l.log(level, filter(message))
+            def log(level: Level.Value, message: => String) = l.log(level, filter(message))
             def success(message: => String) = l.success(message)
             def trace(t: => Throwable) = l.trace(t)
 
@@ -95,34 +91,30 @@ object PlayImport {
     }
 
   object PlayKeys {
-    val playDefaultPort =
-      SettingKey[Int]("playDefaultPort", "The default port that Play runs on")
-    val playDefaultAddress = SettingKey[String](
-        "playDefaultAddress", "The default address that Play runs on")
+    val playDefaultPort = SettingKey[Int]("playDefaultPort", "The default port that Play runs on")
+    val playDefaultAddress =
+      SettingKey[String]("playDefaultAddress", "The default address that Play runs on")
 
     /** Our means of hooking the run task with additional behavior. */
     val playRunHooks = TaskKey[Seq[PlayRunHook]](
-        "playRunHooks",
-        "Hooks to run additional behaviour before/after the run task")
+        "playRunHooks", "Hooks to run additional behaviour before/after the run task")
 
     /** A hook to configure how play blocks on user input while running. */
     val playInteractionMode = SettingKey[PlayInteractionMode](
-        "playInteractionMode",
-        "Hook to configure how Play blocks when running")
+        "playInteractionMode", "Hook to configure how Play blocks when running")
 
     val externalizeResources = SettingKey[Boolean](
         "playExternalizeResources",
         "Whether resources should be externalized into the conf directory when Play is packaged as a distribution.")
 
     val playOmnidoc = SettingKey[Boolean](
-        "playOmnidoc",
-        "Determines whether to use the aggregated Play documentation")
-    val playDocsName = SettingKey[String](
-        "playDocsName", "Artifact name of the Play documentation")
-    val playDocsModule = SettingKey[Option[ModuleID]](
-        "playDocsModule", "Optional Play documentation dependency")
-    val playDocsJar = TaskKey[Option[File]](
-        "playDocsJar", "Optional jar file containing the Play documentation")
+        "playOmnidoc", "Determines whether to use the aggregated Play documentation")
+    val playDocsName =
+      SettingKey[String]("playDocsName", "Artifact name of the Play documentation")
+    val playDocsModule =
+      SettingKey[Option[ModuleID]]("playDocsModule", "Optional Play documentation dependency")
+    val playDocsJar =
+      TaskKey[Option[File]]("playDocsJar", "Optional jar file containing the Play documentation")
 
     val playPlugin = SettingKey[Boolean]("playPlugin")
 
@@ -147,7 +139,6 @@ object PlayImport {
 
     val playMonitoredFiles = TaskKey[Seq[File]]("playMonitoredFiles")
     val fileWatchService = SettingKey[FileWatchService](
-        "fileWatchService",
-        "The watch service Play uses to watch for file changes")
+        "fileWatchService", "The watch service Play uses to watch for file changes")
   }
 }

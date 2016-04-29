@@ -36,20 +36,17 @@ trait GlobalSettings {
     * Note, this should only be used for the default implementations of onError, onHandlerNotFound and onBadRequest.
     */
   private def defaultErrorHandler: HttpErrorHandler = {
-    Play.maybeApplication
-      .fold[HttpErrorHandler](DefaultHttpErrorHandler)(dhehCache)
+    Play.maybeApplication.fold[HttpErrorHandler](DefaultHttpErrorHandler)(dhehCache)
   }
 
   /**
     * This should be used for all invocations of error handling in Global.
     */
   private def configuredErrorHandler: HttpErrorHandler = {
-    Play.maybeApplication
-      .fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
+    Play.maybeApplication.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
   }
 
-  private val jchrhCache = Application
-    .instanceCache[JavaCompatibleHttpRequestHandler]
+  private val jchrhCache = Application.instanceCache[JavaCompatibleHttpRequestHandler]
   private def defaultRequestHandler: Option[DefaultHttpRequestHandler] = {
     Play.maybeApplication.map(jchrhCache)
   }
@@ -122,11 +119,10 @@ trait GlobalSettings {
         // add an explicit mapping in Routes
         val missingHandler: Handler = request.method match {
           case HttpVerbs.HEAD =>
-            val headAction =
-              onRouteRequest(request.copy(method = HttpVerbs.GET)) match {
-                case Some(action: EssentialAction) => action
-                case None => notFoundHandler
-              }
+            val headAction = onRouteRequest(request.copy(method = HttpVerbs.GET)) match {
+              case Some(action: EssentialAction) => action
+              case None => notFoundHandler
+            }
             new HeadAction(headAction)
           case _ =>
             notFoundHandler
@@ -209,8 +205,7 @@ trait GlobalSettings {
     * @return the result to send to the client
     */
   def onBadRequest(request: RequestHeader, error: String): Future[Result] =
-    defaultErrorHandler.onClientError(
-        request, play.api.http.Status.BAD_REQUEST, error)
+    defaultErrorHandler.onClientError(request, play.api.http.Status.BAD_REQUEST, error)
 
   @deprecated(
       "onRequestCompletion is no longer invoked by Play. The same functionality can be achieved by adding a filter that attaches a onDoneEnumerating callback onto the returned Result Enumerator.",
@@ -232,10 +227,8 @@ object GlobalSettings {
     * @param environment The environment to load the global object from.
     * @return
     */
-  def apply(configuration: Configuration,
-            environment: Environment): GlobalSettings = {
-    val globalClass =
-      configuration.getString("application.global").getOrElse("Global")
+  def apply(configuration: Configuration, environment: Environment): GlobalSettings = {
+    val globalClass = configuration.getString("application.global").getOrElse("Global")
 
     def javaGlobal: Option[play.GlobalSettings] =
       try {

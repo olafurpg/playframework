@@ -58,8 +58,7 @@ object DevModeBuild {
         if (contents.contains(assertion)) {
           messages += s"Resource at $path contained $assertion"
         } else {
-          throw new RuntimeException(
-              s"Resource at $path didn't contain '$assertion':\n$contents")
+          throw new RuntimeException(s"Resource at $path didn't contain '$assertion':\n$contents")
         }
       }
 

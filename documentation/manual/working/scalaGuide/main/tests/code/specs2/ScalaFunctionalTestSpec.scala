@@ -22,17 +22,15 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
   case class Computer(name: String, introduced: Option[String])
 
   object Computer {
-    def findById(id: Int): Option[Computer] =
-      Some(Computer("Macintosh", Some("1984-01-24")))
+    def findById(id: Int): Option[Computer] = Some(Computer("Macintosh", Some("1984-01-24")))
   }
 
   "Scala Functional Test" should {
 
     // #scalafunctionaltest-fakeApplication
-    val fakeApplicationWithGlobal =
-      FakeApplication(withGlobal = Some(new GlobalSettings() {
-          override def onStart(app: Application) { println("Hello world!") }
-        }))
+    val fakeApplicationWithGlobal = FakeApplication(withGlobal = Some(new GlobalSettings() {
+        override def onStart(app: Application) { println("Hello world!") }
+      }))
     // #scalafunctionaltest-fakeApplication
 
     val fakeApplication = FakeApplication(withRoutes = {
@@ -62,8 +60,7 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
     // #scalafunctionaltest-testview
 
     // #scalafunctionaltest-testmodel
-    val appWithMemoryDatabase =
-      FakeApplication(additionalConfiguration = inMemoryDatabase("test"))
+    val appWithMemoryDatabase = FakeApplication(additionalConfiguration = inMemoryDatabase("test"))
     "run an application" in new WithApplication(appWithMemoryDatabase) {
 
       val Some(macintosh) = Computer.findById(21)
@@ -98,9 +95,8 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
         }
     })
 
-    "run in a browser" in new WithBrowser(
-        webDriver = WebDriverFactory(HTMLUNIT),
-        app = fakeApplicationWithBrowser) {
+    "run in a browser" in new WithBrowser(webDriver = WebDriverFactory(HTMLUNIT),
+                                          app = fakeApplicationWithBrowser) {
       browser.goTo("/")
 
       // Check the page
@@ -117,16 +113,13 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
     val myPublicAddress = s"localhost:$testPort"
     val testPaymentGatewayURL = s"http://$myPublicAddress"
     // #scalafunctionaltest-testpaymentgateway
-    "test server logic" in new WithServer(app = fakeApplicationWithBrowser,
-                                          port = testPort) {
+    "test server logic" in new WithServer(app = fakeApplicationWithBrowser, port = testPort) {
       // The test payment gateway requires a callback to this server before it returns a result...
       val callbackURL = s"http://$myPublicAddress/callback"
 
       // await is from play.api.test.FutureAwaits
-      val response = await(WS
-            .url(testPaymentGatewayURL)
-            .withQueryString("callbackURL" -> callbackURL)
-            .get())
+      val response =
+        await(WS.url(testPaymentGatewayURL).withQueryString("callbackURL" -> callbackURL).get())
 
       response.status must equalTo(OK)
     }

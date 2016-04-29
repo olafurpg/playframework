@@ -43,12 +43,10 @@ object ApplicationSecretGenerator {
     }
 
     if (appConfFile.exists()) {
-      log.info(
-          "Updating application secret in " + appConfFile.getCanonicalPath)
+      log.info("Updating application secret in " + appConfFile.getCanonicalPath)
       val lines = IO.readLines(appConfFile)
 
-      val appSecret =
-        lines.find(ApplicationSecret.pattern.matcher(_).matches())
+      val appSecret = lines.find(ApplicationSecret.pattern.matcher(_).matches())
 
       val newLines = appSecret match {
         case Some(line) =>
@@ -58,8 +56,7 @@ object ApplicationSecretGenerator {
             case other => other
           }
         case None =>
-          log.warn("Did not find application secret in " +
-              appConfFile.getCanonicalPath)
+          log.warn("Did not find application secret in " + appConfFile.getCanonicalPath)
           log.warn("Adding application secret to start of file")
           secretConfig :: lines
       }
@@ -68,8 +65,7 @@ object ApplicationSecretGenerator {
 
       appConfFile
     } else {
-      log.error("Could not find configuration file at " +
-          appConfFile.getCanonicalPath)
+      log.error("Could not find configuration file at " + appConfFile.getCanonicalPath)
       throw new FeedbackProvidedException {}
     }
   }

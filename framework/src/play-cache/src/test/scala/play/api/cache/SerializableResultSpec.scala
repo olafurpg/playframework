@@ -36,9 +36,7 @@ class SerializableResultSpec extends PlaySpecification {
     // To be fancy could use a Matcher
     def compareResults(r1: Result, r2: Result) = {
       def bodyChunks(r: Result): Vector[Vector[Byte]] = {
-        await(r.body |>>> Iteratee.getChunks[Array[Byte]])
-          .map(_.to[Vector])
-          .to[Vector]
+        await(r.body |>>> Iteratee.getChunks[Array[Byte]]).map(_.to[Vector]).to[Vector]
       }
       r1.header.status must_== r2.header.status
       r1.header.headers must_== r2.header.headers
@@ -52,28 +50,23 @@ class SerializableResultSpec extends PlaySpecification {
     }
 
     "serialize and deserialize statūs" in {
-      checkSerialization(
-          Results.Ok("x").withHeaders(CONTENT_TYPE -> "text/banana"))
+      checkSerialization(Results.Ok("x").withHeaders(CONTENT_TYPE -> "text/banana"))
       checkSerialization(Results.NotFound)
     }
     "serialize and deserialize simple Results" in {
       checkSerialization(Results.Ok("hello!"))
       checkSerialization(Results.Ok.chunked(Enumerator("hel", "lo!")))
+      checkSerialization(Results.Ok("hello!").withHeaders(CONTENT_TYPE -> "text/banana"))
       checkSerialization(
-          Results.Ok("hello!").withHeaders(CONTENT_TYPE -> "text/banana"))
-      checkSerialization(Results
-            .Ok("hello!")
-            .withHeaders(CONTENT_TYPE -> "text/banana", "X-Foo" -> "bar"))
+          Results.Ok("hello!").withHeaders(CONTENT_TYPE -> "text/banana", "X-Foo" -> "bar"))
     }
     "serialize and deserialize chunked Results" in {
       checkSerialization(Results.Ok.chunked(Enumerator("hel", "lo!")))
       checkSerialization(Results.Ok.chunked(Enumerator("hel", "lo", "!")))
     }
     "serialize and deserialize connection types" in {
-      checkSerialization(
-          Results.Ok("hello!").copy(connection = HttpConnection.KeepAlive))
-      checkSerialization(
-          Results.Ok("hello!").copy(connection = HttpConnection.Close))
+      checkSerialization(Results.Ok("hello!").copy(connection = HttpConnection.KeepAlive))
+      checkSerialization(Results.Ok("hello!").copy(connection = HttpConnection.Close))
     }
     "serialize and deserialize large results" in {
       val n = 200

@@ -16,13 +16,12 @@ object JsonBodyParserSpec extends PlaySpecification {
 
   "The JSON body parser" should {
 
-    def parse[A](
-        json: String,
-        contentType: Option[String],
-        encoding: String,
-        bodyParser: BodyParser[A] = BodyParsers.parse.tolerantJson) = {
-      await(Enumerator(json.getBytes(encoding)) |>>> bodyParser(FakeRequest()
-                .withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq:_*)))
+    def parse[A](json: String,
+                 contentType: Option[String],
+                 encoding: String,
+                 bodyParser: BodyParser[A] = BodyParsers.parse.tolerantJson) = {
+      await(Enumerator(json.getBytes(encoding)) |>>> bodyParser(
+              FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq:_*)))
     }
 
     "parse JSON bodies" in new WithApplication() {
@@ -44,9 +43,7 @@ object JsonBodyParserSpec extends PlaySpecification {
     }
 
     "ignore the supplied charset" in new WithApplication() {
-      parse("""{"foo":"bär"}""",
-            Some("application/json; charset=iso-8859-1"),
-            "utf-16") must beRight.like {
+      parse("""{"foo":"bär"}""", Some("application/json; charset=iso-8859-1"), "utf-16") must beRight.like {
         case json => (json \ "foo").as[String] must_== "bär"
       }
     }
@@ -85,8 +82,7 @@ object JsonBodyParserSpec extends PlaySpecification {
       import scala.concurrent.ExecutionContext.Implicits.global
 
       val fooParser = BodyParsers.parse.json.validate {
-        _.validate[Foo].asEither.left
-          .map(e => BadRequest(JsError.toFlatJson(e)))
+        _.validate[Foo].asEither.left.map(e => BadRequest(JsError.toFlatJson(e)))
       }
       parse("""{"a":1,"b":"bar"}""",
             Some("application/json"),

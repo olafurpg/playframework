@@ -25,13 +25,11 @@ object SbtClient {
     Props(new SbtClient(baseDirectory, log, logEvents))
 }
 
-class SbtClient(baseDirectory: File, log: Logger, logEvents: Boolean)
-    extends Actor {
+class SbtClient(baseDirectory: File, log: Logger, logEvents: Boolean) extends Actor {
   import SbtClient._
 
   val connector = SbtConnector("play-fork-run", "Play Fork Run", baseDirectory)
-  val connection =
-    context.actorOf(SbtConnectionProxy.props(connector), "sbt-connection")
+  val connection = context.actorOf(SbtConnectionProxy.props(connector), "sbt-connection")
 
   def receive: Receive = init
 
@@ -40,8 +38,7 @@ class SbtClient(baseDirectory: File, log: Logger, logEvents: Boolean)
     connecting()
   }
 
-  def awaitingDaemon(
-      client: ActorRef, pending: Seq[SbtRequest] = Seq.empty): Receive = {
+  def awaitingDaemon(client: ActorRef, pending: Seq[SbtRequest] = Seq.empty): Receive = {
     case Terminated(`client`) => shutdownWithClient(client)
     case SbtClientProxy.DaemonSet =>
       if (logEvents) {
@@ -75,9 +72,7 @@ class SbtClient(baseDirectory: File, log: Logger, logEvents: Boolean)
         .ByCommandOrTask(input, interaction = None, sendTo = self)
     case request@Request(key, sendTo) =>
       val name = java.net.URLEncoder.encode(key, "utf-8")
-      val task =
-        context.child(name) getOrElse context.actorOf(
-            SbtTask.props(key, client), name)
+      val task = context.child(name) getOrElse context.actorOf(SbtTask.props(key, client), name)
       task ! request
     case Shutdown => shutdownWithClient(client)
   }
@@ -132,13 +127,11 @@ class SbtEvents(logger: Logger) extends Actor {
 
   // log events from sbt server currently have duplicates that are
   // taken from standard out and prefixed with "Read from stdout: "
-  def accepted(message: String): Boolean =
-    !(message startsWith "Read from stdout: ")
+  def accepted(message: String): Boolean = !(message startsWith "Read from stdout: ")
 }
 
 object SbtTask {
-  def props(name: String, client: ActorRef): Props =
-    Props(new SbtTask(name, client))
+  def props(name: String, client: ActorRef): Props = Props(new SbtTask(name, client))
 }
 
 class SbtTask(name: String, client: ActorRef) extends Actor {
@@ -155,8 +148,7 @@ class SbtTask(name: String, client: ActorRef) extends Actor {
     case request: Request =>
       context become connecting(pending :+ request)
     case SbtClientProxy.LookupScopedKeyResponse(name, Success(keys)) =>
-      if (keys.isEmpty)
-        fail(new Exception(s"No sbt key found for $name"), pending)
+      if (keys.isEmpty) fail(new Exception(s"No sbt key found for $name"), pending)
       else client ! SbtClientProxy.WatchTask(TaskKey(keys.head), self)
     case SbtClientProxy.LookupScopedKeyResponse(name, Failure(error)) =>
       fail(error, pending)

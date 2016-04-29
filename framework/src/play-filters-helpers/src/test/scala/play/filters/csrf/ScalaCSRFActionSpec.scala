@@ -12,8 +12,7 @@ import play.api.mvc._
   */
 object ScalaCSRFActionSpec extends CSRFCommonSpecs {
 
-  def buildCsrfCheckRequest(
-      sendUnauthorizedResult: Boolean, configuration: (String, String)*) =
+  def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) =
     new CsrfTester {
       def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(
           handleResponse: (WSResponse) => T) =
@@ -26,8 +25,7 @@ object ScalaCSRFActionSpec extends CSRFCommonSpecs {
             }
         } {
           import play.api.Play.current
-          handleResponse(
-              await(makeRequest(WS.url("http://localhost:" + testServerPort))))
+          handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
         }
     }
 
@@ -43,14 +41,12 @@ object ScalaCSRFActionSpec extends CSRFCommonSpecs {
           })
       } {
         import play.api.Play.current
-        handleResponse(
-            await(makeRequest(WS.url("http://localhost:" + testServerPort))))
+        handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
       }
   }
 
   class CustomErrorHandler extends CSRF.ErrorHandler {
     import play.api.mvc.Results.Unauthorized
-    def handle(req: RequestHeader, msg: String) =
-      Future.successful(Unauthorized(msg))
+    def handle(req: RequestHeader, msg: String) = Future.successful(Unauthorized(msg))
   }
 }

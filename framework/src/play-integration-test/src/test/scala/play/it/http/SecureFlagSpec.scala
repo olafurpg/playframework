@@ -13,16 +13,13 @@ import java.security.cert.X509Certificate
 import scala.io.Source
 import java.net.URL
 
-object NettySecureFlagSpec
-    extends SecureFlagSpec with NettyIntegrationSpecification
-object AkkaHttpSecureFlagSpec
-    extends SecureFlagSpec with AkkaHttpIntegrationSpecification
+object NettySecureFlagSpec extends SecureFlagSpec with NettyIntegrationSpecification
+object AkkaHttpSecureFlagSpec extends SecureFlagSpec with AkkaHttpIntegrationSpecification
 
 /**
   * Specs for the "secure" flag on requests
   */
-trait SecureFlagSpec
-    extends PlaySpecification with ServerIntegrationSpecification {
+trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   sequential
 
@@ -34,8 +31,7 @@ trait SecureFlagSpec
   // this step seems necessary to allow the generated keystore to be written
   new File("conf").mkdir()
 
-  def withServer[T](action: EssentialAction, sslPort: Option[Int] = None)(
-      block: Port => T) = {
+  def withServer[T](action: EssentialAction, sslPort: Option[Int] = None)(block: Port => T) = {
     val port = testServerPort
     running(TestServer(port,
                        sslPort = sslPort,
@@ -55,34 +51,23 @@ trait SecureFlagSpec
     "show that requests are secure in the absence of X_FORWARDED_PROTO" in withServer(
         secureFlagAction, Some(sslPort)) { _ =>
       val conn = createConn(sslPort)
-      Source
-        .fromInputStream(conn.getContent.asInstanceOf[InputStream])
-        .getLines()
-        .next must_== "true"
+      Source.fromInputStream(conn.getContent.asInstanceOf[InputStream]).getLines().next must_== "true"
     }.pendingUntilAkkaHttpFixed // All these tests are waiting on Akka HTTP to support SSL
     "show that requests are secure in the absence of X_FORWARDED_PROTO" in withServer(
         secureFlagAction, Some(sslPort)) { _ =>
       val conn = createConn(sslPort)
-      Source
-        .fromInputStream(conn.getContent.asInstanceOf[InputStream])
-        .getLines()
-        .next must_== "true"
+      Source.fromInputStream(conn.getContent.asInstanceOf[InputStream]).getLines().next must_== "true"
     }.pendingUntilAkkaHttpFixed
-    "show that requests are secure if X_FORWARDED_PROTO is https" in withServer(
-        secureFlagAction, Some(sslPort)) { _ =>
-      val conn = createConn(sslPort, Some("https"))
-      Source
-        .fromInputStream(conn.getContent.asInstanceOf[InputStream])
-        .getLines()
-        .next must_== "true"
+    "show that requests are secure if X_FORWARDED_PROTO is https" in withServer(secureFlagAction,
+                                                                                Some(sslPort)) {
+      _ =>
+        val conn = createConn(sslPort, Some("https"))
+        Source.fromInputStream(conn.getContent.asInstanceOf[InputStream]).getLines().next must_== "true"
     }.pendingUntilAkkaHttpFixed
     "not show that requests are secure if X_FORWARDED_PROTO is http" in withServer(
         secureFlagAction, Some(sslPort)) { _ =>
       val conn = createConn(sslPort, Some("http"))
-      Source
-        .fromInputStream(conn.getContent.asInstanceOf[InputStream])
-        .getLines()
-        .next must_== "false"
+      Source.fromInputStream(conn.getContent.asInstanceOf[InputStream]).getLines().next must_== "false"
     }.pendingUntilAkkaHttpFixed
   }
 
@@ -95,20 +80,18 @@ trait SecureFlagSpec
       responses.length must_== 1
       responses(0).body must_== Left("false")
     }
-    "show that requests are secure if X_FORWARDED_PROTO is https" in withServer(
-        secureFlagAction) { port =>
-      val responses = BasicHttpClient.makeRequests(port)(
-          BasicRequest(
-              "GET", "/", "HTTP/1.1", Map((X_FORWARDED_PROTO, "https")), "foo")
-      )
-      responses.length must_== 1
-      responses(0).body must_== Left("true")
+    "show that requests are secure if X_FORWARDED_PROTO is https" in withServer(secureFlagAction) {
+      port =>
+        val responses = BasicHttpClient.makeRequests(port)(
+            BasicRequest("GET", "/", "HTTP/1.1", Map((X_FORWARDED_PROTO, "https")), "foo")
+        )
+        responses.length must_== 1
+        responses(0).body must_== Left("true")
     }
     "not show that requests are secure if X_FORWARDED_PROTO is http" in withServer(
         secureFlagAction) { port =>
       val responses = BasicHttpClient.makeRequests(port)(
-          BasicRequest(
-              "GET", "/", "HTTP/1.1", Map((X_FORWARDED_PROTO, "http")), "foo")
+          BasicRequest("GET", "/", "HTTP/1.1", Map((X_FORWARDED_PROTO, "http")), "foo")
       )
       responses.length must_== 1
       responses(0).body must_== Left("false")
@@ -121,8 +104,7 @@ trait SecureFlagSpec
     val conn = new URL("https://localhost:" + sslPort + "/")
       .openConnection()
       .asInstanceOf[HttpsURLConnection]
-    forwardedProto.foreach(
-        proto => conn.setRequestProperty(X_FORWARDED_PROTO, proto))
+    forwardedProto.foreach(proto => conn.setRequestProperty(X_FORWARDED_PROTO, proto))
     conn.setSSLSocketFactory(sslFactory)
     conn
   }
@@ -136,11 +118,9 @@ trait SecureFlagSpec
   case class MockTrustManager() extends X509TrustManager {
     val nullArray = Array[X509Certificate]()
 
-    def checkClientTrusted(
-        x509Certificates: Array[X509Certificate], s: String) {}
+    def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String) {}
 
-    def checkServerTrusted(
-        x509Certificates: Array[X509Certificate], s: String) {}
+    def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String) {}
 
     def getAcceptedIssuers = nullArray
   }

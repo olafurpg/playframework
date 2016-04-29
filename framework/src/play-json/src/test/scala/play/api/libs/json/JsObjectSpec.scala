@@ -117,8 +117,7 @@ object JsObjectSpec extends Specification {
                         "field4a" -> Json.obj(
                             "field5a" -> "abc",
                             "field5b" -> Json.arr("111", "222"),
-                            "field5d" -> Json.arr(Json.obj("a" -> 1),
-                                                  Json.obj("b" -> 2))
+                            "field5d" -> Json.arr(Json.obj("a" -> 1), Json.obj("b" -> 2))
                         )
                     ),
                     "field2b" -> Json.arr("aaa", "bbb"),
@@ -137,8 +136,7 @@ object JsObjectSpec extends Specification {
                             "field4a" -> Json.obj(
                                 "field5b" -> Json.arr("333", "444"),
                                 "field5c" -> "deep",
-                                "field5d" -> Json.arr(Json.obj("c" -> 3),
-                                                      Json.obj("d" -> 4))
+                                "field5d" -> Json.arr(Json.obj("c" -> 3), Json.obj("d" -> 4))
                             )
                         ),
                         "field2b" -> Json.arr("ccc", "ddd"),

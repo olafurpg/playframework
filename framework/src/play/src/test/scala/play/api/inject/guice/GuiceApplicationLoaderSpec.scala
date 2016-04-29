@@ -24,8 +24,7 @@ class GuiceApplicationLoaderSpec extends Specification {
     }
 
     "allow replacing automatically loaded modules" in {
-      val builder = new GuiceApplicationBuilder()
-        .load(new BuiltinModule, new ManualTestModule)
+      val builder = new GuiceApplicationBuilder().load(new BuiltinModule, new ManualTestModule)
       val loader = new GuiceApplicationLoader(builder)
       val app = loader.load(fakeContext)
       app.injector.instanceOf[Foo] must beAnInstanceOf[ManualFoo]

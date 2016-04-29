@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory
   */
 class DisabledComplainingHostnameVerifier extends HostnameVerifier {
 
-  private val logger = LoggerFactory.getLogger(
-      "play.api.libs.ws.ssl.DisabledComplainingHostnameVerifier")
+  private val logger =
+    LoggerFactory.getLogger("play.api.libs.ws.ssl.DisabledComplainingHostnameVerifier")
 
   private val defaultHostnameVerifier = new DefaultHostnameVerifier()
 

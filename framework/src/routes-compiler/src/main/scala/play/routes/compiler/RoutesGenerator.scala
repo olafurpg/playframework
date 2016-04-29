@@ -43,12 +43,10 @@ object StaticRoutesGenerator extends RoutesGenerator {
                namespace: Option[String],
                rules: List[Rule]): Seq[(String, String)] = {
 
-    val filePrefix =
-      namespace.map(_.replace('.', '/') + "/").getOrElse("") + "/routes"
+    val filePrefix = namespace.map(_.replace('.', '/') + "/").getOrElse("") + "/routes"
 
-    val sourceInfo = RoutesSourceInfo(
-        task.file.getCanonicalPath.replace(File.separator, "/"),
-        new java.util.Date().toString)
+    val sourceInfo = RoutesSourceInfo(task.file.getCanonicalPath.replace(File.separator, "/"),
+                                      new java.util.Date().toString)
     val routes = rules.collect { case r: Route => r }
 
     val forwardsRoutesFiles =
@@ -110,10 +108,8 @@ object StaticRoutesGenerator extends RoutesGenerator {
                                    namespaceReverseRouter: Boolean) = {
     rules.collect { case r: Route => r }.groupBy(_.call.packageName).map {
       case (pn, routes) =>
-        val packageName = namespace
-          .filter(_ => namespaceReverseRouter)
-          .map(_ + "." + pn)
-          .getOrElse(pn)
+        val packageName =
+          namespace.filter(_ => namespaceReverseRouter).map(_ + "." + pn).getOrElse(pn)
         val controllers = routes
           .groupBy(_.call.controller)
           .keys
@@ -139,12 +135,10 @@ object InjectedRoutesGenerator extends RoutesGenerator {
                namespace: Option[String],
                rules: List[Rule]): Seq[(String, String)] = {
 
-    val filePrefix =
-      namespace.map(_.replace('.', '/') + "/").getOrElse("") + "/routes"
+    val filePrefix = namespace.map(_.replace('.', '/') + "/").getOrElse("") + "/routes"
 
-    val sourceInfo = RoutesSourceInfo(
-        task.file.getCanonicalPath.replace(File.separator, "/"),
-        new java.util.Date().toString)
+    val sourceInfo = RoutesSourceInfo(task.file.getCanonicalPath.replace(File.separator, "/"),
+                                      new java.util.Date().toString)
     val routes = rules.collect { case r: Route => r }
 
     val forwardsRoutesFiles =
@@ -182,22 +176,19 @@ object InjectedRoutesGenerator extends RoutesGenerator {
       .zipWithIndex
       .map {
         case ((router, includes), index) =>
-          router -> Dependency(
-              router.replace('.', '_') + "_" + index, router, includes.head)
+          router -> Dependency(router.replace('.', '_') + "_" + index, router, includes.head)
       }
       .toMap
 
     // Generate dependency descriptors for all routes
     val routesDeps = rules.collect { case route: Route => route }
-      .groupBy(r =>
-            (r.call.packageName, r.call.controller, r.call.instantiate))
+      .groupBy(r => (r.call.packageName, r.call.controller, r.call.instantiate))
       .zipWithIndex
       .map {
         case ((key@(packageName, controller, instantiate), routes), index) =>
           val clazz = packageName + "." + controller
           // If it's using the @ syntax, we depend on the provider (ie, look it up each time)
-          val dep =
-            if (instantiate) s"javax.inject.Provider[$clazz]" else clazz
+          val dep = if (instantiate) s"javax.inject.Provider[$clazz]" else clazz
           val ident = controller + "_" + index
           key -> Dependency(ident, dep, routes.head)
       }
@@ -257,10 +248,8 @@ object InjectedRoutesGenerator extends RoutesGenerator {
                                    namespaceReverseRouter: Boolean) = {
     rules.collect { case r: Route => r }.groupBy(_.call.packageName).map {
       case (pn, routes) =>
-        val packageName = namespace
-          .filter(_ => namespaceReverseRouter)
-          .map(_ + "." + pn)
-          .getOrElse(pn)
+        val packageName =
+          namespace.filter(_ => namespaceReverseRouter).map(_ + "." + pn).getOrElse(pn)
         val controllers = routes
           .groupBy(_.call.controller)
           .keys

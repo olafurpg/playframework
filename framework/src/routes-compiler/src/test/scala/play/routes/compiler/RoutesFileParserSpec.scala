@@ -86,8 +86,7 @@ object RoutesFileParserSpec extends Specification {
 
     "parse method with arguments" in {
       parseRoute("GET /s p.c.m(s1, s2)").call.parameters must_==
-        Some(Seq(Parameter("s1", "String", None, None),
-                 Parameter("s2", "String", None, None)))
+        Some(Seq(Parameter("s1", "String", None, None), Parameter("s2", "String", None, None)))
     }
 
     "parse argument type" in {
@@ -95,13 +94,11 @@ object RoutesFileParserSpec extends Specification {
     }
 
     "parse argument default value" in {
-      parseRoute("GET /s p.c.m(i: Int ?= 3)").call.parameters.get.head.default must beSome(
-          "3")
+      parseRoute("GET /s p.c.m(i: Int ?= 3)").call.parameters.get.head.default must beSome("3")
     }
 
     "parse argument fixed value" in {
-      parseRoute("GET /s p.c.m(i: Int = 3)").call.parameters.get.head.fixed must beSome(
-          "3")
+      parseRoute("GET /s p.c.m(i: Int = 3)").call.parameters.get.head.fixed must beSome("3")
     }
 
     "parse a non instantiating route" in {

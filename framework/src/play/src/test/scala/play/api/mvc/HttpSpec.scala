@@ -8,13 +8,11 @@ import org.specs2.mutable._
 object HttpSpec extends Specification {
   "HTTP" title
 
-  val headers = Headers(
-      "a" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3")
+  val headers = Headers("a" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3")
 
   "Headers" should {
     "return the header value associated with a by case insensitive" in {
-      headers.get("a") must beSome("a1") and
-      (headers.get("A") must beSome("a1"))
+      headers.get("a") must beSome("a1") and (headers.get("A") must beSome("a1"))
     }
 
     "return the header values associated with b by case insensitive" in {
@@ -45,8 +43,7 @@ object HttpSpec extends Specification {
     }
 
     "add headers" in {
-      headers.add("a" -> "a3", "a" -> "a4").getAll("a") must_==
-        Seq("a1", "a2", "a3", "a4")
+      headers.add("a" -> "a3", "a" -> "a4").getAll("a") must_== Seq("a1", "a2", "a3", "a4")
     }
 
     "remove headers by case insensitive" in {
@@ -55,25 +52,21 @@ object HttpSpec extends Specification {
     }
 
     "replace headers by case insensitive" in {
-      headers.replace("a" -> "a3", "A" -> "a4").getAll("a") must_==
-        Seq("a3", "a4")
+      headers.replace("a" -> "a3", "A" -> "a4").getAll("a") must_== Seq("a3", "a4")
     }
 
     "equal other Headers by case insensitive" in {
-      val other = Headers(
-          "A" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3")
+      val other = Headers("A" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3")
       (headers must_== other) and (headers.## must_== other.##)
     }
 
     "equal other Headers with same relative order" in {
-      val other = Headers(
-          "A" -> "a1", "b" -> "b1", "a" -> "a2", "b" -> "b2", "B" -> "b3")
+      val other = Headers("A" -> "a1", "b" -> "b1", "a" -> "a2", "b" -> "b2", "B" -> "b3")
       (headers must_== other) and (headers.## must_== other.##)
     }
 
     "not equal other Headers with different relative order" in {
-      headers must_!= Headers(
-          "a" -> "a2", "A" -> "a1", "b" -> "b1", "b" -> "b2", "B" -> "b3")
+      headers must_!= Headers("a" -> "a2", "A" -> "a1", "b" -> "b1", "b" -> "b2", "B" -> "b3")
     }
   }
 
@@ -81,8 +74,7 @@ object HttpSpec extends Specification {
     "merge two cookies" in {
       val cookies = Seq(Cookie("foo", "bar"), Cookie("bar", "qux"))
 
-      Cookies.merge("", cookies) must ===(
-          "foo=bar; Path=/; HTTPOnly; bar=qux; Path=/; HTTPOnly")
+      Cookies.merge("", cookies) must ===("foo=bar; Path=/; HTTPOnly; bar=qux; Path=/; HTTPOnly")
     }
     "merge and remove duplicates" in {
       val cookies = Seq(Cookie("foo", "bar"),

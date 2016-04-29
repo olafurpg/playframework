@@ -56,8 +56,7 @@ class ActorSystemProvider @Inject()(environment: Environment,
   private val logger = Logger(classOf[ActorSystemProvider])
 
   lazy val get: ActorSystem = {
-    val (system, stopHook) =
-      ActorSystemProvider.start(environment.classLoader, configuration)
+    val (system, stopHook) = ActorSystemProvider.start(environment.classLoader, configuration)
     applicationLifecycle.addStopHook(stopHook)
     system
   }
@@ -73,8 +72,7 @@ object ActorSystemProvider {
     * Start an ActorSystem, using the given configuration and ClassLoader.
     * @return The ActorSystem and a function that can be used to stop it.
     */
-  def start(classLoader: ClassLoader,
-            configuration: Configuration): (ActorSystem, StopHook) = {
+  def start(classLoader: ClassLoader, configuration: Configuration): (ActorSystem, StopHook) = {
     val config = PlayConfig(configuration)
 
     val akkaConfig: Config = {
@@ -117,8 +115,7 @@ object ActorSystemProvider {
     * not be needed.
     */
   def lazyStart(classLoader: => ClassLoader,
-                configuration: => Configuration
-  ): ClosableLazy[ActorSystem, Future[Unit]] = {
+                configuration: => Configuration): ClosableLazy[ActorSystem, Future[Unit]] = {
     new ClosableLazy[ActorSystem, Future[Unit]] {
       protected def create() = start(classLoader, configuration)
       protected def closeNotNeeded = Future.successful(())

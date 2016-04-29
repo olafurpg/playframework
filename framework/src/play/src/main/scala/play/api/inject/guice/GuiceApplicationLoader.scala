@@ -10,8 +10,7 @@ import play.core.WebCommands
 /**
   * An ApplicationLoader that uses Guice to bootstrap the application.
   */
-class GuiceApplicationLoader(builder: GuiceApplicationBuilder)
-    extends ApplicationLoader {
+class GuiceApplicationLoader(builder: GuiceApplicationBuilder) extends ApplicationLoader {
 
   // empty constructor needed for instantiating via reflection
   def this() = this(new GuiceApplicationBuilder)
@@ -28,8 +27,7 @@ class GuiceApplicationLoader(builder: GuiceApplicationBuilder)
   }
 
   def overrides(context: ApplicationLoader.Context): Seq[GuiceableModule] = {
-    Seq(bind[OptionalSourceMapper] to new OptionalSourceMapper(
-            context.sourceMapper),
+    Seq(bind[OptionalSourceMapper] to new OptionalSourceMapper(context.sourceMapper),
         bind[WebCommands] to context.webCommands)
   }
 }

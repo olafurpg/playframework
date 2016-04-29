@@ -39,8 +39,7 @@ import PromiseSubscriber._
 
 // Assume that promise's onComplete handler runs asynchronously
 private[streams] class PromiseSubscriber[T](prom: Promise[T])
-    extends StateMachine[State](initialState = AwaitingSubscription)
-    with Subscriber[T] {
+    extends StateMachine[State](initialState = AwaitingSubscription) with Subscriber[T] {
 
   // Streams methods
 
@@ -71,8 +70,8 @@ private[streams] class PromiseSubscriber[T](prom: Promise[T])
 
   override def onComplete(): Unit = exclusive {
     case AwaitingSubscription | Subscribed =>
-      prom.failure(new IllegalStateException(
-              "Can't handle onComplete until an element has been received"))
+      prom.failure(
+          new IllegalStateException("Can't handle onComplete until an element has been received"))
       state = Completed
     case Completed =>
       ()

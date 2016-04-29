@@ -33,19 +33,17 @@ object Fakes {
   *
   * @param data Headers data.
   */
-case class FakeHeaders(data: Seq[(String, String)] = Seq.empty)
-    extends Headers(data)
+case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(data)
 
-case class FakeRequest[A](
-    method: String,
-    uri: String,
-    headers: Headers,
-    body: A,
-    remoteAddress: String = "127.0.0.1",
-    version: String = "HTTP/1.1",
-    id: Long = 666,
-    tags: Map[String, String] = Map.empty[String, String],
-    secure: Boolean = false) extends Request[A] {
+case class FakeRequest[A](method: String,
+                          uri: String,
+                          headers: Headers,
+                          body: A,
+                          remoteAddress: String = "127.0.0.1",
+                          version: String = "HTTP/1.1",
+                          id: Long = 666,
+                          tags: Map[String, String] = Map.empty[String, String],
+                          secure: Boolean = false) extends Request[A] {
 
   private def _copy[B](id: Long = this.id,
                        tags: Map[String, String] = this.tags,
@@ -102,8 +100,7 @@ case class FakeRequest[A](
     */
   def withCookies(cookies: Cookie*): FakeRequest[A] = {
     withHeaders(play.api.http.HeaderNames.COOKIE -> Cookies.merge(
-            headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
-            cookies))
+            headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""), cookies))
   }
 
   /**
@@ -112,17 +109,14 @@ case class FakeRequest[A](
   def withSession(newSessions: (String, String)*): FakeRequest[A] = {
     withHeaders(play.api.http.HeaderNames.COOKIE -> Cookies.merge(
             headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
-            Seq(Session.encodeAsCookie(
-                    new Session(session.data ++ newSessions)))))
+            Seq(Session.encodeAsCookie(new Session(session.data ++ newSessions)))))
   }
 
   /**
     * Set a Form url encoded body to this request.
     */
-  def withFormUrlEncodedBody(
-      data: (String, String)*): FakeRequest[AnyContentAsFormUrlEncoded] = {
-    _copy(body = AnyContentAsFormUrlEncoded(
-              play.utils.OrderPreserving.groupBy(data.toSeq)(_._1)))
+  def withFormUrlEncodedBody(data: (String, String)*): FakeRequest[AnyContentAsFormUrlEncoded] = {
+    _copy(body = AnyContentAsFormUrlEncoded(play.utils.OrderPreserving.groupBy(data.toSeq)(_._1)))
   }
 
   def certs = Future.successful(IndexedSeq.empty)
@@ -190,8 +184,7 @@ object FakeRequest {
   /**
     * Constructs a new request.
     */
-  def apply(
-      method: String, path: String): FakeRequest[AnyContentAsEmpty.type] = {
+  def apply(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] = {
     FakeRequest(method, path, FakeHeaders(), AnyContentAsEmpty)
   }
 

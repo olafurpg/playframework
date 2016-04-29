@@ -26,8 +26,7 @@ object JsonTransSpec extends Specification {
         "field4" -> Json.arr("alpha",
                              2,
                              true,
-                             Json.obj("field41" -> "toto",
-                                      "field42" -> "tata"))
+                             Json.obj("field41" -> "toto", "field42" -> "tata"))
     )
 
     "pick a value at a path" in {
@@ -78,8 +77,7 @@ object JsonTransSpec extends Specification {
               "field4" -> Json.arr("alpha",
                                    2,
                                    true,
-                                   Json.obj("field41" -> "toto",
-                                            "field42" -> "tata"))
+                                   Json.obj("field41" -> "toto", "field42" -> "tata"))
           )
       )
     }
@@ -89,16 +87,12 @@ object JsonTransSpec extends Specification {
         .transform(
             (__ \ 'field3).json.pickBranch(
                 (__ \ 'field32).json.update(
-                    Reads
-                      .of[JsNumber]
-                      .map { case JsNumber(nb) => JsNumber(nb + 12) }
-                  ) andThen (__ \ 'field31).json.update(
-                    Reads
-                      .of[JsString]
-                      .map { case JsString(s) => JsString(s + "toto") }
-                  )
-              )
-          )
+                    Reads.of[JsNumber].map { case JsNumber(nb) => JsNumber(nb + 12) }
+                ) andThen (__ \ 'field31).json.update(
+                    Reads.of[JsString].map { case JsString(s) => JsString(s + "toto") }
+                )
+            )
+        )
         .get must beEqualTo(
           Json.obj(
               "field3" -> Json.obj("field31" -> "betatoto", "field32" -> 357)
@@ -145,8 +139,7 @@ object JsonTransSpec extends Specification {
               "field4" -> Json.arr("alpha",
                                    2,
                                    true,
-                                   Json.obj("field41" -> "toto",
-                                            "field42" -> "tata"))
+                                   Json.obj("field41" -> "toto", "field42" -> "tata"))
           )
       )
     }
@@ -169,10 +162,8 @@ object JsonTransSpec extends Specification {
       js
         .validate(
             (__ \ 'field3 \ 'field32).json.update(
-                Reads
-                  .of[JsNumber]
-                  .map { case JsNumber(nb) => JsNumber(nb + 5) }
-              ) andThen (__ \ 'field4).json.prune
+                Reads.of[JsNumber].map { case JsNumber(nb) => JsNumber(nb + 5) }
+            ) andThen (__ \ 'field4).json.prune
         )
         .get must beEqualTo(
           Json.obj(
@@ -188,9 +179,8 @@ object JsonTransSpec extends Specification {
 
     "deepMerge when reducing JsObjects" in {
       val json = Json.obj("somekey1" -> 11, "somekey2" -> 22)
-      val jsonTransform =
-        ((__ \ "key1" \ "sk1").json.copyFrom((__ \ "somekey1").json.pick) and
-            (__ \ "key1" \ "sk2").json.copyFrom((__ \ "somekey2").json.pick)).reduce
+      val jsonTransform = ((__ \ "key1" \ "sk1").json.copyFrom((__ \ "somekey1").json.pick) and
+          (__ \ "key1" \ "sk2").json.copyFrom((__ \ "somekey2").json.pick)).reduce
 
       json.validate(jsonTransform).get must beEqualTo(
           Json.obj("key1" -> Json.obj("sk1" -> 11, "sk2" -> 22))
@@ -206,8 +196,7 @@ object JsonTransSpec extends Specification {
           .asEither
           .left
           .get
-          .head must_==
-        ((__ \ 'field42, Seq(ValidationError("error.path.missing"))))
+          .head must_== ((__ \ 'field42, Seq(ValidationError("error.path.missing"))))
       }
 
       "when the reader is the wrong type" in {
@@ -218,8 +207,7 @@ object JsonTransSpec extends Specification {
           .asEither
           .left
           .get
-          .head must_==
-        ((__ \ 'field2, Seq(ValidationError("error.expected.jsstring"))))
+          .head must_== ((__ \ 'field2, Seq(ValidationError("error.expected.jsstring"))))
       }
     }
   }

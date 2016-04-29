@@ -58,10 +58,9 @@ package scalaguide.http.scalabodyparsers {
 
       "body parser file" in {
         //#body-parser-file
-        def save =
-          Action(parse.file(to = new File("/tmp/upload"))) { request =>
-            Ok("Saved the request content to " + request.body)
-          }
+        def save = Action(parse.file(to = new File("/tmp/upload"))) { request =>
+          Ok("Saved the request content to " + request.body)
+        }
         //#body-parser-file
         testAction(save, helloRequest.withSession("username" -> "player"))
       }
@@ -84,14 +83,12 @@ package scalaguide.http.scalabodyparsers {
       }
 
       "body parser limit file" in {
-        val storeInUserFile =
-          scalaguide.http.scalabodyparsers.full.Application.storeInUserFile
+        val storeInUserFile = scalaguide.http.scalabodyparsers.full.Application.storeInUserFile
         //#body-parser-limit-file
         // Accept only 10KB of data.
-        def save =
-          Action(parse.maxLength(1024 * 10, storeInUserFile)) { request =>
-            Ok("Saved the request content to " + request.body)
-          }
+        def save = Action(parse.maxLength(1024 * 10, storeInUserFile)) { request =>
+          Ok("Saved the request content to " + request.body)
+        }
         //#body-parser-limit-file
         testAction(save, helloRequest.withSession("username" -> "player"))
       }

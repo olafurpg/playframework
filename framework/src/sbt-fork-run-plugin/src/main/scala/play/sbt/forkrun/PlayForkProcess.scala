@@ -28,12 +28,10 @@ case class PlayForkOptions(workingDirectory: File,
   */
 object PlayForkProcess {
   def apply(options: PlayForkOptions, args: Seq[String], log: Logger): Unit = {
-    val logProperties = Seq(
-        "-Dfork.run.log.level=" + options.logLevel.toString,
-        "-Dfork.run.log.events=" + options.logSbtEvents)
+    val logProperties = Seq("-Dfork.run.log.level=" + options.logLevel.toString,
+                            "-Dfork.run.log.events=" + options.logSbtEvents)
     val jvmOptions = options.jvmOptions ++ logProperties
-    val arguments =
-      Seq(options.baseDirectory.getAbsolutePath, options.configKey) ++ args
+    val arguments = Seq(options.baseDirectory.getAbsolutePath, options.configKey) ++ args
     run(options.workingDirectory,
         jvmOptions,
         options.classpath,
@@ -51,8 +49,7 @@ object PlayForkProcess {
           log: Logger,
           shutdownTimeout: FiniteDuration): Unit = {
     val java = (file(sys.props("java.home")) / "bin" / "java").absolutePath
-    val (classpathEnv, options) = makeOptions(
-        jvmOptions, classpath, mainClass, arguments)
+    val (classpathEnv, options) = makeOptions(jvmOptions, classpath, mainClass, arguments)
     val command = (java +: options).toArray
     val builder = new JProcessBuilder(command:_*)
     builder.directory(workingDirectory)
@@ -74,8 +71,7 @@ object PlayForkProcess {
       // wait a bit for clean exit
       timedWaitFor(process, shutdownTimeout.toMillis) match {
         case None =>
-          log.info(
-              "Forked Play process did not exit on its own, terminating it")
+          log.info("Forked Play process did not exit on its own, terminating it")
           // fire-and-forget sigterm, may or may not work
           process.destroy()
         case Some(x) =>
@@ -111,8 +107,7 @@ object PlayForkProcess {
                   mainClass: String,
                   arguments: Seq[String]): (Option[String], Seq[String]) = {
     val classpathOption = Path.makeString(classpath)
-    val options =
-      jvmOptions ++ Seq("-classpath", classpathOption, mainClass) ++ arguments
+    val options = jvmOptions ++ Seq("-classpath", classpathOption, mainClass) ++ arguments
     // if the options get too long for Windows, put the classpath in an environment variable
     if (optionsTooLong(options)) {
       val otherOptions = jvmOptions ++ Seq(mainClass) ++ arguments
@@ -122,10 +117,8 @@ object PlayForkProcess {
     }
   }
 
-  val isWindows: Boolean = sys
-    .props("os.name")
-    .toLowerCase(java.util.Locale.ENGLISH)
-    .contains("windows")
+  val isWindows: Boolean =
+    sys.props("os.name").toLowerCase(java.util.Locale.ENGLISH).contains("windows")
 
   val MaxOptionsLength = 5000
 
@@ -150,6 +143,5 @@ object PlayForkProcess {
     thread
   }
 
-  def newThread(f: => Unit): Thread =
-    new Thread(new Runnable { def run(): Unit = f })
+  def newThread(f: => Unit): Thread = new Thread(new Runnable { def run(): Unit = f })
 }
