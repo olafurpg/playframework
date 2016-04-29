@@ -15,7 +15,7 @@ class ExampleSpec extends PlaySpec with OneAppPerTest {
   // default parameters.
   implicit override def newAppForTest(td: TestData): FakeApplication =
     FakeApplication(
-      additionalConfiguration = Map("ehcacheplugin" -> "disabled")
+        additionalConfiguration = Map("ehcacheplugin" -> "disabled")
     )
 
   "The OneAppPerTest trait" must {

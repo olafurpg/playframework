@@ -4,9 +4,9 @@
 package play.it.action
 
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, EssentialAction }
+import play.api.mvc.{Action, EssentialAction}
 import play.api.mvc.Results._
-import play.api.test.{ FakeApplication, PlaySpecification, FakeRequest }
+import play.api.test.{FakeApplication, PlaySpecification, FakeRequest}
 import scala.concurrent.Promise
 
 object EssentialActionSpec extends PlaySpecification {
@@ -19,7 +19,8 @@ object EssentialActionSpec extends PlaySpecification {
         Ok(value)
       }
 
-      val request = FakeRequest(POST, "/").withJsonBody(Json.parse("""{ "field": "value" }"""))
+      val request = FakeRequest(POST, "/")
+        .withJsonBody(Json.parse("""{ "field": "value" }"""))
 
       val result = call(action, request)
 
@@ -37,7 +38,8 @@ object EssentialActionSpec extends PlaySpecification {
 
       // start fake application with its own classloader
       val applicationClassLoader = new ClassLoader() {}
-      val fakeApplication = FakeApplication(classloader = applicationClassLoader)
+      val fakeApplication =
+        FakeApplication(classloader = applicationClassLoader)
 
       running(fakeApplication) {
         // run the test with the classloader of the current thread
@@ -47,5 +49,4 @@ object EssentialActionSpec extends PlaySpecification {
       }
     }
   }
-
 }

@@ -22,7 +22,8 @@ class ExampleEssentialActionSpec extends PlaySpec {
         Ok(value)
       }
 
-      val request = FakeRequest(POST, "/").withJsonBody(Json.parse("""{ "field": "value" }"""))
+      val request = FakeRequest(POST, "/")
+        .withJsonBody(Json.parse("""{ "field": "value" }"""))
 
       val result = call(action, request)
 

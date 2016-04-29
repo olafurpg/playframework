@@ -6,9 +6,9 @@ package guice
 
 import akka.actor.ActorSystem
 import com.google.inject.AbstractModule
-import javax.inject.{ Inject, Provider }
+import javax.inject.{Inject, Provider}
 import org.specs2.mutable.Specification
-import play.api.{ Configuration, Environment, GlobalSettings }
+import play.api.{Configuration, Environment, GlobalSettings}
 
 object GuiceApplicationBuilderSpec extends Specification {
 
@@ -16,9 +16,7 @@ object GuiceApplicationBuilderSpec extends Specification {
 
     "add bindings" in {
       val app = new GuiceApplicationBuilder()
-        .bindings(
-          new AModule,
-          bind[B].to[B1])
+        .bindings(new AModule, bind[B].to[B1])
         .build
 
       app.injector.instanceOf[A] must beAnInstanceOf[A1]
@@ -28,9 +26,8 @@ object GuiceApplicationBuilderSpec extends Specification {
     "override bindings" in {
       val app = new GuiceApplicationBuilder()
         .bindings(new AModule)
-        .overrides(
-          bind[Configuration] to new ExtendConfiguration("a" -> 1),
-          bind[A].to[A2])
+        .overrides(bind[Configuration] to new ExtendConfiguration("a" -> 1),
+                   bind[A].to[A2])
         .build
 
       app.configuration.getInt("a") must beSome(1)
@@ -44,8 +41,10 @@ object GuiceApplicationBuilderSpec extends Specification {
         .disable(classOf[AModule])
         .build
 
-      app.injector.instanceOf[play.api.i18n.Langs] must throwA[com.google.inject.ConfigurationException]
-      app.injector.instanceOf[A] must throwA[com.google.inject.ConfigurationException]
+      app.injector.instanceOf[play.api.i18n.Langs] must throwA[
+          com.google.inject.ConfigurationException]
+      app.injector.instanceOf[A] must throwA[
+          com.google.inject.ConfigurationException]
     }
 
     "set initial configuration loader" in {
@@ -62,9 +61,7 @@ object GuiceApplicationBuilderSpec extends Specification {
         override def configuration = Configuration("a" -> 1)
       }
 
-      val app = new GuiceApplicationBuilder()
-        .global(global)
-        .build
+      val app = new GuiceApplicationBuilder().global(global).build
 
       app.configuration.getInt("a") must beSome(1)
     }
@@ -84,7 +81,6 @@ object GuiceApplicationBuilderSpec extends Specification {
 
       app.injector.instanceOf[A] must beAnInstanceOf[A1]
     }
-
   }
 
   trait A
@@ -92,15 +88,17 @@ object GuiceApplicationBuilderSpec extends Specification {
   class A2 extends A
 
   class AModule extends Module {
-    def bindings(env: Environment, conf: Configuration) = Seq(
-      bind[A].to[A1]
-    )
+    def bindings(env: Environment, conf: Configuration) =
+      Seq(
+          bind[A].to[A1]
+      )
   }
 
   trait B
   class B1 extends B
 
-  class ExtendConfiguration(conf: (String, Any)*) extends Provider[Configuration] {
+  class ExtendConfiguration(conf: (String, Any)*)
+      extends Provider[Configuration] {
     @Inject
     var injector: Injector = _
     lazy val get = {
@@ -108,5 +106,4 @@ object GuiceApplicationBuilderSpec extends Specification {
       current ++ Configuration.from(conf.toMap)
     }
   }
-
 }

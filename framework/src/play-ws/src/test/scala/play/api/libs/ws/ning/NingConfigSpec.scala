@@ -13,7 +13,7 @@ import play.api.Environment
 import play.api.libs.ws.WSClientConfig
 import play.api.libs.ws.ssl._
 
-import javax.net.ssl.{ HostnameVerifier, SSLSession, SSLContext }
+import javax.net.ssl.{HostnameVerifier, SSLSession, SSLContext}
 import com.ning.http.client.ProxyServerSelector
 import com.ning.http.util.ProxyUtils
 import play.api.libs.ws.ssl.DefaultHostnameVerifier
@@ -35,9 +35,11 @@ object NingConfigSpec extends Specification with Mockito {
   "NingConfigSpec" should {
 
     def parseThis(input: String)(implicit app: play.api.Application) = {
-      val config = play.api.Configuration(ConfigFactory.parseString(input)
-        .withFallback(ConfigFactory.defaultReference()))
-      val parser = new NingWSClientConfigParser(defaultWsConfig, config, app.injector.instanceOf[Environment])
+      val config = play.api.Configuration(ConfigFactory
+            .parseString(input)
+            .withFallback(ConfigFactory.defaultReference()))
+      val parser = new NingWSClientConfigParser(
+          defaultWsConfig, config, app.injector.instanceOf[Environment])
       parser.parse()
     }
 
@@ -46,18 +48,19 @@ object NingConfigSpec extends Specification with Mockito {
     }
 
     "parse ws ning section" in new WithApplication {
-      val actual = parseThis("""
-                               |play.ws.ning.allowPoolingConnection = false
-                               |play.ws.ning.allowSslConnectionPool = false
-                               |play.ws.ning.ioThreadMultiplier = 5
-                               |play.ws.ning.maxConnectionsPerHost = 3
-                               |play.ws.ning.maxConnectionsTotal = 6
-                               |play.ws.ning.maxConnectionLifetime = 1 minute
-                               |play.ws.ning.idleConnectionInPoolTimeout = 30 seconds
-                               |play.ws.ning.webSocketIdleTimeout = 2 minutes
-                               |play.ws.ning.maxNumberOfRedirects = 0
-                               |play.ws.ning.maxRequestRetry = 99
-                               |play.ws.ning.disableUrlEncoding = true
+      val actual =
+        parseThis("""
+                    |play.ws.ning.allowPoolingConnection = false
+                    |play.ws.ning.allowSslConnectionPool = false
+                    |play.ws.ning.ioThreadMultiplier = 5
+                    |play.ws.ning.maxConnectionsPerHost = 3
+                    |play.ws.ning.maxConnectionsTotal = 6
+                    |play.ws.ning.maxConnectionLifetime = 1 minute
+                    |play.ws.ning.idleConnectionInPoolTimeout = 30 seconds
+                    |play.ws.ning.webSocketIdleTimeout = 2 minutes
+                    |play.ws.ning.maxNumberOfRedirects = 0
+                    |play.ws.ning.maxRequestRetry = 99
+                    |play.ws.ning.disableUrlEncoding = true
                              """.stripMargin)
 
       actual.allowPoolingConnection must beFalse
@@ -81,8 +84,10 @@ object NingConfigSpec extends Specification with Mockito {
         val actual = builder.build()
 
         actual.getReadTimeout must_== defaultWsConfig.idleTimeout.toMillis
-        actual.getRequestTimeout must_== defaultWsConfig.requestTimeout.toMillis
-        actual.getConnectTimeout must_== defaultWsConfig.connectionTimeout.toMillis
+        actual.getRequestTimeout must_==
+          defaultWsConfig.requestTimeout.toMillis
+        actual.getConnectTimeout must_==
+          defaultWsConfig.connectionTimeout.toMillis
         actual.isFollowRedirect must_== defaultWsConfig.followRedirects
 
         actual.getEnabledCipherSuites.toSeq must not contain Ciphers.deprecatedCiphers
@@ -141,7 +146,8 @@ object NingConfigSpec extends Specification with Mockito {
 
           proxyServerSelector must not beNull
 
-          proxyServerSelector must not be_== ProxyServerSelector.NO_PROXY_SELECTOR
+          proxyServerSelector must not be_==
+            ProxyServerSelector.NO_PROXY_SELECTOR
         } finally {
           // Unset http.proxyHost
           System.clearProperty(ProxyUtils.PROXY_HOST)
@@ -237,7 +243,8 @@ object NingConfigSpec extends Specification with Mockito {
 
         "use the default with a current certificate" in {
           val tmc = TrustManagerConfig()
-          val wsConfig = defaultWsConfig.copy(ssl = SSLConfig(default = true, trustManagerConfig = tmc))
+          val wsConfig = defaultWsConfig.copy(
+              ssl = SSLConfig(default = true, trustManagerConfig = tmc))
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new NingAsyncHttpClientConfigBuilder(config)
 
@@ -251,13 +258,18 @@ object NingConfigSpec extends Specification with Mockito {
           import ch.qos.logback.classic._
 
           // Pass in a configuration which is guaranteed to fail, by banning RSA, DSA and EC certificates
-          val wsConfig = defaultWsConfig.copy(ssl = SSLConfig(default = true, disabledKeyAlgorithms = Seq("RSA", "DSA", "EC")))
+          val wsConfig = defaultWsConfig.copy(
+              ssl = SSLConfig(default = true,
+                              disabledKeyAlgorithms = Seq("RSA", "DSA", "EC")))
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new NingAsyncHttpClientConfigBuilder(config)
           // this only works with test:test, has a different type in test:testQuick and test:testOnly!
-          val logger = builder.logger.asInstanceOf[ch.qos.logback.classic.Logger]
-          val appender = new ch.qos.logback.core.read.ListAppender[ILoggingEvent]()
-          val lc = LoggerFactory.getILoggerFactory().asInstanceOf[LoggerContext]
+          val logger =
+            builder.logger.asInstanceOf[ch.qos.logback.classic.Logger]
+          val appender =
+            new ch.qos.logback.core.read.ListAppender[ILoggingEvent]()
+          val lc =
+            LoggerFactory.getILoggerFactory().asInstanceOf[LoggerContext]
           appender.setContext(lc)
           appender.start()
           logger.addAppender(appender)
@@ -278,27 +290,32 @@ object NingConfigSpec extends Specification with Mockito {
           val builder = new NingAsyncHttpClientConfigBuilder(config)
 
           val asyncConfig = builder.build()
-          asyncConfig.getHostnameVerifier must beAnInstanceOf[DefaultHostnameVerifier]
+          asyncConfig.getHostnameVerifier must beAnInstanceOf[
+              DefaultHostnameVerifier]
         }
 
         "use an explicit hostname verifier" in {
-          val sslConfig = SSLConfig(hostnameVerifierClass = classOf[TestHostnameVerifier])
+          val sslConfig =
+            SSLConfig(hostnameVerifierClass = classOf[TestHostnameVerifier])
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new NingAsyncHttpClientConfigBuilder(config)
 
           val asyncConfig = builder.build()
-          asyncConfig.getHostnameVerifier must beAnInstanceOf[TestHostnameVerifier]
+          asyncConfig.getHostnameVerifier must beAnInstanceOf[
+              TestHostnameVerifier]
         }
 
         "should disable the hostname verifier if loose.disableHostnameVerification is defined" in {
-          val sslConfig = SSLConfig(loose = SSLLooseConfig(disableHostnameVerification = true))
+          val sslConfig = SSLConfig(
+              loose = SSLLooseConfig(disableHostnameVerification = true))
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new NingAsyncHttpClientConfigBuilder(config)
 
           val asyncConfig = builder.build()
-          asyncConfig.getHostnameVerifier must beAnInstanceOf[play.api.libs.ws.ssl.DisabledComplainingHostnameVerifier]
+          asyncConfig.getHostnameVerifier must beAnInstanceOf[
+              play.api.libs.ws.ssl.DisabledComplainingHostnameVerifier]
         }
       }
 
@@ -313,11 +330,13 @@ object NingConfigSpec extends Specification with Mockito {
 
           val actual = builder.configureProtocols(existingProtocols, sslConfig)
 
-          actual.toSeq must containTheSameElementsAs(Protocols.recommendedProtocols)
+          actual.toSeq must containTheSameElementsAs(
+              Protocols.recommendedProtocols)
         }
 
         "provide explicit protocols if specified" in {
-          val sslConfig = SSLConfig(enabledProtocols = Some(Seq("derp", "baz", "quux")))
+          val sslConfig =
+            SSLConfig(enabledProtocols = Some(Seq("derp", "baz", "quux")))
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new NingAsyncHttpClientConfigBuilder(config)
@@ -325,14 +344,16 @@ object NingConfigSpec extends Specification with Mockito {
 
           val actual = builder.configureProtocols(existingProtocols, sslConfig)
 
-          actual.toSeq must containTheSameElementsAs(Seq("derp", "baz", "quux"))
+          actual.toSeq must containTheSameElementsAs(
+              Seq("derp", "baz", "quux"))
         }
 
         "throw exception on deprecated protocols from explicit list" in {
           val deprecatedProtocol = Protocols.deprecatedProtocols.head
 
           // the enabled protocol list has a deprecated protocol in it.
-          val enabledProtocols = Array(deprecatedProtocol, "goodOne", "goodTwo")
+          val enabledProtocols =
+            Array(deprecatedProtocol, "goodOne", "goodTwo")
           val sslConfig = SSLConfig(enabledProtocols = Some(enabledProtocols))
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
@@ -340,29 +361,37 @@ object NingConfigSpec extends Specification with Mockito {
           val builder = new NingAsyncHttpClientConfigBuilder(config)
 
           // The existing protocols is larger than the enabled list, and out of order.
-          val existingProtocols = Array("goodTwo", "badOne", "badTwo", deprecatedProtocol, "goodOne")
+          val existingProtocols =
+            Array("goodTwo", "badOne", "badTwo", deprecatedProtocol, "goodOne")
 
-          builder.configureProtocols(existingProtocols, sslConfig).must(throwAn[IllegalStateException])
+          builder
+            .configureProtocols(existingProtocols, sslConfig)
+            .must(throwAn[IllegalStateException])
         }
 
         "not throw exception on deprecated protocols from list if allowWeakProtocols is enabled" in {
           val deprecatedProtocol = Protocols.deprecatedProtocols.head
 
           // the enabled protocol list has a deprecated protocol in it.
-          val enabledProtocols = Array(deprecatedProtocol, "goodOne", "goodTwo")
-          val sslConfig = SSLConfig(enabledProtocols = Some(enabledProtocols), loose = SSLLooseConfig(allowWeakProtocols = true))
+          val enabledProtocols =
+            Array(deprecatedProtocol, "goodOne", "goodTwo")
+          val sslConfig =
+            SSLConfig(enabledProtocols = Some(enabledProtocols),
+                      loose = SSLLooseConfig(allowWeakProtocols = true))
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
 
           val builder = new NingAsyncHttpClientConfigBuilder(config)
 
           // The existing protocols is larger than the enabled list, and out of order.
-          val existingProtocols = Array("goodTwo", "badOne", "badTwo", deprecatedProtocol, "goodOne")
+          val existingProtocols =
+            Array("goodTwo", "badOne", "badTwo", deprecatedProtocol, "goodOne")
 
           val actual = builder.configureProtocols(existingProtocols, sslConfig)
 
           // We should only have the list in order, including the deprecated protocol.
-          actual.toSeq must containTheSameElementsAs(Seq(deprecatedProtocol, "goodOne", "goodTwo"))
+          actual.toSeq must containTheSameElementsAs(
+              Seq(deprecatedProtocol, "goodOne", "goodTwo"))
         }
       }
 
@@ -376,13 +405,15 @@ object NingConfigSpec extends Specification with Mockito {
           val builder = new NingAsyncHttpClientConfigBuilder(config)
           val existingCiphers = Array("goodone", "goodtwo", "goodthree")
 
-          val actual = builder.configureCipherSuites(existingCiphers, sslConfig)
+          val actual =
+            builder.configureCipherSuites(existingCiphers, sslConfig)
 
           actual.toSeq must containTheSameElementsAs(Seq("goodone", "goodtwo"))
         }
 
         "throw exception on deprecated ciphers from the explicit cipher list" in {
-          val enabledCiphers = Seq(Ciphers.deprecatedCiphers.head, "goodone", "goodtwo")
+          val enabledCiphers =
+            Seq(Ciphers.deprecatedCiphers.head, "goodone", "goodtwo")
 
           val sslConfig = SSLConfig(enabledCipherSuites = Some(enabledCiphers))
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
@@ -390,24 +421,29 @@ object NingConfigSpec extends Specification with Mockito {
           val builder = new NingAsyncHttpClientConfigBuilder(config)
           val existingCiphers = enabledCiphers.toArray
 
-          builder.configureCipherSuites(existingCiphers, sslConfig).must(throwAn[IllegalStateException])
+          builder
+            .configureCipherSuites(existingCiphers, sslConfig)
+            .must(throwAn[IllegalStateException])
         }
 
         "not throw exception on deprecated ciphers if allowWeakCiphers is enabled" in {
           // User specifies list with deprecated ciphers...
           val enabledCiphers = Seq("badone", "goodone", "goodtwo")
 
-          val sslConfig = SSLConfig(enabledCipherSuites = Some(enabledCiphers), loose = SSLLooseConfig(allowWeakCiphers = true))
+          val sslConfig =
+            SSLConfig(enabledCipherSuites = Some(enabledCiphers),
+                      loose = SSLLooseConfig(allowWeakCiphers = true))
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new NingAsyncHttpClientConfigBuilder(config)
           val existingCiphers = Array("badone", "goodone", "goodtwo")
 
-          val actual = builder.configureCipherSuites(existingCiphers, sslConfig)
+          val actual =
+            builder.configureCipherSuites(existingCiphers, sslConfig)
 
-          actual.toSeq must containTheSameElementsAs(Seq("badone", "goodone", "goodtwo"))
+          actual.toSeq must containTheSameElementsAs(
+              Seq("badone", "goodone", "goodtwo"))
         }
-
       }
     }
   }

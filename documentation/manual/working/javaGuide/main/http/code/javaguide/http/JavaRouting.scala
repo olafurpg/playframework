@@ -42,7 +42,8 @@ object JavaRouting extends Specification {
     }
     "support default values for parameters" in {
       contentOf(FakeRequest("GET", "/clients"), classOf[defaultvalue.Routes]) must_== "clients page 1"
-      contentOf(FakeRequest("GET", "/clients?page=2"), classOf[defaultvalue.Routes]) must_== "clients page 2"
+      contentOf(FakeRequest("GET", "/clients?page=2"),
+                classOf[defaultvalue.Routes]) must_== "clients page 2"
     }
     "support optional values for parameters" in {
       contentOf(FakeRequest("GET", "/api/list-all")) must_== "version null"
@@ -51,15 +52,18 @@ object JavaRouting extends Specification {
     "support reverse routing" in {
       running(FakeApplication()) {
         header("Location", call(new MockJavaAction {
-          override def invocation = F.Promise.pure(new javaguide.http.routing.controllers.Application().index())
+          override def invocation =
+            F.Promise.pure(
+                new javaguide.http.routing.controllers.Application().index())
         }, FakeRequest())) must beSome("/hello/Bob")
       }
     }
-
   }
 
-  def contentOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
-    val app = FakeApplication(additionalConfiguration = Map("play.http.router" -> router.getName))
+  def contentOf(
+      rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
+    val app = FakeApplication(
+        additionalConfiguration = Map("play.http.router" -> router.getName))
     running(app) {
       contentAsString(app.requestHandler.handlerForRequest(rh)._2 match {
         case e: EssentialAction => e(rh).run
@@ -70,34 +74,33 @@ object JavaRouting extends Specification {
 
 package routing.query.controllers {
 
-import play.api.mvc.{Controller, Action}
+  import play.api.mvc.{Controller, Action}
 
-class Application extends Controller {
-  def show(page: String) = Action {
-    Ok("showing page " + page)
+  class Application extends Controller {
+    def show(page: String) = Action {
+      Ok("showing page " + page)
+    }
   }
-}
 }
 
 package routing.fixed.controllers {
 
-import play.api.mvc.{Controller, Action}
+  import play.api.mvc.{Controller, Action}
 
-class Application extends Controller {
-  def show(page: String) = Action {
-    Ok("showing page " + page)
+  class Application extends Controller {
+    def show(page: String) = Action {
+      Ok("showing page " + page)
+    }
   }
-}
 }
 
 package routing.defaultvalue.controllers {
 
-import play.api.mvc.{Controller, Action}
+  import play.api.mvc.{Controller, Action}
 
-class Clients extends Controller {
-  def list(page: Int) = Action {
-    Ok("clients page " + page)
+  class Clients extends Controller {
+    def list(page: Int) = Action {
+      Ok("clients page " + page)
+    }
   }
 }
-}
-

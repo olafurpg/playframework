@@ -10,25 +10,26 @@ import play.api._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 
-import scala.concurrent.{ Future, Promise }
-import scala.util.{ Try, Success }
+import scala.concurrent.{Future, Promise}
+import scala.util.{Try, Success}
 
 private[server] trait RequestBodyHandler {
 
   import RequestBodyHandler._
 
   /**
-   * Creates a new upstream handler for the purposes of receiving chunked requests. Requests are buffered as an
-   * optimization.
-   *
-   * @param bodyHandler the iteratee used to handle the body.
-   * @param replaceHandler a function to handle the registration of a new handler. A handler is passed as a param.
-   * @param handlerFinished a function to handle the de-registration of the handler i.e. when the chunked request is complete.
-   * @return a future of an iteratee that will return the result.
-   */
-  def newRequestBodyUpstreamHandler[A](bodyHandler: Iteratee[Array[Byte], A],
-    replaceHandler: ChannelUpstreamHandler => Unit,
-    handlerFinished: => Unit): Future[A] = {
+    * Creates a new upstream handler for the purposes of receiving chunked requests. Requests are buffered as an
+    * optimization.
+    *
+    * @param bodyHandler the iteratee used to handle the body.
+    * @param replaceHandler a function to handle the registration of a new handler. A handler is passed as a param.
+    * @param handlerFinished a function to handle the de-registration of the handler i.e. when the chunked request is complete.
+    * @return a future of an iteratee that will return the result.
+    */
+  def newRequestBodyUpstreamHandler[A](
+      bodyHandler: Iteratee[Array[Byte], A],
+      replaceHandler: ChannelUpstreamHandler => Unit,
+      handlerFinished: => Unit): Future[A] = {
 
     implicit val internalContext = play.core.Execution.internalContext
     import scala.concurrent.stm._
@@ -53,7 +54,8 @@ private[server] trait RequestBodyHandler {
 
       // If we have more messages in flight than the maximum, ensure that we have told upstream that
       // we don't want to received more.  But only if the channel is still open and we haven't finished handling it.
-      if (counter.single.transformAndGet { _ + 1 } > MaxMessages && ctx.getChannel.isOpen && !bodyHandlerResult.isCompleted)
+      if (counter.single.transformAndGet { _ + 1 } > MaxMessages &&
+          ctx.getChannel.isOpen && !bodyHandlerResult.isCompleted)
         ctx.getChannel.setReadable(false)
 
       // Promise for the next iteratee
@@ -78,7 +80,7 @@ private[server] trait RequestBodyHandler {
       current.foreach { currentIteratee =>
         // Feed the chunk
         currentIteratee.feed(chunk).flatMap(_.unflatten).onComplete {
-          case Success(c @ Step.Cont(k)) =>
+          case Success(c@Step.Cont(k)) =>
             continue(c.it)
           case done =>
             finish(done.map(_.it))
@@ -88,8 +90,8 @@ private[server] trait RequestBodyHandler {
       def continue(it: Iteratee[Array[Byte], A]) {
         // If we have less messages in flight than the minimum, ensure that we have told upstream that
         // we are ready to receive more.
-        if (counter.single.transformAndGet { _ - 1 } <= MinMessages && ctx.getChannel.isOpen)
-          ctx.getChannel.setReadable(true)
+        if (counter.single.transformAndGet { _ - 1 } <= MinMessages &&
+            ctx.getChannel.isOpen) ctx.getChannel.setReadable(true)
         itPromise.success(it)
       }
 
@@ -103,7 +105,8 @@ private[server] trait RequestBodyHandler {
     }
 
     replaceHandler(new SimpleChannelUpstreamHandler {
-      override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
+      override def messageReceived(
+          ctx: ChannelHandlerContext, e: MessageEvent) {
         e.getMessage match {
 
           case chunk: HttpChunk if !chunk.isLast =>
@@ -113,51 +116,55 @@ private[server] trait RequestBodyHandler {
             pushChunk(ctx, El(bytes))
 
           case chunk: HttpChunk if chunk.isLast => {
-            pushChunk(ctx, EOF)
-            handlerFinished
-          }
+              pushChunk(ctx, EOF)
+              handlerFinished
+            }
 
           case unexpected =>
-            logger.error("Oops, unexpected message received in NettyServer/RequestBodyHandler" +
-              " (please report this problem): " + unexpected)
-
+            logger.error(
+                "Oops, unexpected message received in NettyServer/RequestBodyHandler" +
+                " (please report this problem): " + unexpected)
         }
       }
 
-      override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
+      override def exceptionCaught(
+          ctx: ChannelHandlerContext, e: ExceptionEvent) {
         logger.error("Exception caught in RequestBodyHandler", e.getCause)
         e.getChannel.close()
       }
 
-      override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
+      override def channelDisconnected(
+          ctx: ChannelHandlerContext, e: ChannelStateEvent) {
         pushChunk(ctx, EOF)
       }
-
     })
 
     bodyHandlerResult.future.flatMap(_.run)
   }
 
   /**
-   * Ignores the body, but calls finish when finished.
-   */
-  private class IgnoreBodyHandler(handlerFinished: => Unit) extends SimpleChannelUpstreamHandler {
+    * Ignores the body, but calls finish when finished.
+    */
+  private class IgnoreBodyHandler(handlerFinished: => Unit)
+      extends SimpleChannelUpstreamHandler {
     override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
       e.getMessage match {
         case chunk: HttpChunk => {
-          // Ignore, and invoke the callback if it's the last chunk.
-          if (chunk.isLast) handlerFinished
-        }
+            // Ignore, and invoke the callback if it's the last chunk.
+            if (chunk.isLast) handlerFinished
+          }
 
         // Even though this handler essentially ignores everything it receives, it should only be handling HTTP chunks,
         // so if it gets something else log it so that we can know there's a bug.
         case unexpected =>
-          logger.error("Oops, unexpected message received in NettyServer/IgnoreBodyHandler" +
-            " (please report this problem): " + unexpected)
+          logger.error(
+              "Oops, unexpected message received in NettyServer/IgnoreBodyHandler" +
+              " (please report this problem): " + unexpected)
       }
     }
 
-    override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
+    override def exceptionCaught(
+        ctx: ChannelHandlerContext, e: ExceptionEvent) {
       logger.error("Exception caught in IgnoreBodyHandler", e.getCause)
       e.getChannel.close()
     }

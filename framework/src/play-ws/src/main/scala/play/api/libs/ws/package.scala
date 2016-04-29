@@ -4,8 +4,8 @@
 package play.api.libs
 
 /**
- * Asynchronous API to to query web services, as an http client.
- */
+  * Asynchronous API to to query web services, as an http client.
+  */
 package object ws {
   @deprecated("Use WSRequest", "2.4.0")
   type WSRequestHolder = WSRequest

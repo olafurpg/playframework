@@ -14,22 +14,23 @@ object Ciphers {
   // using OpenJDK, you're out of luck.
   // http://armoredbarista.blogspot.com/2013/10/how-to-use-ecc-with-openjdk.html
 
-  def recommendedCiphers: Seq[String] = foldVersion(
-    run16 = java16RecommendedCiphers,
-    runHigher = java17RecommendedCiphers)
+  def recommendedCiphers: Seq[String] =
+    foldVersion(
+        run16 = java16RecommendedCiphers, runHigher = java17RecommendedCiphers)
 
-  val java17RecommendedCiphers: Seq[String] = SSLContext.getDefault.getDefaultSSLParameters.getCipherSuites
+  val java17RecommendedCiphers: Seq[String] =
+    SSLContext.getDefault.getDefaultSSLParameters.getCipherSuites
 
   val java16RecommendedCiphers: Seq[String] = Seq(
-    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-    "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-    "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
-    "TLS_RSA_WITH_AES_256_CBC_SHA",
-    "TLS_RSA_WITH_AES_128_CBC_SHA",
-    "SSL_RSA_WITH_3DES_EDE_CBC_SHA",
-    "SSL_RSA_WITH_RC4_128_SHA",
-    "SSL_RSA_WITH_RC4_128_MD5",
-    "TLS_EMPTY_RENEGOTIATION_INFO_SCSV" // per RFC 5746
+      "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+      "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+      "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
+      "TLS_RSA_WITH_AES_256_CBC_SHA",
+      "TLS_RSA_WITH_AES_128_CBC_SHA",
+      "SSL_RSA_WITH_3DES_EDE_CBC_SHA",
+      "SSL_RSA_WITH_RC4_128_SHA",
+      "SSL_RSA_WITH_RC4_128_MD5",
+      "TLS_EMPTY_RENEGOTIATION_INFO_SCSV" // per RFC 5746
   )
 
   // Suite B profile for TLS (requires 1.2): http://tools.ietf.org/html/rfc6460
@@ -45,31 +46,32 @@ object Ciphers {
                                      |TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
                                    """.stripMargin.split("\n")
 
-  val suiteBTransitionalCiphers: Seq[String] = """TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
-                                                 |TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384
-                                                 |TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
-                                                 |TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
-                                                 |TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
-                                                 |TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+  val suiteBTransitionalCiphers: Seq[String] =
+    """TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      |TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384
+      |TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      |TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+      |TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+      |TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
                                                """.stripMargin.split("\n")
 
   // From http://op-co.de/blog/posts/android_ssl_downgrade/
   // Caveat: https://news.ycombinator.com/item?id=6548545
   val recommendedSmithCiphers = Seq(
-    "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
-    "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
-    "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
-    "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
-    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-    "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-    "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
-    "TLS_ECDHE_RSA_WITH_RC4_128_SHA",
-    "TLS_ECDHE_ECDSA_WITH_RC4_128_SHA",
-    "TLS_RSA_WITH_AES_128_CBC_SHA",
-    "TLS_RSA_WITH_AES_256_CBC_SHA",
-    "SSL_RSA_WITH_3DES_EDE_CBC_SHA",
-    "SSL_RSA_WITH_RC4_128_SHA",
-    "SSL_RSA_WITH_RC4_128_MD5"
+      "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+      "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+      "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+      "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+      "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+      "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+      "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
+      "TLS_ECDHE_RSA_WITH_RC4_128_SHA",
+      "TLS_ECDHE_ECDSA_WITH_RC4_128_SHA",
+      "TLS_RSA_WITH_AES_128_CBC_SHA",
+      "TLS_RSA_WITH_AES_256_CBC_SHA",
+      "SSL_RSA_WITH_3DES_EDE_CBC_SHA",
+      "SSL_RSA_WITH_RC4_128_SHA",
+      "SSL_RSA_WITH_RC4_128_MD5"
   )
 
   val exportCiphers = """SSL_RSA_EXPORT_WITH_RC4_40_MD5
@@ -181,6 +183,6 @@ object Ciphers {
                       |SSL_RSA_WITH_RC4_128_SHA
                     """.stripMargin.split("\n").toSet
 
-  val deprecatedCiphers = desCiphers ++ nullCiphers ++ anonCiphers ++ exportCiphers
-
+  val deprecatedCiphers =
+    desCiphers ++ nullCiphers ++ anonCiphers ++ exportCiphers
 }

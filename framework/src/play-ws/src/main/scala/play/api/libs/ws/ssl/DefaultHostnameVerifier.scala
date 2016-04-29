@@ -5,8 +5,8 @@
  */
 package play.api.libs.ws.ssl
 
-import java.security.cert.{ CertificateException, X509Certificate }
-import javax.net.ssl.{ HostnameVerifier, SSLPeerUnverifiedException, SSLSession }
+import java.security.cert.{CertificateException, X509Certificate}
+import javax.net.ssl.{HostnameVerifier, SSLPeerUnverifiedException, SSLSession}
 import javax.security.auth.kerberos.KerberosPrincipal
 import sun.security.util.HostnameChecker
 import org.slf4j.LoggerFactory
@@ -14,11 +14,11 @@ import com.ning.http.util.Base64
 import java.security.Principal
 
 /**
- * Use the internal sun hostname checker as the hostname verifier.  Thanks to Kevin Locke.
- *
- * @see sun.security.util.HostnameChecker
- * @see http://kevinlocke.name/bits/2012/10/03/ssl-certificate-verification-in-dispatch-and-asynchttpclient/
- */
+  * Use the internal sun hostname checker as the hostname verifier.  Thanks to Kevin Locke.
+  *
+  * @see sun.security.util.HostnameChecker
+  * @see http://kevinlocke.name/bits/2012/10/03/ssl-certificate-verification-in-dispatch-and-asynchttpclient/
+  */
 class DefaultHostnameVerifier extends HostnameVerifier {
 
   // AsyncHttpClient issue #197: "SSL host name verification disabled by default"
@@ -36,19 +36,24 @@ class DefaultHostnameVerifier extends HostnameVerifier {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  def hostnameChecker: HostnameChecker = HostnameChecker.getInstance(HostnameChecker.TYPE_TLS)
+  def hostnameChecker: HostnameChecker =
+    HostnameChecker.getInstance(HostnameChecker.TYPE_TLS)
 
-  def matchKerberos(hostname: String, principal: Principal) = HostnameChecker.`match`(hostname, principal.asInstanceOf[KerberosPrincipal])
+  def matchKerberos(hostname: String, principal: Principal) =
+    HostnameChecker.`match`(
+        hostname, principal.asInstanceOf[KerberosPrincipal])
 
-  def isKerberos(principal: Principal): Boolean = principal != null && principal.isInstanceOf[KerberosPrincipal]
+  def isKerberos(principal: Principal): Boolean =
+    principal != null && principal.isInstanceOf[KerberosPrincipal]
 
   def verify(hostname: String, session: SSLSession): Boolean = {
-    logger.debug(s"verify: hostname = $hostname, sessionId (base64) = ${Base64.encode(session.getId)}")
+    logger.debug(
+        s"verify: hostname = $hostname, sessionId (base64) = ${Base64.encode(session.getId)}")
 
     val checker = hostnameChecker
     val result = try {
       session.getPeerCertificates match {
-        case Array(cert: X509Certificate, _*) =>
+        case Array(cert: X509Certificate, _ *) =>
           try {
             checker.`match`(hostname, cert)
             // Certificate matches hostname
@@ -57,13 +62,16 @@ class DefaultHostnameVerifier extends HostnameVerifier {
             case e: CertificateException =>
               // Certificate does not match hostname
               val subjectAltNames = cert.getSubjectAlternativeNames
-              logger.debug(s"verify: Certificate does not match hostname! subjectAltNames = $subjectAltNames, hostName = $hostname", e)
+              logger.debug(
+                  s"verify: Certificate does not match hostname! subjectAltNames = $subjectAltNames, hostName = $hostname",
+                  e)
               false
           }
 
         case notMatch =>
           // Peer does not have any certificates or they aren't X.509
-          logger.debug(s"verify: Peer does not have any certificates: $notMatch")
+          logger.debug(
+              s"verify: Peer does not have any certificates: $notMatch")
           false
       }
     } catch {
@@ -88,5 +96,4 @@ class DefaultHostnameVerifier extends HostnameVerifier {
     logger.debug("verify: returning {}", result)
     result
   }
-
 }

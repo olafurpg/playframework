@@ -14,15 +14,19 @@ import scala.concurrent.Future
 import scala.util.Success
 
 /**
- * Used to start the documentation server.
- */
+  * Used to start the documentation server.
+  */
 class DocServerStart {
 
-  def start(projectPath: File, buildDocHandler: BuildDocHandler, translationReport: Callable[File],
-    forceTranslationReport: Callable[File], port: java.lang.Integer): ServerWithStop = {
+  def start(projectPath: File,
+            buildDocHandler: BuildDocHandler,
+            translationReport: Callable[File],
+            forceTranslationReport: Callable[File],
+            port: java.lang.Integer): ServerWithStop = {
 
     val application: Application = {
-      val environment = Environment(projectPath, this.getClass.getClassLoader, Mode.Dev)
+      val environment = Environment(
+          projectPath, this.getClass.getClassLoader, Mode.Dev)
       val context = ApplicationLoader.createContext(environment)
       val components = new BuiltInComponentsFromContext(context) {
         lazy val router = Router.empty
@@ -36,35 +40,40 @@ class DocServerStart {
 
       override def get = Success(application)
       override def handleWebCommand(request: RequestHeader) =
-        buildDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[Result]].orElse(
-          if (request.path == "/@report") {
-            if (request.getQueryString("force").isDefined) {
-              forceTranslationReport.call()
-              Some(Results.Redirect("/@report"))
-            } else {
-              Some(Results.Ok.sendFile(translationReport.call(), inline = true, fileName = _ => "report.html"))
-            }
-          } else None
-        ).orElse(
-            Some(Results.Redirect("/@documentation"))
+        buildDocHandler
+          .maybeHandleDocRequest(request)
+          .asInstanceOf[Option[Result]]
+          .orElse(
+              if (request.path == "/@report") {
+                if (request.getQueryString("force").isDefined) {
+                  forceTranslationReport.call()
+                  Some(Results.Redirect("/@report"))
+                } else {
+                  Some(Results.Ok.sendFile(translationReport.call(),
+                                           inline = true,
+                                           fileName = _ => "report.html"))
+                }
+              } else None
+          )
+          .orElse(
+              Some(Results.Redirect("/@documentation"))
           )
     }
 
     val config = ServerConfig(
-      rootDir = projectPath,
-      port = Some(port),
-      mode = Mode.Dev,
-      properties = System.getProperties
+        rootDir = projectPath,
+        port = Some(port),
+        mode = Mode.Dev,
+        properties = System.getProperties
     )
-    val serverProvider: ServerProvider = ServerProvider.fromConfiguration(getClass.getClassLoader, config.configuration)
+    val serverProvider: ServerProvider = ServerProvider.fromConfiguration(
+        getClass.getClassLoader, config.configuration)
     val context = ServerProvider.Context(
-      config,
-      applicationProvider,
-      application.actorSystem,
-      stopHook = () => Future.successful(())
+        config,
+        applicationProvider,
+        application.actorSystem,
+        stopHook = () => Future.successful(())
     )
     serverProvider.createServer(context)
-
   }
-
 }

@@ -5,7 +5,7 @@ package scalaguide.tests.guice
 
 import java.io.File
 import java.net.URLClassLoader
-import play.api.{ Configuration, Environment, Mode }
+import play.api.{Configuration, Environment, Mode}
 import play.api.test._
 import play.api.test.Helpers._
 
@@ -91,7 +91,8 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
         .build
       // #add-bindings
 
-      application.injector.instanceOf[Component] must beAnInstanceOf[DefaultComponent]
+      application.injector.instanceOf[Component] must beAnInstanceOf[
+          DefaultComponent]
     }
 
     "override bindings" in {
@@ -113,12 +114,14 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
       // #load-modules
       val application = new GuiceApplicationBuilder()
         .load(
-          new play.api.inject.BuiltinModule,
-          bind[Component].to[DefaultComponent]
-        ).build
+            new play.api.inject.BuiltinModule,
+            bind[Component].to[DefaultComponent]
+        )
+        .build
       // #load-modules
 
-      application.injector.instanceOf[Component] must beAnInstanceOf[DefaultComponent]
+      application.injector.instanceOf[Component] must beAnInstanceOf[
+          DefaultComponent]
     }
 
     "disable modules" in {
@@ -129,7 +132,8 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
         .build
       // #disable-modules
 
-      application.injector.instanceOf[Component] must throwA[com.google.inject.ConfigurationException]
+      application.injector.instanceOf[Component] must throwA[
+          com.google.inject.ConfigurationException]
     }
 
     "injector builder" in {
@@ -145,7 +149,5 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
 
       component must beAnInstanceOf[MockComponent]
     }
-
   }
-
 }

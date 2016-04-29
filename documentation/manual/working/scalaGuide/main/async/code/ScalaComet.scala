@@ -18,9 +18,9 @@ object ScalaCometSpec extends PlaySpecification with Controller {
       //#manual
       def comet = Action {
         val events = Enumerator(
-          """<script>console.log('kiki')</script>""",
-          """<script>console.log('foo')</script>""",
-          """<script>console.log('bar')</script>"""
+            """<script>console.log('kiki')</script>""",
+            """<script>console.log('foo')</script>""",
+            """<script>console.log('bar')</script>"""
         )
         Ok.chunked(events).as(HTML)
       }
@@ -75,10 +75,10 @@ object ScalaCometSpec extends PlaySpecification with Controller {
       msgs must haveLength(4)
       msgs(1) must contain("parent.cometMessage('kiki')")
     }
-
   }
 
-  def cometMessages(result: Future[Result]):Seq[String] = {
-    await(await(result).body &> Results.dechunk |>>> Iteratee.getChunks).map(bytes => new String(bytes))
+  def cometMessages(result: Future[Result]): Seq[String] = {
+    await(await(result).body &> Results.dechunk |>>> Iteratee.getChunks)
+      .map(bytes => new String(bytes))
   }
 }

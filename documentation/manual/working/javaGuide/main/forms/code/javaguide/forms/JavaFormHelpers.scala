@@ -19,7 +19,11 @@ object JavaFormHelpers extends PlaySpecification {
       val userForm = Form.form(classOf[UserForm]).fill(u)
       def segment(name: String) = {
         val body = html.helpers(form, userForm).body
-        body.lines.dropWhile(_ != "<span class=\"" + name + "\">").drop(1).takeWhile(_ != "</span>").mkString("\n")
+        body.lines
+          .dropWhile(_ != "<span class=\"" + name + "\">")
+          .drop(1)
+          .takeWhile(_ != "</span>")
+          .mkString("\n")
       }
 
       "allow rendering a form" in new WithApplication() {
@@ -62,10 +66,6 @@ object JavaFormHelpers extends PlaySpecification {
         val body = html.withFieldConstructor(form).body
         body must contain("foobar")
       }
-
     }
-
   }
-
-
 }

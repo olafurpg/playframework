@@ -8,26 +8,26 @@ import play.api.libs.json.Json
 import models._
 import javax.inject._
 
-class Application @Inject() (db: DB) extends Controller {
+class Application @Inject()(db: DB) extends Controller {
 
   def index = Action {
     Ok(views.html.index())
   }
 
   val personForm: Form[Person] = Form {
-  	mapping(
-      "name" -> text
-  	)(Person.apply)(Person.unapply)
+    mapping(
+        "name" -> text
+    )(Person.apply)(Person.unapply)
   }
 
   def addPerson = Action { implicit request =>
-  	val person = personForm.bindFromRequest.get
-  	db.save(person)
-  	Redirect(routes.Application.index)
+    val person = personForm.bindFromRequest.get
+    db.save(person)
+    Redirect(routes.Application.index)
   }
 
   def getPersons = Action {
-  	val persons = db.query[Person].fetch()
-  	Ok(Json.toJson(persons))
+    val persons = db.query[Person].fetch()
+    Ok(Json.toJson(persons))
   }
 }

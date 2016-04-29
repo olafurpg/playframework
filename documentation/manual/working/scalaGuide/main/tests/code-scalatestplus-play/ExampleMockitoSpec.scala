@@ -38,7 +38,7 @@ trait DataService {
 
 class MyService {
   import java.util._
-  
+
   def dataService: DataService = null // implementation reference...
 
   def isDailyData: Boolean = {
@@ -47,7 +47,8 @@ class MyService {
 
     val today = Calendar.getInstance()
 
-    (retrievalDate.get(Calendar.YEAR) == today.get(Calendar.YEAR)
-      && retrievalDate.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR))
+    (retrievalDate.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+        retrievalDate.get(Calendar.DAY_OF_YEAR) == today.get(
+            Calendar.DAY_OF_YEAR))
   }
 }

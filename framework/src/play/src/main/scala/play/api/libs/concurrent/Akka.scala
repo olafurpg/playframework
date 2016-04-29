@@ -5,59 +5,62 @@ package play.api.libs.concurrent
 
 import com.typesafe.config.Config
 import java.util.concurrent.TimeoutException
-import javax.inject.{ Provider, Inject, Singleton }
+import javax.inject.{Provider, Inject, Singleton}
 import play.api._
-import play.api.inject.{ ApplicationLifecycle, Module }
+import play.api.inject.{ApplicationLifecycle, Module}
 import play.core.ClosableLazy
 import akka.actor.ActorSystem
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
 /**
- * Helper to access the application defined Akka Actor system.
- */
+  * Helper to access the application defined Akka Actor system.
+  */
 object Akka {
 
   private val actorSystemCache = Application.instanceCache[ActorSystem]
 
   /**
-   * Retrieve the application Akka Actor system.
-   *
-   * Example:
-   * {{{
-   * val newActor = Akka.system.actorOf[Props[MyActor]]
-   * }}}
-   */
+    * Retrieve the application Akka Actor system.
+    *
+    * Example:
+    * {{{
+    * val newActor = Akka.system.actorOf[Props[MyActor]]
+    * }}}
+    */
   def system(implicit app: Application): ActorSystem = actorSystemCache(app)
-
 }
 
 /**
- * Components for configuring Akka.
- */
+  * Components for configuring Akka.
+  */
 trait AkkaComponents {
 
   def environment: Environment
   def configuration: Configuration
   def applicationLifecycle: ApplicationLifecycle
 
-  lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
+  lazy val actorSystem: ActorSystem = new ActorSystemProvider(
+      environment, configuration, applicationLifecycle).get
 }
 
 /**
- * Provider for the actor system
- */
+  * Provider for the actor system
+  */
 @Singleton
-class ActorSystemProvider @Inject() (environment: Environment, configuration: Configuration, applicationLifecycle: ApplicationLifecycle) extends Provider[ActorSystem] {
+class ActorSystemProvider @Inject()(environment: Environment,
+                                    configuration: Configuration,
+                                    applicationLifecycle: ApplicationLifecycle)
+    extends Provider[ActorSystem] {
 
   private val logger = Logger(classOf[ActorSystemProvider])
 
   lazy val get: ActorSystem = {
-    val (system, stopHook) = ActorSystemProvider.start(environment.classLoader, configuration)
+    val (system, stopHook) =
+      ActorSystemProvider.start(environment.classLoader, configuration)
     applicationLifecycle.addStopHook(stopHook)
     system
   }
-
 }
 
 object ActorSystemProvider {
@@ -67,10 +70,11 @@ object ActorSystemProvider {
   private val logger = Logger(classOf[ActorSystemProvider])
 
   /**
-   * Start an ActorSystem, using the given configuration and ClassLoader.
-   * @return The ActorSystem and a function that can be used to stop it.
-   */
-  def start(classLoader: ClassLoader, configuration: Configuration): (ActorSystem, StopHook) = {
+    * Start an ActorSystem, using the given configuration and ClassLoader.
+    * @return The ActorSystem and a function that can be used to stop it.
+    */
+  def start(classLoader: ClassLoader,
+            configuration: Configuration): (ActorSystem, StopHook) = {
     val config = PlayConfig(configuration)
 
     val akkaConfig: Config = {
@@ -94,7 +98,8 @@ object ActorSystemProvider {
           } catch {
             case te: TimeoutException =>
               // oh well.  We tried to be nice.
-              logger.info(s"Could not shutdown the Akka system in $timeout milliseconds.  Giving up.")
+              logger.info(
+                  s"Could not shutdown the Akka system in $timeout milliseconds.  Giving up.")
           }
         case _ =>
           // wait until it is shutdown
@@ -108,14 +113,15 @@ object ActorSystemProvider {
   }
 
   /**
-   * A lazy wrapper around `start`. Useful when the `ActorSystem` may
-   * not be needed.
-   */
-  def lazyStart(classLoader: => ClassLoader, configuration: => Configuration): ClosableLazy[ActorSystem, Future[Unit]] = {
+    * A lazy wrapper around `start`. Useful when the `ActorSystem` may
+    * not be needed.
+    */
+  def lazyStart(classLoader: => ClassLoader,
+                configuration: => Configuration
+  ): ClosableLazy[ActorSystem, Future[Unit]] = {
     new ClosableLazy[ActorSystem, Future[Unit]] {
       protected def create() = start(classLoader, configuration)
       protected def closeNotNeeded = Future.successful(())
     }
   }
-
 }

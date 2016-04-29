@@ -12,27 +12,27 @@ import play.api.mvc._
 import Results._
 
 // #scalafunctionaltest-allbrowserspersuite
-class ExampleSpec extends PlaySpec with OneServerPerSuite with AllBrowsersPerSuite {
+class ExampleSpec
+    extends PlaySpec with OneServerPerSuite with AllBrowsersPerSuite {
 
   // Override app if you need a FakeApplication with other than
   // default parameters.
-  implicit override lazy val app: FakeApplication =
-    FakeApplication(
+  implicit override lazy val app: FakeApplication = FakeApplication(
       additionalConfiguration = Map("ehcacheplugin" -> "disabled"),
       withRoutes = {
         case ("GET", "/testing") =>
           Action(
-            Results.Ok(
-              "<html>" +
-                "<head><title>Test Page</title></head>" +
-                "<body>" +
-                "<input type='button' name='b' value='Click Me' onclick='document.title=\"scalatest\"' />" +
-                "</body>" +
-                "</html>"
-            ).as("text/html")
-          )
+              Results
+                .Ok(
+                    "<html>" + "<head><title>Test Page</title></head>" +
+                    "<body>" +
+                    "<input type='button' name='b' value='Click Me' onclick='document.title=\"scalatest\"' />" +
+                    "</body>" + "</html>"
+                )
+                .as("text/html")
+            )
       }
-    )
+  )
 
   def sharedTests(browser: BrowserInfo) = {
     "The AllBrowsersPerSuite trait" must {

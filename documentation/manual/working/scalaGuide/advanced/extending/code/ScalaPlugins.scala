@@ -8,14 +8,16 @@ import play.api.test._
 object ScalaPlugins extends PlaySpecification {
   "scala plugins" should {
     "allow accessing plugins" in {
-      val app = FakeApplication(additionalPlugins = Seq(classOf[MyPlugin].getName))
+      val app =
+        FakeApplication(additionalPlugins = Seq(classOf[MyPlugin].getName))
       var mc: MyComponent = null
       running(app) {
         //#access-plugin
         import play.api.Play
         import play.api.Play.current
 
-        val myComponent = Play.application.plugin[MyPlugin]
+        val myComponent = Play.application
+          .plugin[MyPlugin]
           .getOrElse(throw new RuntimeException("MyPlugin not loaded"))
           .myComponent
         //#access-plugin
@@ -25,7 +27,8 @@ object ScalaPlugins extends PlaySpecification {
       mc.stopped must beTrue
     }
     "allow the actors example to work" in {
-      val app = FakeApplication(additionalPlugins = Seq(classOf[Actors].getName))
+      val app =
+        FakeApplication(additionalPlugins = Seq(classOf[Actors].getName))
       running(app) {
         import scala.concurrent.duration._
         import akka.pattern.ask
@@ -71,14 +74,16 @@ import play.api.libs.concurrent.Akka
 import akka.actor._
 import javax.inject.Inject
 
-class Actors @Inject() (implicit app: Application) extends Plugin {
+class Actors @Inject()(implicit app: Application) extends Plugin {
   lazy val myActor = Akka.system.actorOf(MyActor.props, "my-actor")
 }
 
 object Actors {
-  def myActor: ActorRef = Play.current.plugin[Actors]
-    .getOrElse(throw new RuntimeException("Actors plugin not loaded"))
-    .myActor
+  def myActor: ActorRef =
+    Play.current
+      .plugin[Actors]
+      .getOrElse(throw new RuntimeException("Actors plugin not loaded"))
+      .myActor
 }
 //#actor-example
 

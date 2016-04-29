@@ -3,14 +3,14 @@
  */
 package play.core.server.common
 
-import java.net.{ Inet6Address, InetAddress, Inet4Address }
+import java.net.{Inet6Address, InetAddress, Inet4Address}
 
 import scala.util.Try
 import scala.util.parsing.combinator.RegexParsers
 
 /**
- * The NodeIdentifierParser object can parse node identifiers described in RFC 7239.
- */
+  * The NodeIdentifierParser object can parse node identifiers described in RFC 7239.
+  */
 private[common] object NodeIdentifierParser extends RegexParsers {
 
   sealed trait Port
@@ -30,16 +30,18 @@ private[common] object NodeIdentifierParser extends RegexParsers {
     }
   }
 
-  private lazy val node = phrase(nodename ~ opt(":" ~> nodeport)) ^^ {
-    case x ~ y => x -> y
-  }
+  private lazy val node =
+    phrase(nodename ~ opt(":" ~> nodeport)) ^^ {
+      case x ~ y => x -> y
+    }
 
-  private lazy val nodename = ("[" ~> ipv6Address <~ "]" | ipv4Address | "unknown" | obfnode) ^^ {
-    case x: Inet4Address => Ip(x)
-    case x: Inet6Address => Ip(x)
-    case "unknown" => UnknownIp
-    case x => ObfuscatedIp(x.toString)
-  }
+  private lazy val nodename =
+    ("[" ~> ipv6Address <~ "]" | ipv4Address | "unknown" | obfnode) ^^ {
+      case x: Inet4Address => Ip(x)
+      case x: Inet6Address => Ip(x)
+      case "unknown" => UnknownIp
+      case x => ObfuscatedIp(x.toString)
+    }
 
   private lazy val ipv4Address = regex("[\\d\\.]{7,15}".r) ^? inetAddress
 
@@ -47,14 +49,16 @@ private[common] object NodeIdentifierParser extends RegexParsers {
 
   private lazy val obfnode = regex("_[\\p{Alnum}\\._-]+".r)
 
-  private lazy val nodeport = (port | obfport) ^^ {
-    case x: Int => PortNumber(x)
-    case x => ObfuscatedPort(x.toString)
-  }
+  private lazy val nodeport =
+    (port | obfport) ^^ {
+      case x: Int => PortNumber(x)
+      case x => ObfuscatedPort(x.toString)
+    }
 
-  private lazy val port = regex("\\d{1,5}".r) ^? {
-    case x if x.toInt <= 65535 => x.toInt
-  }
+  private lazy val port =
+    regex("\\d{1,5}".r) ^? {
+      case x if x.toInt <= 65535 => x.toInt
+    }
 
   private def obfport = regex("_[\\p{Alnum}\\._-]+".r)
 

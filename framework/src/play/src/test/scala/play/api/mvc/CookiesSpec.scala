@@ -84,5 +84,4 @@ object CookiesSpec extends Specification {
       myCookie must beEqualTo(cookie1)
     }
   }
-
 }

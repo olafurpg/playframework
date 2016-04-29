@@ -1,15 +1,15 @@
 package play.utils
 
-import java.io.{ FileInputStream, BufferedInputStream, File, FileOutputStream }
-import java.net.{ URI, URLEncoder, URL, URLConnection, URLStreamHandler }
-import java.util.zip.{ ZipEntry, ZipOutputStream }
+import java.io.{FileInputStream, BufferedInputStream, File, FileOutputStream}
+import java.net.{URI, URLEncoder, URL, URLConnection, URLStreamHandler}
+import java.util.zip.{ZipEntry, ZipOutputStream}
 import org.specs2.mutable.Specification
 
 import play.api.FakeApplication
 
 /**
- * Tests for Resources object
- */
+  * Tests for Resources object
+  */
 object ResourcesSpec extends Specification {
   import Resources._
 
@@ -22,17 +22,21 @@ object ResourcesSpec extends Specification {
   lazy val spacesDir = createTempDir("spaces ", ".tmp", tmpDir)
   lazy val spacesJar = File.createTempFile("jar-spaces", ".tmp", spacesDir)
   lazy val resourcesDir = new File(app.classloader.getResource("").getPath)
-  lazy val tmpResourcesDir = createTempDir("test-bundle-", ".tmp", resourcesDir)
+  lazy val tmpResourcesDir = createTempDir(
+      "test-bundle-", ".tmp", resourcesDir)
   lazy val fileBundle = File.createTempFile("file-", ".tmp", tmpResourcesDir)
   lazy val dirBundle = createTempDir("dir-", ".tmp", tmpResourcesDir)
-  lazy val spacesDirBundle = createTempDir("dir spaces ", ".tmp", tmpResourcesDir)
+  lazy val spacesDirBundle = createTempDir(
+      "dir spaces ", ".tmp", tmpResourcesDir)
   lazy val classloader = app.classloader
-  lazy val osgiClassloader = new OsgiClassLoaderSimulator(app.classloader, resourcesDir)
+  lazy val osgiClassloader = new OsgiClassLoaderSimulator(
+      app.classloader, resourcesDir)
 
   /* In order to test Resources.isDirectory when the protocol is "bundle://", there are 2 options:
    * a) run the test within an OSGi container (using Pax Exam),
    * b) simulate the behavior of an OSGi class loader (cf. comment in play.utils.Resources). */
-  class OsgiClassLoaderSimulator(classloader: ClassLoader, resourcesDir: File) extends ClassLoader {
+  class OsgiClassLoaderSimulator(classloader: ClassLoader, resourcesDir: File)
+      extends ClassLoader {
     override def getResource(name: String): URL = {
       val f = new File(resourcesDir, name)
       val fURL = f.toURI.toURL
@@ -47,7 +51,8 @@ object ResourcesSpec extends Specification {
   }
 
   class BundleStreamHandler extends URLStreamHandler {
-    def openConnection(u: URL): URLConnection = throw new Exception("should never happen")
+    def openConnection(u: URL): URLConnection =
+      throw new Exception("should never happen")
   }
 
   sequential
@@ -101,7 +106,8 @@ object ResourcesSpec extends Specification {
     }
 
     "return true for a directory resource URL that contains spaces with the 'bundle' protocol" in {
-      val relativeIndex = spacesDirBundle.getAbsolutePath.indexOf("test-bundle-")
+      val relativeIndex =
+        spacesDirBundle.getAbsolutePath.indexOf("test-bundle-")
       val dir = spacesDirBundle.getAbsolutePath.substring(relativeIndex)
       val url = new URL("bundle", "325.0", 25, dir, new BundleStreamHandler)
       isDirectory(osgiClassloader, url) must beTrue
@@ -133,7 +139,8 @@ object ResourcesSpec extends Specification {
     s"${jarFile.toURI.toURL}!/${UriEncoding.encodePathSegment(file.getName, "utf-8")}"
   }
 
-  private def createTempDir(prefix: String, suffix: String, parent: File = null) = {
+  private def createTempDir(
+      prefix: String, suffix: String, parent: File = null) = {
     val f = File.createTempFile(prefix, suffix, parent)
     f.delete()
     f.mkdir()

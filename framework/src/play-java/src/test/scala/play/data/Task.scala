@@ -28,6 +28,4 @@ class Task {
   @Required
   @DateTime(pattern = "dd/MM/yyyy")
   var dueDate: Date = _
-
 }
-

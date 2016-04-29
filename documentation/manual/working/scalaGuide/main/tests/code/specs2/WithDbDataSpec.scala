@@ -9,13 +9,13 @@ import play.api.test.Helpers._
 import org.specs2.execute.{Result, AsResult}
 
 /**
- *
- */
+  *
+  */
 class WithDbDataSpec extends PlaySpecification {
 
   // #scalafunctionaltest-withdbdata
   abstract class WithDbData extends WithApplication {
-    override def around[T: AsResult](t: => T): Result = super.around {
+    override def around[T : AsResult](t: => T): Result = super.around {
       setupData()
       t
     }

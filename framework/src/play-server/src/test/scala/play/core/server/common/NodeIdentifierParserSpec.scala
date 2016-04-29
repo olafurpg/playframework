@@ -8,15 +8,18 @@ class NodeIdentifierParserSpec extends Specification {
   "NodeIdentifierParser" should {
 
     "parse an ip v6 address with port" in {
-      parseNode("[8F:F3B::FF]:9000").right.get mustEqual Ip(getByName("8F:F3B::FF")) -> Some(PortNumber(9000))
+      parseNode("[8F:F3B::FF]:9000").right.get mustEqual Ip(
+          getByName("8F:F3B::FF")) -> Some(PortNumber(9000))
     }
 
     "parse an ip v6 address with obfuscated port" in {
-      parseNode("[::FF]:_obf").right.get mustEqual Ip(getByName("::FF")) -> Some(ObfuscatedPort("_obf"))
+      parseNode("[::FF]:_obf").right.get mustEqual Ip(getByName("::FF")) -> Some(
+          ObfuscatedPort("_obf"))
     }
 
     "parse an ip v4 address with port" in {
-      parseNode("127.0.0.1:8080").right.get mustEqual Ip(getByName("127.0.0.1")) -> Some(PortNumber(8080))
+      parseNode("127.0.0.1:8080").right.get mustEqual Ip(
+          getByName("127.0.0.1")) -> Some(PortNumber(8080))
     }
 
     "parse an ip v4 address without port" in {

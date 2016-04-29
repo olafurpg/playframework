@@ -8,7 +8,7 @@ import play.api.http.Writeable
 import play.api.libs.iteratee._
 import play.api.mvc.Results
 import play.core.j.JavaResults
-import play.mvc.{ Results => JResults }
+import play.mvc.{Results => JResults}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -46,6 +46,7 @@ object TemplatesSpec extends Specification {
   def string(bytes: Array[Byte]): String = new String(bytes, "UTF-8")
 
   def consume(enumerator: Enumerator[Array[Byte]]): String = {
-    string(Await.result(enumerator |>>> Iteratee.consume[Array[Byte]](), Duration(5, "seconds")))
+    string(Await.result(enumerator |>>> Iteratee.consume[Array[Byte]](),
+                        Duration(5, "seconds")))
   }
 }

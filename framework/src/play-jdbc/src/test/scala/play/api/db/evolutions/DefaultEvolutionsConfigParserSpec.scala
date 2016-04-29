@@ -86,7 +86,5 @@ object DefaultEvolutionsConfigParserSpec extends Specification {
         default.autoApplyDowns must_== false
       }
     }
-
   }
-
 }

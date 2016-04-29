@@ -7,20 +7,20 @@ import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 object LoggingFilter extends Filter {
-  def apply(nextFilter: RequestHeader => Future[Result])
-           (requestHeader: RequestHeader): Future[Result] = {
+  def apply(nextFilter: RequestHeader => Future[Result])(
+      requestHeader: RequestHeader): Future[Result] = {
 
     val startTime = System.currentTimeMillis
 
     nextFilter(requestHeader).map { result =>
-
-      val action = requestHeader.tags(Routes.ROUTE_CONTROLLER) +
-        "." + requestHeader.tags(Routes.ROUTE_ACTION_METHOD)
+      val action =
+        requestHeader.tags(Routes.ROUTE_CONTROLLER) + "." +
+        requestHeader.tags(Routes.ROUTE_ACTION_METHOD)
       val endTime = System.currentTimeMillis
       val requestTime = endTime - startTime
 
       Logger.info(s"${action} took ${requestTime}ms" +
-        s" and returned ${result.header.status}")
+          s" and returned ${result.header.status}")
 
       result.withHeaders("Request-Time" -> requestTime.toString)
     }

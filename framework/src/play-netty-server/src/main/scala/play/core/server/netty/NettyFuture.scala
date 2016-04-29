@@ -3,16 +3,16 @@
  */
 package play.core.server.netty
 
-import org.jboss.netty.channel.{ Channel, ChannelFuture, ChannelFutureListener }
+import org.jboss.netty.channel.{Channel, ChannelFuture, ChannelFutureListener}
 import play.api.libs.concurrent._
-import scala.concurrent.{ Future, Promise, ExecutionContext, CanAwait }
+import scala.concurrent.{Future, Promise, ExecutionContext, CanAwait}
 import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
 import scala.util._
 
 /**
- * Allows a NettyFuture to be convert to a Scala Future
- */
+  * Allows a NettyFuture to be convert to a Scala Future
+  */
 object NettyFuture {
 
   implicit class ToScala(channelFuture: ChannelFuture) {

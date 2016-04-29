@@ -20,11 +20,13 @@ object ThreadPoolsSpec extends PlaySpecification {
   "Play's thread pools" should {
 
     "make a global thread pool available" in new WithApplication() {
-      contentAsString(Samples.someAsyncAction(FakeRequest())) must startWith("The response code was")
+      contentAsString(Samples.someAsyncAction(FakeRequest())) must startWith(
+          "The response code was")
     }
 
     "have a global configuration" in {
-      val config = """#default-config
+      val config =
+        """#default-config
         akka {
           akka.loggers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jLogger"]
           loglevel = WARNING
@@ -45,7 +47,7 @@ object ThreadPoolsSpec extends PlaySpecification {
     }
 
     "allow configuring a custom thread pool" in runningWithConfig(
-      """#my-context-config
+        """#my-context-config
         my-context {
           fork-join-executor {
             parallelism-factor = 20.0
@@ -56,10 +58,13 @@ object ThreadPoolsSpec extends PlaySpecification {
     ) { implicit app =>
       //#my-context-usage
       object Contexts {
-        implicit val myExecutionContext: ExecutionContext = Akka.system.dispatchers.lookup("my-context")
+        implicit val myExecutionContext: ExecutionContext =
+          Akka.system.dispatchers.lookup("my-context")
       }
       //#my-context-usage
-      await(Future(Thread.currentThread().getName)(Contexts.myExecutionContext)) must startWith("application-my-context")
+      await(Future(Thread.currentThread().getName)(
+              Contexts.myExecutionContext)) must startWith(
+          "application-my-context")
 
       //#my-context-explicit
       Future {
@@ -87,7 +92,8 @@ object ThreadPoolsSpec extends PlaySpecification {
     }
 
     "allow changing the default thread pool" in {
-      val config = ConfigFactory.parseString("""#highly-synchronous
+      val config =
+        ConfigFactory.parseString("""#highly-synchronous
       akka {
         akka.loggers = ["akka.event.slf4j.Slf4jLogger"]
         loglevel = WARNING
@@ -108,7 +114,7 @@ object ThreadPoolsSpec extends PlaySpecification {
     }
 
     "allow configuring many custom thread pools" in runningWithConfig(
-    """ #many-specific-config
+        """ #many-specific-config
       contexts {
         simple-db-lookups {
           fork-join-executor {
@@ -135,30 +141,38 @@ object ThreadPoolsSpec extends PlaySpecification {
     ) { implicit app =>
       //#many-specific-contexts
       object Contexts {
-        implicit val simpleDbLookups: ExecutionContext = Akka.system.dispatchers.lookup("contexts.simple-db-lookups")
-        implicit val expensiveDbLookups: ExecutionContext = Akka.system.dispatchers.lookup("contexts.expensive-db-lookups")
-        implicit val dbWriteOperations: ExecutionContext = Akka.system.dispatchers.lookup("contexts.db-write-operations")
-        implicit val expensiveCpuOperations: ExecutionContext = Akka.system.dispatchers.lookup("contexts.expensive-cpu-operations")
+        implicit val simpleDbLookups: ExecutionContext =
+          Akka.system.dispatchers.lookup("contexts.simple-db-lookups")
+        implicit val expensiveDbLookups: ExecutionContext =
+          Akka.system.dispatchers.lookup("contexts.expensive-db-lookups")
+        implicit val dbWriteOperations: ExecutionContext =
+          Akka.system.dispatchers.lookup("contexts.db-write-operations")
+        implicit val expensiveCpuOperations: ExecutionContext =
+          Akka.system.dispatchers.lookup("contexts.expensive-cpu-operations")
       }
       //#many-specific-contexts
       def test(context: ExecutionContext, name: String) = {
-        await(Future(Thread.currentThread().getName)(context)) must startWith("application-contexts." + name)
+        await(Future(Thread.currentThread().getName)(context)) must startWith(
+            "application-contexts." + name)
       }
       test(Contexts.simpleDbLookups, "simple-db-lookups")
       test(Contexts.expensiveDbLookups, "expensive-db-lookups")
       test(Contexts.dbWriteOperations, "db-write-operations")
       test(Contexts.expensiveCpuOperations, "expensive-cpu-operations")
     }
-
   }
 
-  def runningWithConfig[T: AsResult](config: String )(block: Application => T) = {
+  def runningWithConfig[T : AsResult](config: String)(
+      block: Application => T) = {
     val parsed = ConfigFactory.parseString(config)
     val app = FakeApplication(withGlobal = Some(new GlobalSettings {
-      override def onLoadConfig(config: Configuration, path: File, classloader: ClassLoader, mode: Mode.Mode) = {
-        config ++ Configuration(parsed)
-      }
-    }))
+        override def onLoadConfig(config: Configuration,
+                                  path: File,
+                                  classloader: ClassLoader,
+                                  mode: Mode.Mode) = {
+          config ++ Configuration(parsed)
+        }
+      }))
     running(app)(block(app))
   }
 }
@@ -179,5 +193,4 @@ object Samples {
     }
   }
   //#global-thread-pool
-
 }

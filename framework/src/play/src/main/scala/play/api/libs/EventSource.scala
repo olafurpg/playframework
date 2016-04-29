@@ -3,27 +3,28 @@
  */
 package play.api.libs
 
-import play.api.http.{ ContentTypeOf, ContentTypes, Writeable }
+import play.api.http.{ContentTypeOf, ContentTypes, Writeable}
 import play.api.mvc._
 import play.api.libs.iteratee._
 
 import play.core.Execution.Implicits.internalContext
-import play.api.libs.json.{ Json, JsValue }
+import play.api.libs.json.{Json, JsValue}
 
 /**
- * Helps you format Server-Sent Events
- * @see [[http://www.w3.org/TR/eventsource/]]
- */
+  * Helps you format Server-Sent Events
+  * @see [[http://www.w3.org/TR/eventsource/]]
+  */
 object EventSource {
 
   case class EventDataExtractor[A](eventData: A => String)
 
   trait LowPriorityEventEncoder {
 
-    implicit val stringEvents: EventDataExtractor[String] = EventDataExtractor(identity)
+    implicit val stringEvents: EventDataExtractor[String] = EventDataExtractor(
+        identity)
 
-    implicit val jsonEvents: EventDataExtractor[JsValue] = EventDataExtractor(Json.stringify)
-
+    implicit val jsonEvents: EventDataExtractor[JsValue] = EventDataExtractor(
+        Json.stringify)
   }
 
   object EventDataExtractor extends LowPriorityEventEncoder
@@ -34,41 +35,43 @@ object EventSource {
 
   trait LowPriorityEventNameExtractor {
 
-    implicit def non[E]: EventNameExtractor[E] = EventNameExtractor[E](_ => None)
-
+    implicit def non[E]: EventNameExtractor[E] =
+      EventNameExtractor[E](_ => None)
   }
 
   trait LowPriorityEventIdExtractor {
 
     implicit def non[E]: EventIdExtractor[E] = EventIdExtractor[E](_ => None)
-
   }
 
   object EventNameExtractor extends LowPriorityEventNameExtractor {
 
-    implicit def pair[E]: EventNameExtractor[(String, E)] = EventNameExtractor[(String, E)](p => Some(p._1))
-
+    implicit def pair[E]: EventNameExtractor[(String, E)] =
+      EventNameExtractor[(String, E)](p => Some(p._1))
   }
 
   object EventIdExtractor extends LowPriorityEventIdExtractor
 
   /**
-   * Makes an `Enumeratee[E, Event]`, that is an [[Enumeratee]] transforming [[E]] values into [[Event]] values.
-   *
-   * Usage example:
-   *
-   * {{{
-   *   val someDataStream: Enumerator[SomeData] = ???
-   *   Ok.chunked(someDataStream &> EventSource())
-   * }}}
-   */
-  def apply[E: EventDataExtractor: EventNameExtractor: EventIdExtractor](): Enumeratee[E, Event] =
-    Enumeratee.map[E] { e => Event(e) }
+    * Makes an `Enumeratee[E, Event]`, that is an [[Enumeratee]] transforming [[E]] values into [[Event]] values.
+    *
+    * Usage example:
+    *
+    * {{{
+    *   val someDataStream: Enumerator[SomeData] = ???
+    *   Ok.chunked(someDataStream &> EventSource())
+    * }}}
+    */
+  def apply[E : EventDataExtractor : EventNameExtractor : EventIdExtractor](
+      ): Enumeratee[E, Event] = Enumeratee.map[E] { e =>
+    Event(e)
+  }
 
   case class Event(data: String, id: Option[String], name: Option[String]) {
+
     /**
-     * This event, formatted according to the EventSource protocol.
-     */
+      * This event, formatted according to the EventSource protocol.
+      */
     lazy val formatted = {
       val sb = new StringBuilder
       name.foreach(sb.append("event: ").append(_).append('\n'))
@@ -82,13 +85,17 @@ object EventSource {
   }
 
   object Event {
-    def apply[A](a: A)(implicit dataExtractor: EventDataExtractor[A], nameExtractor: EventNameExtractor[A], idExtractor: EventIdExtractor[A]): Event =
-      Event(dataExtractor.eventData(a), idExtractor.eventId(a), nameExtractor.eventName(a))
+    def apply[A](a: A)(implicit dataExtractor: EventDataExtractor[A],
+                       nameExtractor: EventNameExtractor[A],
+                       idExtractor: EventIdExtractor[A]): Event =
+      Event(dataExtractor.eventData(a),
+            idExtractor.eventId(a),
+            nameExtractor.eventName(a))
 
     implicit def writeable(implicit codec: Codec): Writeable[Event] =
       Writeable(event => codec.encode(event.formatted))
 
-    implicit def contentType(implicit codec: Codec): ContentTypeOf[Event] = ContentTypeOf(Some(ContentTypes.EVENT_STREAM))
+    implicit def contentType(implicit codec: Codec): ContentTypeOf[Event] =
+      ContentTypeOf(Some(ContentTypes.EVENT_STREAM))
   }
-
 }

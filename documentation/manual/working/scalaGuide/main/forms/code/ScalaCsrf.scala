@@ -19,7 +19,7 @@ object ScalaCsrf extends PlaySpecification {
       import play.filters.csrf.CSRFFilter
       import javax.inject.Inject
 
-      class Filters @Inject() (csrfFilter: CSRFFilter) extends HttpFilters {
+      class Filters @Inject()(csrfFilter: CSRFFilter) extends HttpFilters {
         def filters = Seq(csrfFilter)
       }
       //#http-filters
@@ -35,20 +35,28 @@ object ScalaCsrf extends PlaySpecification {
       val token = CSRF.getToken(request)
       //#get-token
       token must beSome.like {
-        case t => Crypto.compareSignedTokens(originalToken, t.value) must_== true
+        case t =>
+          Crypto.compareSignedTokens(originalToken, t.value) must_== true
       }
     }
 
     "allow rendering a token in a query string" in withApplication {
       val token = Crypto.generateSignedToken
-      val body = scalaguide.forms.html.csrf(FakeRequest().withSession("csrfToken" -> token)).body
-      body must find("action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"").withGroup(Crypto.extractSignedToken(token).get)
+      val body = scalaguide.forms.html
+        .csrf(FakeRequest().withSession("csrfToken" -> token))
+        .body
+      body must find(
+          "action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"")
+        .withGroup(Crypto.extractSignedToken(token).get)
     }
 
     "allow rendering a token in a hidden field" in withApplication {
       val token = Crypto.generateSignedToken
-      val body = scalaguide.forms.html.csrf(FakeRequest().withSession("csrfToken" -> token)).body
-      body must find("value=\"[a-f0-9]+-\\d+-([a-f0-9]+)\"").withGroup(Crypto.extractSignedToken(token).get)
+      val body = scalaguide.forms.html
+        .csrf(FakeRequest().withSession("csrfToken" -> token))
+        .body
+      body must find("value=\"[a-f0-9]+-\\d+-([a-f0-9]+)\"")
+        .withGroup(Crypto.extractSignedToken(token).get)
     }
 
     "allow per action checking" in withApplication {
@@ -65,8 +73,8 @@ object ScalaCsrf extends PlaySpecification {
       }
       //#csrf-check
 
-      await(save(FakeRequest("POST", "/").withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")))
-        .header.status must_== FORBIDDEN
+      await(save(FakeRequest("POST", "/").withHeaders(
+                  CONTENT_TYPE -> "application/x-www-form-urlencoded"))).header.status must_== FORBIDDEN
     }
 
     "allow per action token handling" in withApplication {
@@ -83,7 +91,8 @@ object ScalaCsrf extends PlaySpecification {
       }
       //#csrf-add-token
 
-      val body = await(form(FakeRequest("GET", "/")).flatMap(_.body |>>> Iteratee.consume[Array[Byte]]()))
+      val body = await(form(FakeRequest("GET", "/"))
+            .flatMap(_.body |>>> Iteratee.consume[Array[Byte]]()))
       Crypto.extractSignedToken(new String(body, "UTF-8")) must beSome
     }
 
@@ -95,7 +104,8 @@ object ScalaCsrf extends PlaySpecification {
       import play.filters.csrf._
 
       object PostAction extends ActionBuilder[Request] {
-        def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
+        def invokeBlock[A](request: Request[A],
+                           block: (Request[A]) => Future[Result]) = {
           // authentication code here
           block(request)
         }
@@ -103,7 +113,8 @@ object ScalaCsrf extends PlaySpecification {
       }
 
       object GetAction extends ActionBuilder[Request] {
-        def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
+        def invokeBlock[A](request: Request[A],
+                           block: (Request[A]) => Future[Result]) = {
           // authentication code here
           block(request)
         }
@@ -122,13 +133,12 @@ object ScalaCsrf extends PlaySpecification {
       }
       //#csrf-actions
 
-      await(save(FakeRequest("POST", "/").withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")))
-        .header.status must_== FORBIDDEN
-      val body = await(form(FakeRequest("GET", "/")).flatMap(_.body |>>> Iteratee.consume[Array[Byte]]()))
-        Crypto.extractSignedToken(new String(body, "UTF-8")) must beSome
+      await(save(FakeRequest("POST", "/").withHeaders(
+                  CONTENT_TYPE -> "application/x-www-form-urlencoded"))).header.status must_== FORBIDDEN
+      val body = await(form(FakeRequest("GET", "/"))
+            .flatMap(_.body |>>> Iteratee.consume[Array[Byte]]()))
+      Crypto.extractSignedToken(new String(body, "UTF-8")) must beSome
     }
-
-
   }
 
   object views {
@@ -141,7 +151,6 @@ object ScalaCsrf extends PlaySpecification {
   def withApplication[T](block: => T) = running(FakeApplication()) {
     block
   }
-
 }
 
 object routes {

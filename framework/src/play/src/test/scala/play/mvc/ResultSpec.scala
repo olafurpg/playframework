@@ -3,11 +3,11 @@ package play.test
 import org.specs2.mutable._
 import play.mvc.Result
 import scala.concurrent.Future
-import play.api.mvc.{ Cookie, Results, Result => ScalaResult }
+import play.api.mvc.{Cookie, Results, Result => ScalaResult}
 
 /**
- *
- */
+  *
+  */
 object ResultSpec extends Specification {
 
   "Result" should {

@@ -5,28 +5,27 @@ package play.api.mvc
 
 import play.api._
 import play.api.libs.iteratee._
-import scala.concurrent.{ Promise, Future }
+import scala.concurrent.{Promise, Future}
 
 trait EssentialFilter {
   def apply(next: EssentialAction): EssentialAction
 }
 
 /**
- * Implement this interface if you want to add a Filter to your application
- * {{{
- * object AccessLog extends Filter {
- *   override def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
- * 		 val result = next(request)
- * 		 result.map { r => play.Logger.info(request + "\n\t => " + r; r }
- * 	 }
- * }
- * }}}
- */
-trait Filter extends EssentialFilter {
+  * Implement this interface if you want to add a Filter to your application
+  * {{{
+  * object AccessLog extends Filter {
+  *   override def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
+  * 		 val result = next(request)
+  * 		 result.map { r => play.Logger.info(request + "\n\t => " + r; r }
+  * 	 }
+  * }
+  * }}}
+  */
+trait Filter extends EssentialFilter { self =>
 
-  self =>
-
-  def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result]
+  def apply(f: RequestHeader => Future[Result])(
+      rh: RequestHeader): Future[Result]
 
   def apply(next: EssentialAction): EssentialAction = {
     new EssentialAction {
@@ -50,7 +49,8 @@ trait Filter extends EssentialFilter {
           // It is possible that the delegate function (the next filter in the chain) was never invoked by this Filter. 
           // Therefore, as a fallback, we try to redeem the bodyIteratee Promise here with an iteratee that consumes 
           // the request body.
-          bodyIteratee.tryComplete(resultTry.map(simpleResult => Done(simpleResult)))
+          bodyIteratee.tryComplete(
+              resultTry.map(simpleResult => Done(simpleResult)))
         })
 
         Iteratee.flatten(bodyIteratee.future.map { it =>
@@ -69,20 +69,21 @@ trait Filter extends EssentialFilter {
           }
         })
       }
-
     }
   }
 }
 
 object Filter {
-  def apply(filter: (RequestHeader => Future[Result], RequestHeader) => Future[Result]): Filter = new Filter {
-    def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = filter(f, rh)
+  def apply(filter: (RequestHeader => Future[Result],
+      RequestHeader) => Future[Result]): Filter = new Filter {
+    def apply(f: RequestHeader => Future[Result])(
+        rh: RequestHeader): Future[Result] = filter(f, rh)
   }
 }
 
 /**
- * Compose the action and the Filters to create a new Action
- */
+  * Compose the action and the Filters to create a new Action
+  */
 object Filters {
   def apply(h: EssentialAction, filters: EssentialFilter*) = h match {
     case a: EssentialAction => FilterChain(a, filters.toList)
@@ -92,20 +93,22 @@ object Filters {
 
 class WithFilters(filters: EssentialFilter*) extends GlobalSettings {
   override def doFilter(a: EssentialAction): EssentialAction = {
-    Filters(super.doFilter(a), filters: _*)
+    Filters(super.doFilter(a), filters:_*)
   }
 }
 
 /**
- * Compose the action and the Filters to create a new Action
- */
-
+  * Compose the action and the Filters to create a new Action
+  */
 object FilterChain {
-  def apply[A](action: EssentialAction, filters: List[EssentialFilter]): EssentialAction = new EssentialAction {
-    def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = {
-      val chain = filters.reverse.foldLeft(action) { (a, i) => i(a) }
-      chain(rh)
+  def apply[A](action: EssentialAction,
+               filters: List[EssentialFilter]): EssentialAction =
+    new EssentialAction {
+      def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = {
+        val chain = filters.reverse.foldLeft(action) { (a, i) =>
+          i(a)
+        }
+        chain(rh)
+      }
     }
-  }
 }
-

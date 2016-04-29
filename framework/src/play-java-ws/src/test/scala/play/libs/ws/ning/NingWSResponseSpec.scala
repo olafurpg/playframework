@@ -5,11 +5,12 @@ import scala.collection.JavaConverters._
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 
-import com.ning.http.client.{ FluentCaseInsensitiveStringsMap, Response }
+import com.ning.http.client.{FluentCaseInsensitiveStringsMap, Response}
 
 object NingWSResponseSpec extends Specification with Mockito {
 
-  private val emptyMap = new java.util.HashMap[String, java.util.Collection[String]]
+  private val emptyMap =
+    new java.util.HashMap[String, java.util.Collection[String]]
 
   "NingWSResponse" should {
 
@@ -45,8 +46,6 @@ object NingWSResponseSpec extends Specification with Mockito {
     getBodyAsStream
     asByteArray
     getUri
-    */
-
+   */
   }
-
 }

@@ -13,10 +13,9 @@ class ExampleSpec extends PlaySpec with OneAppPerSuite {
 
   // Override app if you need a FakeApplication with other than
   // default parameters.
-  implicit override lazy val app: FakeApplication =
-    FakeApplication(
+  implicit override lazy val app: FakeApplication = FakeApplication(
       additionalConfiguration = Map("ehcacheplugin" -> "disabled")
-    )
+  )
 
   "The OneAppPerSuite trait" must {
     "provide a FakeApplication" in {

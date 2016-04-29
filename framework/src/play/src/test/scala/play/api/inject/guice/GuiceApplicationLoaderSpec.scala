@@ -4,7 +4,7 @@ import org.specs2.mutable.Specification
 
 import com.google.inject.AbstractModule
 
-import play.api.{ ApplicationLoader, Configuration, Environment }
+import play.api.{ApplicationLoader, Configuration, Environment}
 import play.api.inject.BuiltinModule
 
 class GuiceApplicationLoaderSpec extends Specification {
@@ -24,12 +24,12 @@ class GuiceApplicationLoaderSpec extends Specification {
     }
 
     "allow replacing automatically loaded modules" in {
-      val builder = new GuiceApplicationBuilder().load(new BuiltinModule, new ManualTestModule)
+      val builder = new GuiceApplicationBuilder()
+        .load(new BuiltinModule, new ManualTestModule)
       val loader = new GuiceApplicationLoader(builder)
       val app = loader.load(fakeContext)
       app.injector.instanceOf[Foo] must beAnInstanceOf[ManualFoo]
     }
-
   }
 
   def fakeContext = ApplicationLoader.createContext(Environment.simple())

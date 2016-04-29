@@ -20,7 +20,5 @@ class NingWSRequestSpec extends Specification with Mockito {
       val actual = request.buildRequest().getVirtualHost()
       actual must beEqualTo("foo.com")
     }
-
   }
-
 }

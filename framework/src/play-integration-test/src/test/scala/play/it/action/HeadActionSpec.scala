@@ -17,13 +17,17 @@ import java.util.concurrent.atomic.AtomicBoolean
 import play.api.test.TestServer
 import play.api.test.FakeApplication
 
-object NettyHeadActionSpec extends HeadActionSpec with NettyIntegrationSpecification
-object AkkaHttpHeadActionSpec extends HeadActionSpec with AkkaHttpIntegrationSpecification
+object NettyHeadActionSpec
+    extends HeadActionSpec with NettyIntegrationSpecification
+object AkkaHttpHeadActionSpec
+    extends HeadActionSpec with AkkaHttpIntegrationSpecification
 
-trait HeadActionSpec extends PlaySpecification
-    with WsTestClient with Results with HeaderNames with ServerIntegrationSpecification {
+trait HeadActionSpec
+    extends PlaySpecification with WsTestClient with Results with HeaderNames
+    with ServerIntegrationSpecification {
 
-  def route(verb: String, path: String)(handler: EssentialAction): PartialFunction[(String, String), Handler] = {
+  def route(verb: String, path: String)(
+      handler: EssentialAction): PartialFunction[(String, String), Handler] = {
     case (v, p) if v == verb && p == path => handler
   }
 
@@ -32,7 +36,8 @@ trait HeadActionSpec extends PlaySpecification
 
     val manualContentSize = route("GET", "/manualContentSize") {
       Action { request =>
-        Ok("The Itsy Bitsy Spider Went Up the Water Spout").withHeaders(CONTENT_LENGTH -> "5")
+        Ok("The Itsy Bitsy Spider Went Up the Water Spout")
+          .withHeaders(CONTENT_LENGTH -> "5")
       }
     }
 
@@ -44,23 +49,21 @@ trait HeadActionSpec extends PlaySpecification
 
     def withServer[T](block: => T): T = {
       // Routes from HttpBinApplication
-      val routes =
-        get // GET /get
-          .orElse(patch) // PATCH /patch
-          .orElse(post) // POST /post
-          .orElse(put) // PUT /put
-          .orElse(delete) // DELETE /delete
-          .orElse(stream) // GET /stream/0
-          .orElse(manualContentSize) // GET /manualContentSize
-          .orElse(chunkedResponse) // GET /chunked
+      val routes = get // GET /get
+        .orElse(patch) // PATCH /patch
+        .orElse(post) // POST /post
+        .orElse(put) // PUT /put
+        .orElse(delete) // DELETE /delete
+        .orElse(stream) // GET /stream/0
+        .orElse(manualContentSize) // GET /manualContentSize
+        .orElse(chunkedResponse) // GET /chunked
       running(TestServer(port, FakeApplication(withRoutes = routes)))(block)
     }
 
     def serverWithAction[T](action: EssentialAction)(block: => T): T = {
-      running(TestServer(port, FakeApplication(
-        withRoutes = {
-          case _ => action
-        })))(block)
+      running(TestServer(port, FakeApplication(withRoutes = {
+        case _ => action
+      })))(block)
     }
 
     "return 200 in response to a URL with a GET handler" in withServer {
@@ -107,7 +110,8 @@ trait HeadActionSpec extends PlaySpecification
       val wasCalled = new AtomicBoolean()
 
       val action = Action {
-        Ok.chunked(Enumerator("a", "b", "c").onDoneEnumerating(wasCalled.set(true)))
+        Ok.chunked(
+            Enumerator("a", "b", "c").onDoneEnumerating(wasCalled.set(true)))
       }
       serverWithAction(action) {
         await(wsUrl("/get").head())
@@ -127,6 +131,5 @@ trait HeadActionSpec extends PlaySpecification
       response.body must_== ""
       response.header(CONTENT_LENGTH) must beNone
     }
-
   }
 }

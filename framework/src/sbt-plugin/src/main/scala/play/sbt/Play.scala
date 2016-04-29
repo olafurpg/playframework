@@ -16,74 +16,78 @@ import play.sbt.routes.RoutesCompiler
 import play.sbt.PlayImport.PlayKeys
 
 /**
- * Base plugin for Play projects. Declares common settings for both Java and Scala based Play projects.
- */
+  * Base plugin for Play projects. Declares common settings for both Java and Scala based Play projects.
+  */
 object Play extends AutoPlugin {
 
-  override def requires = SbtTwirl && SbtJsTask && SbtWebDriver && RoutesCompiler && JavaServerAppPackaging
+  override def requires =
+    SbtTwirl && SbtJsTask && SbtWebDriver && RoutesCompiler &&
+    JavaServerAppPackaging
 
   val autoImport = PlayImport
 
   override def projectSettings =
-    PlaySettings.defaultSettings ++
-      Seq(
-        scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
+    PlaySettings.defaultSettings ++ Seq(
+        scalacOptions ++=
+          Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
         javacOptions in Compile ++= Seq("-encoding", "utf8", "-g")
-      )
+    )
 }
 
 /**
- * The main plugin for Play Java projects. To use this the plugin must be made available to your project
- * via sbt's enablePlugins mechanism e.g.:
- * {{{
- *   lazy val root = project.in(file(".")).enablePlugins(PlayJava)
- * }}}
- */
+  * The main plugin for Play Java projects. To use this the plugin must be made available to your project
+  * via sbt's enablePlugins mechanism e.g.:
+  * {{{
+  *   lazy val root = project.in(file(".")).enablePlugins(PlayJava)
+  * }}}
+  */
 object PlayJava extends AutoPlugin {
   override def requires = Play && PlayEnhancer
   override def projectSettings =
-    PlaySettings.defaultJavaSettings ++
-      Seq(libraryDependencies += PlayImport.javaCore)
+    PlaySettings.defaultJavaSettings ++ Seq(
+        libraryDependencies += PlayImport.javaCore)
 }
 
 /**
- * The main plugin for Play Scala projects. To use this the plugin must be made available to your project
- * via sbt's enablePlugins mechanism e.g.:
- * {{{
- *   lazy val root = project.in(file(".")).enablePlugins(PlayScala)
- * }}}
- */
+  * The main plugin for Play Scala projects. To use this the plugin must be made available to your project
+  * via sbt's enablePlugins mechanism e.g.:
+  * {{{
+  *   lazy val root = project.in(file(".")).enablePlugins(PlayScala)
+  * }}}
+  */
 object PlayScala extends AutoPlugin {
   override def requires = Play
-  override def projectSettings =
-    PlaySettings.defaultScalaSettings
+  override def projectSettings = PlaySettings.defaultScalaSettings
 }
 
 /**
- * This plugin enables the Play akka http server
- */
+  * This plugin enables the Play akka http server
+  */
 object PlayNettyServer extends AutoPlugin {
   override def requires = Play
   override def trigger = allRequirements
 
-  override def projectSettings = Seq(
-    libraryDependencies ++= {
-      if (PlayKeys.playPlugin.value) {
-        Nil
-      } else {
-        Seq("com.typesafe.play" %% "play-netty-server" % play.core.PlayVersion.current)
-      }
-    }
-  )
+  override def projectSettings =
+    Seq(
+        libraryDependencies ++= {
+          if (PlayKeys.playPlugin.value) {
+            Nil
+          } else {
+            Seq("com.typesafe.play" %% "play-netty-server" % play.core.PlayVersion.current)
+          }
+        }
+    )
 }
 
 /**
- * This plugin enables the Play akka http server
- */
+  * This plugin enables the Play akka http server
+  */
 object PlayAkkaHttpServer extends AutoPlugin {
   override def requires = Play
 
-  override def projectSettings = Seq(
-    libraryDependencies += "com.typesafe.play" %% "play-akka-http-server-experimental" % play.core.PlayVersion.current
-  )
+  override def projectSettings =
+    Seq(
+        libraryDependencies +=
+          "com.typesafe.play" %% "play-akka-http-server-experimental" % play.core.PlayVersion.current
+    )
 }

@@ -25,5 +25,4 @@ package object play {
   type PlayRunHook = sbt.PlayRunHook
   @deprecated("Use play.sbt.PlayRunHook instead", "2.4.0")
   val PlayRunHook = sbt.PlayRunHook
-
 }

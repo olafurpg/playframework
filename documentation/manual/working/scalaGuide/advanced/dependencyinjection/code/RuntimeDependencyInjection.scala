@@ -9,7 +9,8 @@ object RuntimeDependencyInjection extends PlaySpecification {
 
   "Play's runtime dependency injection support" should {
     "support constructor injection" in new WithApplication() {
-      app.injector.instanceOf[constructor.MyComponent] must beAnInstanceOf[constructor.MyComponent]
+      app.injector.instanceOf[constructor.MyComponent] must beAnInstanceOf[
+          constructor.MyComponent]
     }
     "support singleton scope" in new WithApplication() {
       app.injector.instanceOf[singleton.CurrentSharePrice].set(10)
@@ -26,116 +27,115 @@ object RuntimeDependencyInjection extends PlaySpecification {
       app.injector.instanceOf[implemented.Hello].sayHello("world") must_== "Hello world"
     }
   }
-
 }
 
 package constructor {
 //#constructor
-import javax.inject._
-import play.api.libs.ws._
+  import javax.inject._
+  import play.api.libs.ws._
 
-class MyComponent @Inject() (ws: WSClient) {
-  // ...
-}
+  class MyComponent @Inject()(ws: WSClient) {
+    // ...
+  }
 //#constructor
 }
 
 package singleton {
 //#singleton
-import javax.inject._
+  import javax.inject._
 
-@Singleton
-class CurrentSharePrice {
-  @volatile private var price = 0
+  @Singleton
+  class CurrentSharePrice {
+    @volatile private var price = 0
 
-  def set(p: Int) = price = p
-  def get = price
-}
+    def set(p: Int) = price = p
+    def get = price
+  }
 //#singleton
 }
 
 package cleanup {
-object MessageQueue {
-  @volatile var stopped = false
-  def connectToMessageQueue() = MessageQueue
-  def stop() = stopped = true
-}
-import MessageQueue.connectToMessageQueue
+  object MessageQueue {
+    @volatile var stopped = false
+    def connectToMessageQueue() = MessageQueue
+    def stop() = stopped = true
+  }
+  import MessageQueue.connectToMessageQueue
 
 //#cleanup
-import scala.concurrent.Future
-import javax.inject._
-import play.api.inject.ApplicationLifecycle
+  import scala.concurrent.Future
+  import javax.inject._
+  import play.api.inject.ApplicationLifecycle
 
-@Singleton
-class MessageQueueConnection @Inject() (lifecycle: ApplicationLifecycle) {
-  val connection = connectToMessageQueue()
-  lifecycle.addStopHook { () =>
-    Future.successful(connection.stop())
+  @Singleton
+  class MessageQueueConnection @Inject()(lifecycle: ApplicationLifecycle) {
+    val connection = connectToMessageQueue()
+    lifecycle.addStopHook { () =>
+      Future.successful(connection.stop())
+    }
+
+    //...
   }
-
-  //...
-}
 //#cleanup
 }
 
 package implemented {
 //#implemented-by
-import com.google.inject.ImplementedBy
+  import com.google.inject.ImplementedBy
 
-@ImplementedBy(classOf[EnglishHello])
-trait Hello {
-  def sayHello(name: String): String
-}
+  @ImplementedBy(classOf[EnglishHello])
+  trait Hello {
+    def sayHello(name: String): String
+  }
 
-class EnglishHello extends Hello {
-  def sayHello(name: String) = "Hello " + name
-}
+  class EnglishHello extends Hello {
+    def sayHello(name: String) = "Hello " + name
+  }
 //#implemented-by
-class GermanHello extends Hello {
-  def sayHello(name: String) = "Hallo " + name
-}
+  class GermanHello extends Hello {
+    def sayHello(name: String) = "Hallo " + name
+  }
 }
 
 package guicemodule {
 
-import implemented._
+  import implemented._
 
 //#guice-module
-import com.google.inject.AbstractModule
-import com.google.inject.name.Names
-  
-class HelloModule extends AbstractModule {
-  def configure() = {
+  import com.google.inject.AbstractModule
+  import com.google.inject.name.Names
 
-    bind(classOf[Hello])
-      .annotatedWith(Names.named("en"))
-      .to(classOf[EnglishHello])
+  class HelloModule extends AbstractModule {
+    def configure() = {
 
-    bind(classOf[Hello])
-      .annotatedWith(Names.named("de"))
-      .to(classOf[GermanHello])
+      bind(classOf[Hello])
+        .annotatedWith(Names.named("en"))
+        .to(classOf[EnglishHello])
+
+      bind(classOf[Hello])
+        .annotatedWith(Names.named("de"))
+        .to(classOf[GermanHello])
+    }
   }
-}
 //#guice-module
 }
 
 package playmodule {
 
-import play.api.{Configuration, Environment}
+  import play.api.{Configuration, Environment}
 
-import implemented._
+  import implemented._
 
 //#play-module
-import play.api.inject._
+  import play.api.inject._
 
-class HelloModule extends Module {
-  def bindings(environment: Environment,
-               configuration: Configuration) = Seq(
-    bind[Hello].qualifiedWith("en").to[EnglishHello],
-    bind[Hello].qualifiedWith("de").to[GermanHello]
-  )
-}
+  class HelloModule extends Module {
+    def bindings(environment: Environment, configuration: Configuration) =
+      Seq(
+          bind[Hello].qualifiedWith("en").to[EnglishHello],
+          bind[Hello].qualifiedWith("de").to[GermanHello]
+      )
+  }
 //#play-module
 }
 

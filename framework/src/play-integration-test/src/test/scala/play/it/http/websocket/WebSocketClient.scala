@@ -1,8 +1,8 @@
 /**
- * Some elements of this were copied from:
- *
- * https://gist.github.com/casualjim/1819496
- */
+  * Some elements of this were copied from:
+  *
+  * https://gist.github.com/casualjim/1819496
+  */
 package play.it.http.websocket
 
 import org.jboss.netty.bootstrap.ClientBootstrap
@@ -12,36 +12,38 @@ import java.util.concurrent.Executors
 import org.jboss.netty.handler.codec.http._
 import collection.JavaConversions._
 import websocketx._
-import java.net.{ InetSocketAddress, URI }
+import java.net.{InetSocketAddress, URI}
 import org.jboss.netty.util.CharsetUtil
-import scala.concurrent.{ Promise, Future }
+import scala.concurrent.{Promise, Future}
 import play.api.libs.iteratee.Execution.Implicits.trampoline
 import play.api.libs.iteratee._
 
 /**
- * A basic WebSocketClient.  Basically wraps Netty's WebSocket support into something that's much easier to use and much
- * more Scala friendly.
- */
+  * A basic WebSocketClient.  Basically wraps Netty's WebSocket support into something that's much easier to use and much
+  * more Scala friendly.
+  */
 trait WebSocketClient {
 
   import WebSocketClient._
 
   /**
-   * Connect to the given URI.
-   *
-   * @return A future that will be redeemed when the connection is closed.
-   */
-  def connect(url: URI, version: WebSocketVersion = WebSocketVersion.V13)(onConnect: Handler): Future[Unit]
+    * Connect to the given URI.
+    *
+    * @return A future that will be redeemed when the connection is closed.
+    */
+  def connect(url: URI, version: WebSocketVersion = WebSocketVersion.V13)(
+      onConnect: Handler): Future[Unit]
 
   /**
-   * Shutdown the client and release all associated resources.
-   */
+    * Shutdown the client and release all associated resources.
+    */
   def shutdown()
 }
 
 object WebSocketClient {
 
-  type Handler = (Enumerator[WebSocketFrame], Iteratee[WebSocketFrame, _]) => Unit
+  type Handler = (Enumerator[WebSocketFrame],
+  Iteratee[WebSocketFrame, _]) => Unit
 
   def create(): WebSocketClient = new DefaultWebSocketClient
 
@@ -70,12 +72,14 @@ object WebSocketClient {
       })
       promise.future
     }
-
   }
 
   private class DefaultWebSocketClient extends WebSocketClient {
-    val bootstrap = new ClientBootstrap(new NioClientSocketChannelFactory(Executors.newSingleThreadExecutor(),
-      Executors.newSingleThreadExecutor(), 1, 1))
+    val bootstrap = new ClientBootstrap(
+        new NioClientSocketChannelFactory(Executors.newSingleThreadExecutor(),
+                                          Executors.newSingleThreadExecutor(),
+                                          1,
+                                          1))
 
     bootstrap.setPipelineFactory(new ChannelPipelineFactory {
       def getPipeline = {
@@ -87,24 +91,39 @@ object WebSocketClient {
     })
 
     /**
-     * Connect to the given URI
-     */
-    def connect(url: URI, version: WebSocketVersion)(onConnected: (Enumerator[WebSocketFrame], Iteratee[WebSocketFrame, _]) => Unit) = {
+      * Connect to the given URI
+      */
+    def connect(url: URI, version: WebSocketVersion)(
+        onConnected: (Enumerator[WebSocketFrame],
+        Iteratee[WebSocketFrame, _]) => Unit) = {
 
       val normalized = url.normalize()
-      val tgt = if (normalized.getPath == null || normalized.getPath.trim().isEmpty) {
-        new URI(normalized.getScheme, normalized.getAuthority, "/", normalized.getQuery, normalized.getFragment)
-      } else normalized
+      val tgt =
+        if (normalized.getPath == null || normalized.getPath.trim().isEmpty) {
+          new URI(normalized.getScheme,
+                  normalized.getAuthority,
+                  "/",
+                  normalized.getQuery,
+                  normalized.getFragment)
+        } else normalized
 
       val disconnected = Promise[Unit]()
 
-      bootstrap.connect(new InetSocketAddress(tgt.getHost, tgt.getPort)).toScala.map { channel =>
-        val handshaker = new WebSocketClientHandshakerFactory().newHandshaker(tgt, version, null, false, Map.empty[String, String])
-        channel.getPipeline.addLast("supervisor", new WebSocketSupervisor(disconnected, handshaker, onConnected))
-        handshaker.handshake(channel)
-      }.onFailure {
-        case t => disconnected.tryFailure(t)
-      }
+      bootstrap
+        .connect(new InetSocketAddress(tgt.getHost, tgt.getPort))
+        .toScala
+        .map { channel =>
+          val handshaker =
+            new WebSocketClientHandshakerFactory().newHandshaker(
+                tgt, version, null, false, Map.empty[String, String])
+          channel.getPipeline.addLast(
+              "supervisor",
+              new WebSocketSupervisor(disconnected, handshaker, onConnected))
+          handshaker.handshake(channel)
+        }
+        .onFailure {
+          case t => disconnected.tryFailure(t)
+        }
 
       disconnected.future
     }
@@ -112,42 +131,55 @@ object WebSocketClient {
     def shutdown() = bootstrap.releaseExternalResources()
   }
 
-  private class WebSocketSupervisor(disconnected: Promise[Unit], handshaker: WebSocketClientHandshaker,
-      onConnected: Handler) extends SimpleChannelUpstreamHandler {
+  private class WebSocketSupervisor(disconnected: Promise[Unit],
+                                    handshaker: WebSocketClientHandshaker,
+                                    onConnected: Handler)
+      extends SimpleChannelUpstreamHandler {
     override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
       e.getMessage match {
         case resp: HttpResponse if handshaker.isHandshakeComplete =>
-          throw new WebSocketException("Unexpected HttpResponse (status=" + resp.getStatus +
-            ", content=" + resp.getContent.toString(CharsetUtil.UTF_8) + ")")
+          throw new WebSocketException(
+              "Unexpected HttpResponse (status=" + resp.getStatus +
+              ", content=" + resp.getContent.toString(CharsetUtil.UTF_8) + ")")
         case resp: HttpResponse =>
-          handshaker.finishHandshake(ctx.getChannel, e.getMessage.asInstanceOf[HttpResponse])
-          ctx.getPipeline.addLast("websocket", new WebSocketClientHandler(ctx.getChannel, onConnected, disconnected))
+          handshaker.finishHandshake(
+              ctx.getChannel, e.getMessage.asInstanceOf[HttpResponse])
+          ctx.getPipeline.addLast(
+              "websocket",
+              new WebSocketClientHandler(
+                  ctx.getChannel, onConnected, disconnected))
         case _: WebSocketFrame => ctx.sendUpstream(e)
         case _ => throw new WebSocketException("Unexpected event: " + e)
       }
     }
 
-    override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
+    override def channelDisconnected(
+        ctx: ChannelHandlerContext, e: ChannelStateEvent) {
       disconnected.trySuccess(())
       ctx.sendDownstream(e)
     }
 
-    override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-      val exception = new RuntimeException("Exception caught in web socket handler", e.getCause)
+    override def exceptionCaught(
+        ctx: ChannelHandlerContext, e: ExceptionEvent) {
+      val exception = new RuntimeException(
+          "Exception caught in web socket handler", e.getCause)
       disconnected.tryFailure(exception)
       ctx.getChannel.close()
       ctx.sendDownstream(e)
     }
   }
 
-  private class WebSocketClientHandler(out: Channel, onConnected: Handler,
-      disconnected: Promise[Unit]) extends SimpleChannelUpstreamHandler {
+  private class WebSocketClientHandler(
+      out: Channel, onConnected: Handler, disconnected: Promise[Unit])
+      extends SimpleChannelUpstreamHandler {
 
     val (enumerator, in) = Concurrent.broadcast[WebSocketFrame]
 
     val iteratee: Iteratee[WebSocketFrame, _] = Cont {
-      case Input.El(wsf) => Iteratee.flatten(out.write(wsf).toScala.map(_ => iteratee))
-      case Input.EOF => Iteratee.flatten(out.close().toScala.map(_ => Done((), Input.EOF)))
+      case Input.El(wsf) =>
+        Iteratee.flatten(out.write(wsf).toScala.map(_ => iteratee))
+      case Input.EOF =>
+        Iteratee.flatten(out.close().toScala.map(_ => Done((), Input.EOF)))
       case Input.Empty => iteratee
     }
 
@@ -165,21 +197,24 @@ object WebSocketClient {
       }
     }
 
-    override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-      val exception = new RuntimeException("Exception caught in web socket handler", e.getCause)
+    override def exceptionCaught(
+        ctx: ChannelHandlerContext, e: ExceptionEvent) {
+      val exception = new RuntimeException(
+          "Exception caught in web socket handler", e.getCause)
       disconnected.tryFailure(exception)
       in.end(exception)
       ctx.getChannel.close()
     }
 
-    override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) = {
+    override def channelDisconnected(
+        ctx: ChannelHandlerContext, e: ChannelStateEvent) = {
       disconnected.trySuccess(())
       in.end()
     }
   }
 
-  class WebSocketException(s: String, th: Throwable) extends java.io.IOException(s, th) {
+  class WebSocketException(s: String, th: Throwable)
+      extends java.io.IOException(s, th) {
     def this(s: String) = this(s, null)
   }
-
 }

@@ -7,7 +7,7 @@ import javax.inject._
 
 import play.api.test._
 import java.util.concurrent.atomic.AtomicInteger
-import play.api.mvc.{ Results, Action }
+import play.api.mvc.{Results, Action}
 import play.api.http
 
 import scala.concurrent.duration._
@@ -34,9 +34,11 @@ class CachedSpec extends PlaySpecification {
       header(EXPIRES, result2) must_== header(EXPIRES, result1)
     }
 
-    "cache values using named injected CachedApi" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map("play.cache.bindCaches" -> Seq("custom"))
-    )) {
+    "cache values using named injected CachedApi" in new WithApplication(
+        FakeApplication(
+            additionalConfiguration = Map(
+                  "play.cache.bindCaches" -> Seq("custom"))
+        )) {
       val controller = app.injector.instanceOf[NamedCachedController]
       val result1 = controller.action(FakeRequest()).run
       contentAsString(result1) must_== "1"
@@ -60,21 +62,22 @@ class CachedSpec extends PlaySpecification {
       import net.sf.ehcache.store.MemoryStoreEvictionPolicy
       // FIXME: Do this properly
       val cacheManager = app.injector.instanceOf[CacheManager]
-      val diskEhcache = new Cache(
-        new CacheConfiguration("disk", 30)
-          .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LFU)
-          .eternal(false)
-          .timeToLiveSeconds(60)
-          .timeToIdleSeconds(30)
-          .diskExpiryThreadIntervalSeconds(0)
-          .persistence(new PersistenceConfiguration().strategy(PersistenceConfiguration.Strategy.LOCALTEMPSWAP)))
+      val diskEhcache = new Cache(new CacheConfiguration("disk", 30)
+            .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LFU)
+            .eternal(false)
+            .timeToLiveSeconds(60)
+            .timeToIdleSeconds(30)
+            .diskExpiryThreadIntervalSeconds(0)
+            .persistence(new PersistenceConfiguration()
+                  .strategy(PersistenceConfiguration.Strategy.LOCALTEMPSWAP)))
       cacheManager.addCache(diskEhcache)
       val diskEhcache2 = cacheManager.getCache("disk")
       assert(diskEhcache2 != null)
       val diskCache = new EhCacheApi(diskEhcache2)
       val diskCached = new Cached(diskCache)
       val invoked = new AtomicInteger()
-      val action = diskCached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+      val action = diskCached(_ => "foo")(
+          Action(Results.Ok("" + invoked.incrementAndGet())))
       val result1 = action(FakeRequest()).run
       contentAsString(result1) must_== "1"
       invoked.get() must_== 1
@@ -90,7 +93,8 @@ class CachedSpec extends PlaySpecification {
 
     "cache values using Application's Cached" in new WithApplication() {
       val invoked = new AtomicInteger()
-      val action = Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+      val action =
+        Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
       val result1 = action(FakeRequest()).run
       contentAsString(result1) must_== "1"
       invoked.get() must_== 1
@@ -106,20 +110,23 @@ class CachedSpec extends PlaySpecification {
 
     "use etags for values" in new WithApplication() {
       val invoked = new AtomicInteger()
-      val action = Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+      val action =
+        Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
       val result1 = action(FakeRequest()).run
       status(result1) must_== 200
       invoked.get() must_== 1
       val etag = header(ETAG, result1)
       etag must beSome(matching("""([wW]/)?"([^"]|\\")*"""")) //"""
-      val result2 = action(FakeRequest().withHeaders(IF_NONE_MATCH -> etag.get)).run
+      val result2 =
+        action(FakeRequest().withHeaders(IF_NONE_MATCH -> etag.get)).run
       status(result2) must_== NOT_MODIFIED
       invoked.get() must_== 1
     }
 
     "support wildcard etags" in new WithApplication() {
       val invoked = new AtomicInteger()
-      val action = Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+      val action =
+        Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
       val result1 = action(FakeRequest()).run
       status(result1) must_== 200
       invoked.get() must_== 1
@@ -132,9 +139,12 @@ class CachedSpec extends PlaySpecification {
       val action = Cached(_.uri)(Action(Results.Ok))
       val resultA = action(FakeRequest("GET", "/a")).run
       status(resultA) must_== 200
-      status(action(FakeRequest("GET", "/a").withHeaders(IF_NONE_MATCH -> "foo")).run) must_== 200
-      status(action(FakeRequest("GET", "/b").withHeaders(IF_NONE_MATCH -> header(ETAG, resultA).get)).run) must_== 200
-      status(action(FakeRequest("GET", "/c").withHeaders(IF_NONE_MATCH -> "*")).run) must_== 200
+      status(action(FakeRequest("GET", "/a").withHeaders(
+                  IF_NONE_MATCH -> "foo")).run) must_== 200
+      status(action(FakeRequest("GET", "/b").withHeaders(
+                  IF_NONE_MATCH -> header(ETAG, resultA).get)).run) must_== 200
+      status(
+          action(FakeRequest("GET", "/c").withHeaders(IF_NONE_MATCH -> "*")).run) must_== 200
     }
   }
 
@@ -204,13 +214,12 @@ class CachedSpec extends PlaySpecification {
         Duration(target - now, MILLISECONDS)
       }
 
-      val beInOneHour = beBetween(
-        (Duration(1, HOURS) - Duration(10, SECONDS)).toMillis,
-        Duration(1, HOURS).toMillis)
+      val beInOneHour =
+        beBetween((Duration(1, HOURS) - Duration(10, SECONDS)).toMillis,
+                  Duration(1, HOURS).toMillis)
 
       res0.map(toDuration).map(_.toMillis) must beSome(beInOneHour)
       res1.map(toDuration).map(_.toMillis) must beSome(beInOneHour)
-
     }
   }
 
@@ -240,9 +249,11 @@ class CachedSpec extends PlaySpecification {
   }
 
   "EhCacheModule" should {
-    "support binding multiple different caches" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map("play.cache.bindCaches" -> Seq("custom"))
-    )) {
+    "support binding multiple different caches" in new WithApplication(
+        FakeApplication(
+            additionalConfiguration = Map(
+                  "play.cache.bindCaches" -> Seq("custom"))
+        )) {
       val component = app.injector.instanceOf[SomeComponent]
       val defaultCache = app.injector.instanceOf[CacheApi]
       component.set("foo", "bar")
@@ -250,23 +261,24 @@ class CachedSpec extends PlaySpecification {
       component.get("foo") must beSome("bar")
     }
   }
-
 }
 
-class SomeComponent @Inject() (@NamedCache("custom") cache: CacheApi) {
+class SomeComponent @Inject()(@NamedCache("custom") cache: CacheApi) {
   def get(key: String) = cache.get[String](key)
   def set(key: String, value: String) = cache.set(key, value)
 }
 
-class CachedController @Inject() (cached: Cached) {
+class CachedController @Inject()(cached: Cached) {
   val invoked = new AtomicInteger()
-  val action = cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+  val action =
+    cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
 }
 
-class NamedCachedController @Inject() (
+class NamedCachedController @Inject()(
     @NamedCache("custom") val cache: CacheApi,
     @NamedCache("custom") val cached: Cached) {
   val invoked = new AtomicInteger()
-  val action = cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+  val action =
+    cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
   def isCached(key: String): Boolean = cache.get[String](key).isDefined
 }

@@ -5,7 +5,7 @@ package play.it.http.parsing
 
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.iteratee.Enumerator
-import play.api.mvc.{ Result, MultipartFormData, BodyParsers }
+import play.api.mvc.{Result, MultipartFormData, BodyParsers}
 import play.api.test._
 import play.core.parsers.Multipart.FileInfoMatcher
 import play.utils.PlayIO
@@ -50,10 +50,12 @@ object MultipartFormDataParserSpec extends PlaySpecification {
         }
         parts.files must haveLength(2)
         parts.file("file1") must beSome.like {
-          case filePart => PlayIO.readFileAsString(filePart.ref.file) must_== "the first file\r\n"
+          case filePart =>
+            PlayIO.readFileAsString(filePart.ref.file) must_== "the first file\r\n"
         }
         parts.file("file2") must beSome.like {
-          case filePart => PlayIO.readFileAsString(filePart.ref.file) must_== "the second file\r\n"
+          case filePart =>
+            PlayIO.readFileAsString(filePart.ref.file) must_== "the second file\r\n"
         }
     }
   }
@@ -61,20 +63,22 @@ object MultipartFormDataParserSpec extends PlaySpecification {
   "The multipart/form-data parser" should {
     "parse some content" in new WithApplication() {
       val parser = parse.multipartFormData.apply(FakeRequest().withHeaders(
-        CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
-      ))
+              CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+          ))
 
       val result = await(Enumerator(body.getBytes("utf-8")).run(parser))
 
       checkResult(result)
     }
 
-    "validate the full length of the body" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map("play.http.parser.maxDiskBuffer" -> "100")
-    )) {
+    "validate the full length of the body" in new WithApplication(
+        FakeApplication(
+            additionalConfiguration = Map(
+                  "play.http.parser.maxDiskBuffer" -> "100")
+        )) {
       val parser = parse.multipartFormData.apply(FakeRequest().withHeaders(
-        CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
-      ))
+              CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+          ))
 
       val result = await(Enumerator(body.getBytes("utf-8")).run(parser))
 
@@ -83,12 +87,14 @@ object MultipartFormDataParserSpec extends PlaySpecification {
       }
     }
 
-    "not parse more than the max data length" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map("play.http.parser.maxMemoryBuffer" -> "30")
-    )) {
+    "not parse more than the max data length" in new WithApplication(
+        FakeApplication(
+            additionalConfiguration = Map(
+                  "play.http.parser.maxMemoryBuffer" -> "30")
+        )) {
       val parser = parse.multipartFormData.apply(FakeRequest().withHeaders(
-        CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
-      ))
+              CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+          ))
 
       val result = await(Enumerator(body.getBytes("utf-8")).run(parser))
 
@@ -99,8 +105,8 @@ object MultipartFormDataParserSpec extends PlaySpecification {
 
     "work if there's no crlf at the start" in new WithApplication() {
       val parser = parse.multipartFormData.apply(FakeRequest().withHeaders(
-        CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
-      ))
+              CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+          ))
 
       val result = await(Enumerator(body.trim.getBytes("utf-8")).run(parser))
 
@@ -108,16 +114,21 @@ object MultipartFormDataParserSpec extends PlaySpecification {
     }
 
     "parse headers with semicolon inside quotes" in {
-      val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name="document"; filename="semicolon;inside.jpg"""", "content-type" -> "image/jpeg"))
+      val result = FileInfoMatcher.unapply(
+          Map("content-disposition" -> """form-data; name="document"; filename="semicolon;inside.jpg"""",
+              "content-type" -> "image/jpeg"))
       result must not beEmpty;
-      result.get must equalTo(("document", "semicolon;inside.jpg", Option("image/jpeg")));
+      result.get must equalTo(
+          ("document", "semicolon;inside.jpg", Option("image/jpeg")));
     }
 
     "parse headers with escaped quote inside quotes" in {
-      val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name="document"; filename="quotes\"\".jpg"""", "content-type" -> "image/jpeg"))
+      val result = FileInfoMatcher.unapply(
+          Map("content-disposition" -> """form-data; name="document"; filename="quotes\"\".jpg"""",
+              "content-type" -> "image/jpeg"))
       result must not beEmpty;
-      result.get must equalTo(("document", """quotes"".jpg""", Option("image/jpeg")));
+      result.get must equalTo(
+          ("document", """quotes"".jpg""", Option("image/jpeg")));
     }
   }
-
 }

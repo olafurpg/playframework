@@ -5,8 +5,8 @@ package play.api.libs.streams.impl
 
 import org.reactivestreams._
 import org.specs2.mutable.Specification
-import play.api.libs.iteratee.{ Concurrent, Enumerator, Input }
-import scala.concurrent.{ Await, Future, Promise }
+import play.api.libs.iteratee.{Concurrent, Enumerator, Input}
+import scala.concurrent.{Await, Future, Promise}
 import scala.concurrent.duration._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -49,7 +49,6 @@ class EnumeratorPublisherSpec extends Specification {
         s.cancel()
       }
     }
-
   }
 
   "EnumeratorPublisher" should {
@@ -137,7 +136,8 @@ class EnumeratorPublisherSpec extends Specification {
     }
     "by default, enumerate nothing for empty" in {
       val testEnv = new TestEnv[Int]
-      val enum: Enumerator[Int] = Enumerator.enumInput(Input.Empty) >>> Enumerator.eof
+      val enum: Enumerator[Int] =
+        Enumerator.enumInput(Input.Empty) >>> Enumerator.eof
       val pubr = new EnumeratorPublisher(enum)
       pubr.subscribe(testEnv.subscriber)
       testEnv.next must_== OnSubscribe
@@ -148,7 +148,8 @@ class EnumeratorPublisherSpec extends Specification {
     }
     "be able to enumerate something for empty" in {
       val testEnv = new TestEnv[Int]
-      val enum: Enumerator[Int] = Enumerator.enumInput(Input.Empty) >>> Enumerator.eof
+      val enum: Enumerator[Int] =
+        Enumerator.enumInput(Input.Empty) >>> Enumerator.eof
       val pubr = new EnumeratorPublisher(enum, emptyElement = Some(-1))
       pubr.subscribe(testEnv.subscriber)
       testEnv.next must_== OnSubscribe
@@ -175,7 +176,7 @@ class EnumeratorPublisherSpec extends Specification {
     "enumerate 25 items" in {
       val testEnv = new TestEnv[Int]
       val lotsOfItems = 0 until 25
-      val enum = Enumerator(lotsOfItems: _*) >>> Enumerator.eof
+      val enum = Enumerator(lotsOfItems:_*) >>> Enumerator.eof
       val pubr = new EnumeratorPublisher(enum)
       pubr.subscribe(testEnv.subscriber)
       testEnv.next must_== OnSubscribe
@@ -190,5 +191,4 @@ class EnumeratorPublisherSpec extends Specification {
       testEnv.isEmptyAfterDelay() must beTrue
     }
   }
-
 }

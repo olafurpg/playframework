@@ -10,7 +10,6 @@ trait Applicative[M[_]] {
   def pure[A](a: A): M[A]
   def map[A, B](m: M[A], f: A => B): M[B]
   def apply[A, B](mf: M[A => B], ma: M[A]): M[B]
-
 }
 
 class ApplicativeOps[M[_], A](ma: M[A])(implicit a: Applicative[M]) {
@@ -22,5 +21,6 @@ class ApplicativeOps[M[_], A](ma: M[A])(implicit a: Applicative[M]) {
   def keepAnd[B](mb: M[B]): M[A] = <~(mb)
 
   def <~>[B, C](mb: M[B])(implicit witness: <:<[A, B => C]): M[C] = apply(mb)
-  def apply[B, C](mb: M[B])(implicit witness: <:<[A, B => C]): M[C] = a(a.map(ma, witness), mb)
+  def apply[B, C](mb: M[B])(implicit witness: <:<[A, B => C]): M[C] =
+    a(a.map(ma, witness), mb)
 }

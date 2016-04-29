@@ -28,21 +28,30 @@ package scalaguide.upload.fileupload {
 
         //#upload-file-action
         def upload = Action(parse.multipartFormData) { request =>
-          request.body.file("picture").map { picture =>
-            import java.io.File
-            val filename = picture.filename
-            val contentType = picture.contentType
-            picture.ref.moveTo(new File(s"/tmp/picture/$filename"))
-            Ok("File uploaded")
-          }.getOrElse {
-            Redirect(routes.Application.index).flashing(
-              "error" -> "Missing file")
-          }
+          request.body
+            .file("picture")
+            .map { picture =>
+              import java.io.File
+              val filename = picture.filename
+              val contentType = picture.contentType
+              picture.ref.moveTo(new File(s"/tmp/picture/$filename"))
+              Ok("File uploaded")
+            }
+            .getOrElse {
+              Redirect(routes.Application.index)
+                .flashing("error" -> "Missing file")
+            }
         }
         //#upload-file-action
 
         val request = FakeRequest().withBody(
-          MultipartFormData(Map.empty, Seq(FilePart("picture", "formuploaded", None, TemporaryFile(tmpFile))), Nil, Nil)
+            MultipartFormData(Map.empty,
+                              Seq(FilePart("picture",
+                                           "formuploaded",
+                                           None,
+                                           TemporaryFile(tmpFile))),
+                              Nil,
+                              Nil)
         )
         testAction(upload, request)
 
@@ -66,7 +75,9 @@ package scalaguide.upload.fileupload {
       }
     }
 
-    def testAction[A](action: Action[A], request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) = {
+    def testAction[A](action: Action[A],
+                      request: => Request[A] = FakeRequest(),
+                      expectedResponse: Int = OK) = {
       running(FakeApplication()) {
 
         val result = action(request)
@@ -84,23 +95,20 @@ package scalaguide.upload.fileupload {
         out.close()
       }
     }
-
   }
   package controllers {
     class Application extends Controller {
 
       //#upload-file-directly-action
-        def upload = Action(parse.temporaryFile) { request =>
-          request.body.moveTo(new File("/tmp/picture/uploaded"))
-          Ok("File uploaded")
-        }
-        //#upload-file-directly-action
+      def upload = Action(parse.temporaryFile) { request =>
+        request.body.moveTo(new File("/tmp/picture/uploaded"))
+        Ok("File uploaded")
+      }
+      //#upload-file-directly-action
 
       def index = Action { request =>
         Ok("Upload failed")
       }
-
     }
   }
 }
-  

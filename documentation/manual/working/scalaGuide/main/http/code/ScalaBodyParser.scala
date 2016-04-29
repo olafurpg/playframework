@@ -3,8 +3,8 @@
  */
 package scalaguide.http.scalabodyparsers {
 
-import play.api.http.Writeable
-import play.api.mvc._
+  import play.api.http.Writeable
+  import play.api.mvc._
   import play.api.test._
   import play.api.test.Helpers._
   import org.specs2.mutable.Specification
@@ -58,9 +58,10 @@ import play.api.mvc._
 
       "body parser file" in {
         //#body-parser-file
-        def save = Action(parse.file(to = new File("/tmp/upload"))) { request =>
-          Ok("Saved the request content to " + request.body)
-        }
+        def save =
+          Action(parse.file(to = new File("/tmp/upload"))) { request =>
+            Ok("Saved the request content to " + request.body)
+          }
         //#body-parser-file
         testAction(save, helloRequest.withSession("username" -> "player"))
       }
@@ -83,30 +84,37 @@ import play.api.mvc._
       }
 
       "body parser limit file" in {
-        val storeInUserFile = scalaguide.http.scalabodyparsers.full.Application.storeInUserFile
+        val storeInUserFile =
+          scalaguide.http.scalabodyparsers.full.Application.storeInUserFile
         //#body-parser-limit-file
         // Accept only 10KB of data.
-        def save = Action(parse.maxLength(1024 * 10, storeInUserFile)) { request =>
-          Ok("Saved the request content to " + request.body)
-        }
+        def save =
+          Action(parse.maxLength(1024 * 10, storeInUserFile)) { request =>
+            Ok("Saved the request content to " + request.body)
+          }
         //#body-parser-limit-file
         testAction(save, helloRequest.withSession("username" -> "player"))
       }
-
     }
 
-    def testAction[A: Writeable](action: EssentialAction, request: => FakeRequest[A], expectedResponse: Int = OK) = {
-      assertAction(action, request, expectedResponse) { result => success }
+    def testAction[A : Writeable](action: EssentialAction,
+                                  request: => FakeRequest[A],
+                                  expectedResponse: Int = OK) = {
+      assertAction(action, request, expectedResponse) { result =>
+        success
+      }
     }
 
-    def assertAction[A: Writeable, T: AsResult](action: EssentialAction, request: => FakeRequest[A], expectedResponse: Int = OK)(assertions: Future[Result] => T) = {
+    def assertAction[A : Writeable, T : AsResult](action: EssentialAction,
+                                                  request: => FakeRequest[A],
+                                                  expectedResponse: Int = OK)(
+        assertions: Future[Result] => T) = {
       running(FakeApplication()) {
         val result = call(action, request)
         status(result) must_== expectedResponse
         assertions(result)
       }
     }
-
   }
 
   package scalaguide.http.scalabodyparsers.full {
@@ -117,11 +125,14 @@ import play.api.mvc._
       def file(to: File) = parse.file(to)
       //#body-parser-combining
       val storeInUserFile = parse.using { request =>
-        request.session.get("username").map { user =>
-          file(to = new File("/tmp/" + user + ".upload"))
-        }.getOrElse {
-          sys.error("You don't have the right to upload here")
-        }
+        request.session
+          .get("username")
+          .map { user =>
+            file(to = new File("/tmp/" + user + ".upload"))
+          }
+          .getOrElse {
+            sys.error("You don't have the right to upload here")
+          }
       }
 
       def save = Action(storeInUserFile) { request =>
@@ -143,8 +154,6 @@ import play.api.mvc._
         def body: A
       }
       //#Source-Code-Request
-
     }
   }
 }
- 

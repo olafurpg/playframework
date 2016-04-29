@@ -9,7 +9,8 @@ import play.api.test._
 class LangSpec extends PlaySpecification {
   "lang spec" should {
     "allow selecting preferred language" in {
-      implicit val app = FakeApplication(additionalConfiguration = Map("play.i18n.langs" -> Seq("en-US", "es-ES", "de")))
+      implicit val app = FakeApplication(additionalConfiguration = Map(
+                "play.i18n.langs" -> Seq("en-US", "es-ES", "de")))
       val esEs = Lang("es", "ES")
       val es = Lang("es")
       val deDe = Lang("de", "DE")
@@ -53,7 +54,6 @@ class LangSpec extends PlaySpecification {
       "even with locales with different caseness" in trLocaleContext {
         Lang.get("ii-ii") must_== Lang.get("ii-II")
       }
-
     }
 
     "forbid instantiation of language code" in {
@@ -77,7 +77,8 @@ class LangSpec extends PlaySpecification {
       }
 
       "preferred language" in {
-        implicit val app = FakeApplication(additionalConfiguration = Map("application.langs" -> "crh-UA,ber,ast-ES"))
+        implicit val app = FakeApplication(additionalConfiguration = Map(
+                  "application.langs" -> "crh-UA,ber,ast-ES"))
 
         val crhUA = Lang("crh", "UA")
         val crh = Lang("crh")
@@ -109,15 +110,13 @@ class LangSpec extends PlaySpecification {
         "in order" in {
           Lang.preferred(Seq(astES, crhUA)) must_== astES
         }
-
       }
     }
-
   }
 }
 
 object trLocaleContext extends org.specs2.mutable.Around {
-  def around[T: org.specs2.execute.AsResult](t: => T) = {
+  def around[T : org.specs2.execute.AsResult](t: => T) = {
     val defaultLocale = java.util.Locale.getDefault
     java.util.Locale.setDefault(new java.util.Locale("tr"))
     val result = org.specs2.execute.AsResult(t)
@@ -125,4 +124,3 @@ object trLocaleContext extends org.specs2.mutable.Around {
     result
   }
 }
-

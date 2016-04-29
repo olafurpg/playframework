@@ -16,21 +16,23 @@ class ExampleSpec extends PlaySpec with OneServerPerSuite {
 
   // Override app if you need a FakeApplication with other than
   // default parameters.
-  implicit override lazy val app: FakeApplication =
-    FakeApplication(
+  implicit override lazy val app: FakeApplication = FakeApplication(
       additionalConfiguration = Map("ehcacheplugin" -> "disabled"),
       withRoutes = {
         case ("GET", "/") => Action { Ok("ok") }
       }
-    )
+  )
 
   "test server logic" in {
-    val myPublicAddress =  s"localhost:$port"
+    val myPublicAddress = s"localhost:$port"
     val testPaymentGatewayURL = s"http://$myPublicAddress"
     // The test payment gateway requires a callback to this server before it returns a result...
     val callbackURL = s"http://$myPublicAddress/callback"
     // await is from play.api.test.FutureAwaits
-    val response = await(WS.url(testPaymentGatewayURL).withQueryString("callbackURL" -> callbackURL).get())
+    val response = await(WS
+          .url(testPaymentGatewayURL)
+          .withQueryString("callbackURL" -> callbackURL)
+          .get())
 
     response.status mustBe (OK)
   }

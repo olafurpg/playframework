@@ -3,14 +3,15 @@
  */
 package play.api.inject.guice
 
-import play.api.{ Application, ApplicationLoader, Configuration, Environment, OptionalSourceMapper }
-import play.api.inject.{ bind, Injector => PlayInjector }
+import play.api.{Application, ApplicationLoader, Configuration, Environment, OptionalSourceMapper}
+import play.api.inject.{bind, Injector => PlayInjector}
 import play.core.WebCommands
 
 /**
- * An ApplicationLoader that uses Guice to bootstrap the application.
- */
-class GuiceApplicationLoader(builder: GuiceApplicationBuilder) extends ApplicationLoader {
+  * An ApplicationLoader that uses Guice to bootstrap the application.
+  */
+class GuiceApplicationLoader(builder: GuiceApplicationBuilder)
+    extends ApplicationLoader {
 
   // empty constructor needed for instantiating via reflection
   def this() = this(new GuiceApplicationBuilder)
@@ -23,13 +24,12 @@ class GuiceApplicationLoader(builder: GuiceApplicationBuilder) extends Applicati
     builder
       .in(context.environment)
       .loadConfig(context.initialConfiguration)
-      .overrides(overrides(context): _*)
+      .overrides(overrides(context):_*)
   }
 
   def overrides(context: ApplicationLoader.Context): Seq[GuiceableModule] = {
-    Seq(
-      bind[OptionalSourceMapper] to new OptionalSourceMapper(context.sourceMapper),
-      bind[WebCommands] to context.webCommands)
+    Seq(bind[OptionalSourceMapper] to new OptionalSourceMapper(
+            context.sourceMapper),
+        bind[WebCommands] to context.webCommands)
   }
-
 }

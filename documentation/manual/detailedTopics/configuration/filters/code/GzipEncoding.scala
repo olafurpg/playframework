@@ -13,7 +13,7 @@ object GzipEncoding extends PlaySpecification {
   import play.api.http.HttpFilters
   import play.filters.gzip.GzipFilter
 
-  class Filters @Inject() (gzipFilter: GzipFilter) extends HttpFilters {
+  class Filters @Inject()(gzipFilter: GzipFilter) extends HttpFilters {
     def filters = Seq(gzipFilter)
   }
   //#filters
@@ -21,23 +21,20 @@ object GzipEncoding extends PlaySpecification {
   "gzip filter" should {
 
     "allow custom strategies for when to gzip" in {
-      val filter =
-        //#should-gzip
-        new GzipFilter(shouldGzip = (request, response) =>
-          response.headers.get("Content-Type").exists(_.startsWith("text/html")))
-        //#should-gzip
+      val filter = //#should-gzip
+      new GzipFilter(shouldGzip = (request, response) =>
+              response.headers
+                .get("Content-Type")
+                .exists(_.startsWith("text/html")))
+      //#should-gzip
 
       import play.api.mvc._
       running(FakeApplication()) {
         header(CONTENT_ENCODING,
-          filter(Action(Results.Ok("foo")))(gzipRequest).run
-        ) must beNone
+               filter(Action(Results.Ok("foo")))(gzipRequest).run) must beNone
       }
     }
-
   }
 
   def gzipRequest = FakeRequest().withHeaders(ACCEPT_ENCODING -> "gzip")
-
-
 }

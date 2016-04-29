@@ -15,7 +15,8 @@ object BasicFrameFormatterSpec extends Specification {
       BasicFrameFormatter.textFrame.fromFrame(TextFrame("hello")) must_== "hello"
     }
     "not translate BinaryFrames" in {
-      BasicFrameFormatter.textFrame.fromFrame(BinaryFrame(Array[Byte](1, 2, 3))) must throwAn[IllegalArgumentException]
+      BasicFrameFormatter.textFrame.fromFrame(BinaryFrame(
+              Array[Byte](1, 2, 3))) must throwAn[IllegalArgumentException]
     }
     "say that it handles TextFrames" in {
       BasicFrameFormatter.textFrame.fromFrameDefined(classOf[TextFrame]) must beTrue
@@ -32,10 +33,13 @@ object BasicFrameFormatterSpec extends Specification {
       }
     }
     "translate BinaryFrames to byte arrays" in {
-      BasicFrameFormatter.binaryFrame.fromFrame(BinaryFrame(Array[Byte](1, 2, 3))).to[Seq] must_== Seq[Byte](1, 2, 3)
+      BasicFrameFormatter.binaryFrame
+        .fromFrame(BinaryFrame(Array[Byte](1, 2, 3)))
+        .to[Seq] must_== Seq[Byte](1, 2, 3)
     }
     "not translate TextFrames" in {
-      BasicFrameFormatter.binaryFrame.fromFrame(TextFrame("foo")) must throwAn[IllegalArgumentException]
+      BasicFrameFormatter.binaryFrame.fromFrame(TextFrame("foo")) must throwAn[
+          IllegalArgumentException]
     }
     "say that it handles BinaryFrames" in {
       BasicFrameFormatter.binaryFrame.fromFrameDefined(classOf[BinaryFrame]) must beTrue
@@ -47,7 +51,8 @@ object BasicFrameFormatterSpec extends Specification {
 
   "BasicFrameFormatter.mixedFrame" should {
     "translate strings to TextFrames" in {
-      BasicFrameFormatter.mixedFrame.toFrame(Left("banana")) must_== TextFrame("banana")
+      BasicFrameFormatter.mixedFrame.toFrame(Left("banana")) must_==
+        TextFrame("banana")
     }
     "translate byte arrays to BinaryFrames" in {
       BasicFrameFormatter.mixedFrame.toFrame(Right(Array[Byte](1, 2, 3))) must beLike {
@@ -55,10 +60,12 @@ object BasicFrameFormatterSpec extends Specification {
       }
     }
     "translate TextFrames to strings" in {
-      BasicFrameFormatter.mixedFrame.fromFrame(TextFrame("elephant")) must_== Left("elephant")
+      BasicFrameFormatter.mixedFrame.fromFrame(TextFrame("elephant")) must_==
+        Left("elephant")
     }
     "translate BinaryFrames to byte arrays" in {
-      BasicFrameFormatter.mixedFrame.fromFrame(BinaryFrame(Array[Byte](1, 2, 3))) must beRight.like {
+      BasicFrameFormatter.mixedFrame
+        .fromFrame(BinaryFrame(Array[Byte](1, 2, 3))) must beRight.like {
         case bytes => bytes.to[Seq] must_== Seq[Byte](1, 2, 3)
       }
     }
@@ -69,5 +76,4 @@ object BasicFrameFormatterSpec extends Specification {
       BasicFrameFormatter.mixedFrame.fromFrameDefined(classOf[TextFrame]) must beTrue
     }
   }
-
 }

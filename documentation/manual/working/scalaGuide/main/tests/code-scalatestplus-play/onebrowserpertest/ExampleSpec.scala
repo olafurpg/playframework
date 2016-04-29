@@ -12,26 +12,28 @@ import play.api.mvc._
 import Results._
 
 // #scalafunctionaltest-onebrowserpertest
-class ExampleSpec extends PlaySpec with OneServerPerTest with OneBrowserPerTest with HtmlUnitFactory {
+class ExampleSpec
+    extends PlaySpec with OneServerPerTest with OneBrowserPerTest
+    with HtmlUnitFactory {
 
   // Override newAppForTest if you need a FakeApplication with other than
   // default parameters.
   override def newAppForTest(testData: TestData): FakeApplication =
     new FakeApplication(
-      additionalConfiguration = Map("ehcacheplugin" -> "disabled"),
-      withRoutes = {
-        case ("GET", "/testing") =>
-          Action(
-            Results.Ok(
-              "<html>" +
-                "<head><title>Test Page</title></head>" +
-                "<body>" +
-                "<input type='button' name='b' value='Click Me' onclick='document.title=\"scalatest\"' />" +
-                "</body>" +
-                "</html>"
-            ).as("text/html")
-          )
-      }
+        additionalConfiguration = Map("ehcacheplugin" -> "disabled"),
+        withRoutes = {
+          case ("GET", "/testing") =>
+            Action(
+                Results
+                  .Ok(
+                      "<html>" + "<head><title>Test Page</title></head>" +
+                      "<body>" +
+                      "<input type='button' name='b' value='Click Me' onclick='document.title=\"scalatest\"' />" +
+                      "</body>" + "</html>"
+                  )
+                  .as("text/html")
+              )
+        }
     )
 
   "The OneBrowserPerTest trait" must {

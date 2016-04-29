@@ -1,10 +1,10 @@
 package play.core.j
 
-import java.math.{ BigDecimal, BigInteger }
+import java.math.{BigDecimal, BigInteger}
 
 import com.fasterxml.jackson.databind.node.BigIntegerNode
 
-import play.api.libs.json.{ JsNumber, JsObject }
+import play.api.libs.json.{JsNumber, JsObject}
 
 import JavaParsers._
 

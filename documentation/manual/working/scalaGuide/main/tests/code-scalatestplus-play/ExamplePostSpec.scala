@@ -19,23 +19,23 @@ class ExampleControllerSpec extends PlaySpec with Results {
   trait WithControllerAndRequest {
     val testController = new Controller with ApiController
 
-    def fakeRequest(method: String = "GET", route: String = "/") = FakeRequest(method, route)
-      .withHeaders(
-        ("Date", "2014-10-05T22:00:00"),
-        ("Authorization", "username=bob;hash=foobar==")
-    )
+    def fakeRequest(method: String = "GET", route: String = "/") =
+      FakeRequest(method, route).withHeaders(
+          ("Date", "2014-10-05T22:00:00"),
+          ("Authorization", "username=bob;hash=foobar==")
+      )
   }
 
   "REST API" should {
     "create a new user" in new WithControllerAndRequest {
-      val request = fakeRequest("POST", "/user").withJsonBody(Json.parse(
-        s"""{"first_name": "Alice",
-          |  "last_name": "Doe",
-          |  "credentials": {
-          |    "username": "alice",
-          |    "password": "secret"
-          |  }
-          |}""".stripMargin))
+      val request = fakeRequest("POST", "/user")
+        .withJsonBody(Json.parse(s"""{"first_name": "Alice",
+                                    |  "last_name": "Doe",
+                                    |  "credentials": {
+                                    |    "username": "alice",
+                                    |    "password": "secret"
+                                    |  }
+                                    |}""".stripMargin))
       val apiResult = call(testController.createUser, request)
       status(apiResult) mustEqual CREATED
       val jsonResult = contentAsJson(apiResult)

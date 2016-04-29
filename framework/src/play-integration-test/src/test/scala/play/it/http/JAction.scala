@@ -5,29 +5,31 @@ package play.it.http
 
 import play.api._
 import play.api.mvc.EssentialAction
-import play.core.j.{ JavaHandlerComponents, JavaActionAnnotations, JavaAction }
+import play.core.j.{JavaHandlerComponents, JavaActionAnnotations, JavaAction}
 import play.http.DefaultHttpRequestHandler
-import play.mvc.{ Http, Result }
+import play.mvc.{Http, Result}
 import play.libs.F.Promise
 
 /**
- * Use this to mock Java actions, eg:
- *
- * {{{
- *   new FakeApplication(
- *     withRouter = {
- *       case _ => JAction(new MockController() {
- *         @Security.Authenticated
- *         def action = ok
- *       })
- *     }
- *   }
- * }}}
- */
+  * Use this to mock Java actions, eg:
+  *
+  * {{{
+  *   new FakeApplication(
+  *     withRouter = {
+  *       case _ => JAction(new MockController() {
+  *         @Security.Authenticated
+  *         def action = ok
+  *       })
+  *     }
+  *   }
+  * }}}
+  */
 object JAction {
   def apply(app: Application, c: AbstractMockController): EssentialAction = {
-    new JavaAction(new JavaHandlerComponents(app.injector, new DefaultHttpRequestHandler())) {
-      val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"))
+    new JavaAction(new JavaHandlerComponents(
+            app.injector, new DefaultHttpRequestHandler())) {
+      val annotations = new JavaActionAnnotations(
+          c.getClass, c.getClass.getMethod("action"))
       val parser = annotations.parser
       def invocation = c.invocation
     }

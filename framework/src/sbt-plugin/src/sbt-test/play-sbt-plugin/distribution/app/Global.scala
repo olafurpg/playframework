@@ -20,5 +20,4 @@ object Global extends GlobalSettings {
     thread.setDaemon(true)
     thread.start()
   }
-
 }

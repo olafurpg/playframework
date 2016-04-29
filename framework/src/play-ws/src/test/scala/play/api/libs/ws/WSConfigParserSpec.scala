@@ -15,19 +15,22 @@ object WSConfigParserSpec extends Specification {
   "WSConfigParser" should {
 
     def parseThis(input: String)(implicit app: play.api.Application) = {
-      val config = play.api.Configuration(ConfigFactory.parseString(input).withFallback(ConfigFactory.defaultReference()))
-      val parser = new WSConfigParser(config, app.injector.instanceOf[Environment])
+      val config = play.api.Configuration(ConfigFactory
+            .parseString(input)
+            .withFallback(ConfigFactory.defaultReference()))
+      val parser =
+        new WSConfigParser(config, app.injector.instanceOf[Environment])
       parser.parse()
     }
 
     "parse ws base section" in new WithApplication {
       val actual = parseThis("""
-                                |play.ws.timeout.connection = 9999 ms
-                                |play.ws.timeout.idle = 666 ms
-                                |play.ws.timeout.request = 1234 ms
-                                |play.ws.followRedirects = false
-                                |play.ws.useProxyProperties = false
-                                |play.ws.useragent = "FakeUserAgent"
+                               |play.ws.timeout.connection = 9999 ms
+                               |play.ws.timeout.idle = 666 ms
+                               |play.ws.timeout.request = 1234 ms
+                               |play.ws.followRedirects = false
+                               |play.ws.useProxyProperties = false
+                               |play.ws.useragent = "FakeUserAgent"
                               """.stripMargin)
 
       actual.connectionTimeout must_== 9999.millis
